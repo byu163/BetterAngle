@@ -1,11 +1,10 @@
 @echo off
-echo Building BetterAngle (C++)...
+echo Building BetterAngle v3.5 Pro Edition...
 
 :: Check for MSVC
 where cl >nul 2>nul
 if %errorlevel% neq 0 (
     echo [ERROR] MSVC (cl.exe) not found in PATH.
-    echo Please run this from a 'Developer Command Prompt for VS' or install Visual Studio Build Tools.
     pause
     exit /b 1
 )
@@ -13,11 +12,20 @@ if %errorlevel% neq 0 (
 :: Create bin directory
 if not exist bin mkdir bin
 
-:: Compile
-cl.exe /EHsc /O2 /DUNICODE /D_UNICODE /I include src\*.cpp /Fe:bin\BetterAngle.exe /link user32.lib gdi32.lib gdiplus.lib dwmapi.lib winhttp.lib /SUBSYSTEM:WINDOWS
+:: Shared Flags
+set FLAGS=/EHsc /O2 /DUNICODE /D_UNICODE /I include /I src
+set LIBS=user32.lib gdi32.lib gdiplus.lib dwmapi.lib winhttp.lib /SUBSYSTEM:WINDOWS
+
+:: 1. Build Main Application
+echo Building BetterAngle.exe (Main)...
+cl.exe %FLAGS% src/main_app/BetterAngle.cpp src/shared/*.cpp /Fe:bin/BetterAngle.exe /link %LIBS%
+
+:: 2. Build Calibration Tool
+echo Building BetterAngleConfig.exe (Wizard)...
+cl.exe %FLAGS% src/config_tool/BetterAngleConfig.cpp src/shared/*.cpp /Fe:bin/BetterAngleConfig.exe /link %LIBS%
 
 if %errorlevel% equ 0 (
-    echo [SUCCESS] BetterAngle.exe created in bin/
+    echo [SUCCESS] BetterAngle v3.5 Pro binaries created in bin/
 ) else (
     echo [ERROR] Build failed.
 )

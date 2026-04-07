@@ -22,16 +22,28 @@ jobs:
       run: |
         if (Test-Path bin) { Remove-Item -Recycle -Force bin }
         mkdir bin
-        cl.exe /EHsc /O2 /DUNICODE /D_UNICODE /I include src\*.cpp /Fe:bin\BetterAngle.exe /link user32.lib gdi32.lib gdiplus.lib dwmapi.lib winhttp.lib /SUBSYSTEM:WINDOWS
+        $FLAGS = "/EHsc /O2 /DUNICODE /D_UNICODE /I include /I src"
+        $LIBS = "user32.lib gdi32.lib gdiplus.lib dwmapi.lib winhttp.lib /SUBSYSTEM:WINDOWS"
+        
+        # Build Main App
+        cl.exe $FLAGS src/main_app/BetterAngle.cpp src/shared/*.cpp /Fe:bin/BetterAngle.exe /link $LIBS
+        
+        # Build Config Tool
+        cl.exe $FLAGS src/config_tool/BetterAngleConfig.cpp src/shared/*.cpp /Fe:bin/BetterAngleConfig.exe /link $LIBS
+
+        # Bundle everything
+        Compress-Archive -Path bin/*.exe, profiles -DestinationPath bin/BetterAngle_Pro.zip
 
     - name: Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: bin/BetterAngle.exe
+        files: bin/BetterAngle_Pro.zip
         token: ${{ secrets.GITHUB_TOKEN }}
         body: |
-            BetterAngle C++ Release
-            - High-performance angle tracking
-            - Minimal RAM and CPU footprint
-            - Automated GitHub updates
+            BetterAngle v3.5 Pro Edition
+            - Modern "Glass" UI HUD
+            - Smart Detach Tracking (No more menu drift!)
+            - Dual FOV Switching (Normal/Diving)
+            - Separate Config Tool for MahanYTT to create profiles
+            - Automated GitHub Releases
