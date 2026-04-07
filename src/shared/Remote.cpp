@@ -10,6 +10,12 @@ std::string FetchRemoteString(const std::wstring& url) {
     HINTERNET hSession = WinHttpOpen(L"BetterAngle/4.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
     if (!hSession) return "";
 
+    // Set 5 second timeouts
+    DWORD timeout = 5000;
+    WinHttpSetOption(hSession, WINHTTP_OPTION_CONNECT_TIMEOUT, &timeout, sizeof(timeout));
+    WinHttpSetOption(hSession, WINHTTP_OPTION_RECEIVE_TIMEOUT, &timeout, sizeof(timeout));
+    WinHttpSetOption(hSession, WINHTTP_OPTION_SEND_TIMEOUT, &timeout, sizeof(timeout));
+
     URL_COMPONENTS urlComp = { sizeof(URL_COMPONENTS) };
     urlComp.dwHostNameLength = -1;
     urlComp.dwUrlPathLength = -1;
