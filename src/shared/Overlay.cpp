@@ -19,72 +19,45 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
     HGDIOBJ hOld = SelectObject(hdcMem, hbmMem);
     
     Graphics graphics(hdcMem);
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit); // v4.7.3: UHD Sharpening
-    graphics.Clear(Color(0, 0, 0, 0));
+    graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+    graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
+    graphics.Clear(Gdiplus::Color(0, 0, 0, 0));
 
-    // 1. Cinematic Screen Dimming
+    // Cinematic Dimming
     if (g_isSelectionMode) {
-        SolidBrush dimBrush(Color(120, 0, 0, 0)); // Semi-transparent black
-        graphics.FillRectangle(&dimBrush, 0, 0, sw, sh);
+        Gdiplus::SolidBrush dimBrush(Gdiplus::Color(180, 0, 0, 0)); 
+        graphics.FillRectangle(&dimBrush, 0, 0, 9999, 9999);
+        
+        Gdiplus::FontFamily fontFamily(L"Segoe UI");
+        Gdiplus::Font font(&fontFamily, 32, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
+        Gdiplus::SolidBrush whiteBrush(Gdiplus::Color(255, 255, 255, 255));
+        graphics.DrawString(L"STEP 1: DRAG TO SELECT PROMPT AREA", -1, &font, Gdiplus::PointF(50.0f, 50.0f), &whiteBrush);
     }
+
+    // Dynamic Live ROI Box
+    if (g_showROIBox && g_selectionRect.right > g_selectionRect.left) {
+        Gdiplus::Color boxColor = g_isDiving ? Gdiplus::Color(255, 255, 0, 0) : Gdiplus::Color(255, 0, 255, 0);
+        if (g_isSelectionMode) boxColor = Gdiplus::Color(255, 0, 255, 0); 
+        
+        Gdiplus::Pen roiPen(boxColor, 2.0f);
+        graphics.DrawRectangle(&roiPen, g_selectionRect.left, g_selectionRect.top, 
+            g_selectionRect.right - g_selectionRect.left, g_selectionRect.bottom - g_selectionRect.top);
+    }
+
+    // Target Color Circle Feedback
+    int circleX = 200; // Adjust X position as needed
+    int circleY = 100; // Adjust Y position as needed
+    Gdiplus::SolidBrush targetColorBrush(Gdiplus::Color(255, 255, 255, 255));
+    Gdiplus::Pen circleBorder(Gdiplus::Color(255, 200, 200, 200), 1.0f);
+
+    graphics.FillEllipse(&targetColorBrush, circleX, circleY, 15, 15);
+    graphics.DrawEllipse(&circleBorder, circleX, circleY, 15, 15);
 
     // 2. Draw Precision Crosshair (F10)
     if (showCrosshair) {
-        Pen crossPen(Color(255, 255, 0, 0), 1);
+        Gdiplus::Pen crossPen(Gdiplus::Color(255, 255, 0, 0), 1);
         graphics.DrawLine(&crossPen, 0, sh / 2, sw, sh / 2);
         graphics.DrawLine(&crossPen, sw / 2, 0, sw / 2, sh);
-    }
-
-    // 3. Draw Visual ROI Selector & Microscope
-    if (g_isSelectionMode) {
-        // Guidance Text
-        FontFamily ff(L"Segoe UI");
-        Font guideFont(&ff, 28, FontStyleBold, UnitPixel);
-        SolidBrush white(Color(255, 255, 255, 255));
-        
-        std::wstring guide = (g_selectionStep == 0) ? L"STEP 1: DRAG BOX OVER PROMPT" : L"STEP 2: PICK TARGET COLOR";
-        graphics.DrawString(guide.c_str(), -1, &guideFont, PointF(sw / 2.0f - 200, sh / 2.0f - 100), &white);
-
-        if (g_selectionStep == 0) {
-            Pen selPen(Color(255, 0, 255, 255), 2); // Cyan for selection
-            graphics.DrawRectangle(&selPen, (int)g_selectionRect.left, (int)g_selectionRect.top, 
-                                  (int)(g_selectionRect.right - g_selectionRect.left), 
-                                  (int)(g_selectionRect.bottom - g_selectionRect.top));
-        } else {
-            // PIXEL MICROSCOPE (Magnifier)
-            POINT cur;
-            GetCursorPos(&cur);
-            ScreenToClient(hwnd, &cur);
-
-            int zoomSize = 140;
-            int halfZoom = zoomSize / 2;
-            int zoomFactor = 10;
-            int captureSize = zoomSize / zoomFactor;
-
-            // Capture screen around mouse
-            HDC hdcScreen = GetDC(NULL);
-            HDC hdcZoom = CreateCompatibleDC(hdcScreen);
-            HBITMAP hbmZoom = CreateCompatibleBitmap(hdcScreen, captureSize, captureSize);
-            SelectObject(hdcZoom, hbmZoom);
-            
-            POINT screenCur;
-            GetCursorPos(&screenCur);
-            BitBlt(hdcZoom, 0, 0, captureSize, captureSize, hdcScreen, screenCur.x - captureSize/2, screenCur.y - captureSize/2, SRCCOPY);
-            
-            Bitmap bmp(hbmZoom, NULL);
-            graphics.DrawImage(&bmp, cur.x + 20, cur.y + 20, zoomSize, zoomSize); // Draw zoomed area
-
-            // Microscope Frame & Crosshair
-            Pen lensPen(Color(255, 255, 255, 255), 2);
-            graphics.DrawRectangle(&lensPen, cur.x + 20, cur.y + 20, zoomSize, zoomSize);
-            graphics.DrawLine(&lensPen, cur.x + 20 + halfZoom, cur.y + 20, cur.x + 20 + halfZoom, cur.y + 20 + zoomSize);
-            graphics.DrawLine(&lensPen, cur.x + 20, cur.y + 20 + halfZoom, cur.x + 20 + zoomSize, cur.y + 20 + halfZoom);
-
-            DeleteObject(hbmZoom);
-            DeleteDC(hdcZoom);
-            ReleaseDC(NULL, hdcScreen);
-        }
     }
 
     // 4. Draw Clean Glass HUD

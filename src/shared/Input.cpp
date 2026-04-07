@@ -37,3 +37,26 @@ int GetRawInputDeltaX(LPARAM lparam) {
     delete[] lpb;
     return dx;
 }
+#include "shared/State.h"
+
+void PollInputKeys() {
+    static bool f9Pressed = false;
+    if (GetAsyncKeyState(VK_F9) & 0x8000) {
+        if (!f9Pressed) {
+            g_showROIBox = !g_showROIBox;
+            f9Pressed = true;
+        }
+    } else {
+        f9Pressed = false;
+    }
+
+    static bool rPressed = false;
+    if ((GetAsyncKeyState(VK_CONTROL) & 0x8000) && (GetAsyncKeyState('R') & 0x8000)) {
+        if (!rPressed) {
+            g_isSelectionMode = !g_isSelectionMode;
+            rPressed = true;
+        }
+    } else {
+        rPressed = false;
+    }
+}

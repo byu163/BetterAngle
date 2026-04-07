@@ -8,9 +8,21 @@ void AngleLogic::Update(int dx) {
     m_accumDx += dx;
 }
 
+#include "shared/State.h"
+
 double AngleLogic::GetAngle() const {
     if (m_scalePerDx == 0.0) return 0.0;
-    return Norm360(m_baseAngle + (m_accumDx - m_baseDx) * m_scalePerDx);
+    double angle = Norm360(m_baseAngle + (m_accumDx - m_baseDx) * m_scalePerDx);
+    
+    // Heuristic Check (v4.9.3)
+    g_currentAngle = (float)angle;
+    if (g_currentAngle > 50.0f || g_currentAngle < -50.0f) {
+        g_isDiving = true;
+    } else {
+        g_isDiving = false;
+    }
+    
+    return angle;
 }
 
 void AngleLogic::SetZero() {

@@ -1,6 +1,8 @@
 #include "shared/State.h"
 
-// Global Definitions
+bool g_isDiving = false;
+bool g_showROIBox = true;
+int g_currentTab = 0;
 float g_detectionRatio = 0.0f;
 bool g_showCrosshair = false;
 bool g_isSelectionMode = false;
