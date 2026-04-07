@@ -12,6 +12,8 @@ extern bool g_showCrosshair;
 extern bool g_isSelectionMode;
 extern int g_selectionStep; // 0 = ROI, 1 = Color
 extern COLORREF g_pickedColor;
+extern float g_latestVersion;
+extern std::wstring g_latestName;
 extern RECT g_selectionRect;
 extern POINT g_startPoint;
 extern std::string g_status;

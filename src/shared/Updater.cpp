@@ -7,8 +7,10 @@
 #pragma comment(lib, "winhttp.lib")
 
 bool CheckForUpdates() {
-    // Current simple logic: Check a version file on GitHub
-    return true; // For testing v4.7.3 One-Click
+    // In production, this would parse the JSON from GitHub
+    g_latestVersion = 4.90f; // Mock newer version for testing
+    g_latestName = L"Precision Direct-X Suite";
+    return (g_latestVersion > 4.81f);
 }
 
 bool DownloadUpdate(const std::wstring& url, const std::wstring& dest) {

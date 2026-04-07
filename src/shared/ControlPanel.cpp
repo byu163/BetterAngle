@@ -2,33 +2,70 @@
 #include "shared/Overlay.h"
 #include "shared/Config.h"
 #include "shared/ControlPanel.h"
-#include <gdiplus.h>
-#include <dwmapi.h>
+#include "shared/Updater.h"
+#include <d2d1.h>
+#include <dwrite.h>
 #include <string>
 
-using namespace Gdiplus;
+#pragma comment(lib, "d2d1.lib")
+#pragma comment(lib, "dwrite.lib")
+
+ID2D1Factory* g_pD2DFactory = NULL;
+IDWriteFactory* g_pDWriteFactory = NULL;
+ID2D1HwndRenderTarget* g_pRenderTarget = NULL;
+
+// UI State
+bool g_isCheckingUpdate = false;
+
+void InitD2D(HWND hWnd) {
+    if (!g_pD2DFactory) {
+        D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &g_pD2DFactory);
+        DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&g_pDWriteFactory);
+    }
+    RECT rc; GetClientRect(hWnd, &rc);
+    D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
+    if (g_pRenderTarget) g_pRenderTarget->Release();
+    g_pD2DFactory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(hWnd, size), &g_pRenderTarget);
+}
+
+void DrawD2DButton(ID2D1HwndRenderTarget* rt, RectF rect, const wchar_t* text, ColorF color, bool isPressed) {
+    ID2D1SolidColorBrush* pBrush = NULL;
+    rt->CreateSolidColorBrush(color, &pBrush);
+    
+    rt->FillRoundedRectangle(D2D1::RoundedRect(rect, 8.0f, 8.0f), pBrush);
+    
+    ID2D1SolidColorBrush* pWhite = NULL;
+    rt->CreateSolidColorBrush(ColorF(ColorF::White), &pWhite);
+    
+    IDWriteTextFormat* pTextFormat = NULL;
+    g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 14.0f, L"en-us", &pTextFormat);
+    pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    
+    rt->DrawText(text, (UINT32)wcslen(text), pTextFormat, rect, pWhite);
+    
+    pTextFormat->Release();
+    pWhite->Release();
+    pBrush->Release();
+}
 
 HWND CreateControlPanel(HINSTANCE hInst) {
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = ControlPanelWndProc;
     wc.hInstance = hInst;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = CreateSolidBrush(RGB(10, 12, 15)); 
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wc.lpszClassName = L"BetterAngleControlPanel";
     RegisterClass(&wc);
 
-    int w = 400, h = 640; 
+    int w = 420, h = 680;
     HWND hPanel = CreateWindowEx(
         WS_EX_TOPMOST | WS_EX_APPWINDOW,
-        L"BetterAngleControlPanel", L"BetterAngle Pro | Command Center",
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, 
-        100, 100, w, h,
+        L"BetterAngleControlPanel", L"BetterAngle Pro | Global Command Center",
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        CW_USEDEFAULT, CW_USEDEFAULT, w, h,
         NULL, NULL, hInst, NULL
     );
-
-    // v4.7.3: Quit Button Logic (Owner Draw for Glass Effect)
-    CreateWindow(L"BUTTON", L"QUIT", WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, 
-                20, 530, 345, 45, hPanel, (HMENU)105, hInst, NULL);
 
     ShowWindow(hPanel, SW_SHOW);
     UpdateWindow(hPanel);
@@ -38,101 +75,91 @@ HWND CreateControlPanel(HINSTANCE hInst) {
 LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_CREATE:
-            SetTimer(hWnd, 1, 100, NULL); 
+            InitD2D(hWnd);
+            SetTimer(hWnd, 1, 100, NULL);
             return 0;
 
-        case WM_DRAWITEM: {
-            LPDRAWITEMSTRUCT pdis = (LPDRAWITEMSTRUCT)lParam;
-            if (pdis->CtlID == 105) { // Glossy QUIT Button
-                Graphics g(pdis->hDC);
-                g.SetSmoothingMode(SmoothingModeAntiAlias);
-                
-                Rect r(0, 0, pdis->rcItem.right, pdis->rcItem.bottom);
-                
-                // Rounded path
-                GraphicsPath path;
-                int corner = 12;
-                path.AddArc(r.X, r.Y, corner, corner, 180, 90);
-                path.AddArc(r.X + r.Width - corner, r.Y, corner, corner, 270, 90);
-                path.AddArc(r.X + r.Width - corner, r.Y + r.Height - corner, corner, corner, 0, 90);
-                path.AddArc(r.X, r.Y + r.Height - corner, corner, corner, 90, 90);
-                path.CloseFigure();
+        case WM_SIZE:
+            InitD2D(hWnd);
+            return 0;
 
-                // Premium Red Glass Gradient
-                Color c1 = Color(255, 180, 20, 30);
-                Color c2 = Color(255, 100, 5, 10);
-                if (pdis->itemState & ODS_SELECTED) { c1 = Color(255, 140, 10, 15); c2 = Color(255, 60, 2, 5); }
-                
-                LinearGradientBrush brush(r, c1, c2, LinearGradientModeVertical);
-                g.FillPath(&brush, &path);
-
-                // Glossy Sheen Overlay
-                RectF sheenRect((float)r.X, (float)r.Y, (float)r.Width, (float)r.Height / 2.0f);
-                LinearGradientBrush sheenBrush(sheenRect, Color(100, 255, 255, 255), Color(0, 255, 255, 255), LinearGradientModeVertical);
-                g.FillRectangle(&sheenBrush, sheenRect);
-
-                Pen borderPen(Color(120, 255, 255, 255), 1);
-                g.DrawPath(&borderPen, &path);
-
-                FontFamily ff(L"Segoe UI");
-                Font font(&ff, 14, FontStyleBold, UnitPixel);
-                SolidBrush white(Color(255, 255, 255, 255));
-                
-                StringFormat format;
-                format.SetAlignment(StringAlignmentCenter);
-                format.SetLineAlignment(StringAlignmentCenter);
-                
-                g.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
-                g.DrawString(L"QUIT SUITE", -1, &font, RectF(0, 0, (float)r.Width, (float)r.Height), &format, &white);
-                return TRUE;
+        case WM_LBUTTONDOWN: {
+            int x = LOWORD(lParam), y = HIWORD(lParam);
+            // Check For Updates Button
+            if (x >= 40 && x <= 380 && y >= 320 && y <= 370) {
+                g_isCheckingUpdate = true;
+                CheckForUpdates();
+            }
+            // Update Now Button (Conditional)
+            if (g_latestVersion > 4.81f && x >= 40 && x <= 380 && y >= 380 && y <= 430) {
+                ApplyUpdateAndRestart();
+            }
+            // Quit Button
+            if (x >= 40 && x <= 380 && y >= 580 && y <= 630) {
+                PostQuitMessage(0);
             }
             return 0;
         }
 
-        case WM_COMMAND:
-            if (LOWORD(wParam) == 105) { // QUIT button clicked
-                PostQuitMessage(0);
+        case WM_PAINT: {
+            if (!g_pRenderTarget) return 0;
+            g_pRenderTarget->BeginDraw();
+            g_pRenderTarget->Clear(ColorF(0.05f, 0.06f, 0.07f));
+
+            ID2D1SolidColorBrush* pWhite = NULL;
+            g_pRenderTarget->CreateSolidColorBrush(ColorF(ColorF::White), &pWhite);
+            ID2D1SolidColorBrush* pGrey = NULL;
+            g_pRenderTarget->CreateSolidColorBrush(ColorF(0.6f, 0.6f, 0.6f), &pGrey);
+
+            IDWriteTextFormat* pTitleFormat = NULL;
+            g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 24.0f, L"en-us", &pTitleFormat);
+
+            g_pRenderTarget->DrawText(L"Pro Command Center", 18, pTitleFormat, RectF(40, 40, 380, 80), pWhite);
+            
+            // Software & Updates Section
+            IDWriteTextFormat* pHeaderFormat = NULL;
+            g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 16.0f, L"en-us", &pHeaderFormat);
+            g_pRenderTarget->DrawText(L"SOFTWARE & UPDATES", 18, pHeaderFormat, RectF(40, 120, 380, 150), pWhite);
+
+            std::wstring curVer = L"Current Version: v4.8.1 (Direct-Readability)";
+            std::wstring latestVer = L"Latest Found: v" + std::to_wstring(g_latestVersion).substr(0, 4) + L" (" + g_latestName + L")";
+            
+            IDWriteTextFormat* pVerFormat = NULL;
+            g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 13.0f, L"en-us", &pVerFormat);
+            
+            g_pRenderTarget->DrawText(curVer.c_str(), (UINT32)curVer.length(), pVerFormat, RectF(40, 160, 380, 180), pGrey);
+            g_pRenderTarget->DrawText(latestVer.c_str(), (UINT32)latestVer.length(), pVerFormat, RectF(40, 185, 380, 205), pGrey);
+
+            // Buttons
+            DrawD2DButton(g_pRenderTarget, RectF(40, 320, 380, 370), L"CHECK FOR UPDATES", ColorF(0.15f, 0.17f, 0.2f), false);
+            
+            if (g_latestVersion > 4.81f) {
+                DrawD2DButton(g_pRenderTarget, RectF(40, 380, 380, 430), L"UPDATE NOW", ColorF(0.0f, 0.5f, 0.8f), false);
             }
+
+            // High-Resolution Liquid QUIT Button
+            DrawD2DButton(g_pRenderTarget, RectF(40, 580, 380, 630), L"QUIT SUITE", ColorF(0.7f, 0.1f, 0.15f), false);
+
+            pVerFormat->Release();
+            pHeaderFormat->Release();
+            pTitleFormat->Release();
+            pGrey->Release();
+            pWhite->Release();
+            g_pRenderTarget->EndDraw();
+            ValidateRect(hWnd, NULL);
             return 0;
+        }
 
         case WM_TIMER:
             InvalidateRect(hWnd, NULL, FALSE);
             return 0;
 
-        case WM_PAINT: {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            Graphics graphics(hdc);
-            graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-            graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit); 
-
-            // Draw Professional Dashboard
-            FontFamily fontFamily(L"Segoe UI");
-            Font headFont(&fontFamily, 22, FontStyleBold, UnitPixel);
-            SolidBrush whiteBrush(Color(255, 255, 255, 255));
-            graphics.DrawString(L"Pro Command Center", -1, &headFont, PointF(20, 20), &whiteBrush);
-
-            Pen linePen(Color(100, 0, 255, 127), 2);
-            graphics.DrawLine(&linePen, 20, 60, 360, 60);
-
-            // Live Analytics
-            Font detailFont(&fontFamily, 14, FontStyleRegular, UnitPixel);
-            int matchPct = (int)(g_detectionRatio * 100);
-            std::wstring matchStr = L"Live Target Match: " + std::to_wstring(matchPct) + L"%";
-            graphics.DrawString(matchStr.c_str(), -1, &detailFont, PointF(20, 80), &whiteBrush);
-
-            // Version Info
-            Font smallFont(&fontFamily, 11, FontStyleItalic, UnitPixel);
-            SolidBrush greyBrush(Color(255, 180, 180, 180));
-            graphics.DrawString(L"Version: 4.7.3 Flagship Overhaul", -1, &smallFont, PointF(20, 470), &greyBrush);
-            graphics.DrawString(L"Build Date: April 2026", -1, &smallFont, PointF(20, 490), &greyBrush);
-
-            EndPaint(hWnd, &ps);
-            return 0;
-        }
-
         case WM_CLOSE:
-            ShowWindow(hWnd, SW_MINIMIZE); 
+            ShowWindow(hWnd, SW_MINIMIZE);
+            return 0;
+
+        case WM_DESTROY:
+            if (g_pRenderTarget) g_pRenderTarget->Release();
             return 0;
 
         default:
