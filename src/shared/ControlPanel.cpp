@@ -150,7 +150,8 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             if (g_currentTab == 0) {
                 g_pRenderTarget->DrawText(L"CURRENT KEYBINDS", 16, pHeaderFormat, D2D1::RectF(40, 140, 380, 170), pWhite);
                 g_pRenderTarget->DrawText(L"Precision Crosshair: F10\nVisual ROI Selector: Ctrl + R\nToggle ROI Box: F9", 66, pVerFormat, D2D1::RectF(40, 170, 380, 240), pGrey);
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 250, 380, 290), L"PICK TARGET COLOR", D2D1::ColorF(0.15f, 0.45f, 0.25f));
+                // Quick Guide for Workspace selection
+                g_pRenderTarget->DrawText(L"Press CTRL+R to begin full-screen selection.", 45, pVerFormat, D2D1::RectF(40, 250, 380, 290), pWhite);
             } else if (g_currentTab == 1) {
                 g_pRenderTarget->DrawText(L"SOFTWARE DASHBOARD", 18, pHeaderFormat, D2D1::RectF(40, 140, 380, 170), pWhite);
                 
@@ -161,7 +162,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                     g_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
                 }
 
-                std::wstring curVer = L"Current Version: v4.9.9 (Engine Recovery)";
+                std::wstring curVer = L"Current Version: v4.9.10 (Workspace Overhaul)";
                 
                 // Use the real version string fetched from GitHub
                 std::wstring latestVerStr = std::wstring(g_latestVersionOnline.begin(), g_latestVersionOnline.end());

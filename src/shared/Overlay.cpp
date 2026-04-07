@@ -24,7 +24,7 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
     graphics.Clear(Gdiplus::Color(0, 0, 0, 0));
 
     // Cinematic Dimming & Two-Stage Selection
-    if (g_appState != IDLE) {
+    if (g_currentSelection != NONE) {
         Gdiplus::SolidBrush dimBrush(Gdiplus::Color(180, 0, 0, 0)); 
         graphics.FillRectangle(&dimBrush, 0, 0, sw, sh);
         
@@ -32,16 +32,21 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
         Gdiplus::Font font(&fontFamily, 32, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
         Gdiplus::SolidBrush whiteBrush(Gdiplus::Color(255, 255, 255, 255));
         
-        if (g_appState == SELECTING_ROI) {
-            graphics.DrawString(L"STEP 1: DRAG TO SELECT PROMPT AREA", -1, &font, Gdiplus::PointF(50.0f, 50.0f), &whiteBrush);
-        } else if (g_appState == SELECTING_COLOR) {
-            graphics.DrawString(L"STEP 2: CLICK TO PICK TARGET COLOR", -1, &font, Gdiplus::PointF(50.0f, 50.0f), &whiteBrush);
+        if (g_currentSelection == SELECTING_ROI) {
+            graphics.DrawString(L"STAGE 1: DRAG TO SELECT PROMPT AREA", -1, &font, Gdiplus::PointF(50.0f, 50.0f), &whiteBrush);
+        } else if (g_currentSelection == SELECTING_COLOR) {
+            graphics.DrawString(L"STAGE 2: CLICK TO PICK PRECISE COLOR", -1, &font, Gdiplus::PointF(50.0f, 50.0f), &whiteBrush);
             
-            // Precision Color Scope (Magnifier) - 31x31 at 8x scale (248px)
-            POINT cur; GetCursorPos(&cur);
-            int scopeSize = 248;
-            int scopeX = cur.x - scopeSize / 2;
-            int scopeY = cur.y - scopeSize / 2;
+            // Follow-Mouse Magnifier Scope (+20x, +20y offset)
+            POINT mouse; GetCursorPos(&mouse);
+            int scopeSize = 200;
+            int offset = 20;
+            int scopeX = mouse.x + offset;
+            int scopeY = mouse.y + offset;
+
+            // Screen boundary check
+            if (scopeX + scopeSize > sw) scopeX = mouse.x - scopeSize - offset;
+            if (scopeY + scopeSize > sh) scopeY = mouse.y - scopeSize - offset;
 
             GraphicsPath scopePath;
             scopePath.AddEllipse(scopeX, scopeY, scopeSize, scopeSize);
@@ -49,12 +54,14 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
 
             HDC hdcScreen = GetDC(NULL);
             StretchBlt(hdcMem, scopeX, scopeY, scopeSize, scopeSize, 
-                       hdcScreen, cur.x - 15, cur.y - 15, 31, 31, SRCCOPY);
+                       hdcScreen, mouse.x - 15, mouse.y - 15, 31, 31, SRCCOPY);
             ReleaseDC(NULL, hdcScreen);
 
-            Pen redPen(Color(255, 255, 0, 0), 2.0f);
-            graphics.DrawLine(&redPen, cur.x - 10, cur.y, cur.x + 10, cur.y);
-            graphics.DrawLine(&redPen, cur.x, cur.y - 10, cur.x, cur.y + 10);
+            // Precision Red Dot Crosshair
+            SolidBrush redBrush(Color(255, 255, 0, 0));
+            int centerX = scopeX + scopeSize / 2;
+            int centerY = scopeY + scopeSize / 2;
+            graphics.FillEllipse(&redBrush, centerX - 1, centerY - 1, 3, 3);
             
             graphics.ResetClip();
             graphics.DrawEllipse(&Pen(Color(255, 255, 255, 255), 3.0f), scopeX, scopeY, scopeSize, scopeSize);
@@ -64,17 +71,19 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
     // Dynamic Live ROI Box
     if (g_showROIBox && g_selectionRect.right > g_selectionRect.left) {
         Gdiplus::Color boxColor = g_isDiving ? Gdiplus::Color(255, 255, 0, 0) : Gdiplus::Color(255, 0, 255, 0);
-        if (g_appState != IDLE) boxColor = Gdiplus::Color(255, 0, 255, 0); 
+        if (g_currentSelection != NONE) boxColor = Gdiplus::Color(255, 0, 255, 0); 
         
         Gdiplus::Pen roiPen(boxColor, 2.0f);
         graphics.DrawRectangle(&roiPen, g_selectionRect.left, g_selectionRect.top, 
             g_selectionRect.right - g_selectionRect.left, g_selectionRect.bottom - g_selectionRect.top);
     }
 
-    // Target Color Circle Feedback
+    // Target Color Circle Feedback (BGR/RGB Sync Fix)
     int circleX = 200; 
     int circleY = 100;
-    Gdiplus::SolidBrush targetColorBrush(Gdiplus::Color(255, GetRValue(g_targetColor), GetGValue(g_targetColor), GetBValue(g_targetColor)));
+    // User requested swaped B/R for sync: RGB(GetBValue, GetGValue, GetRValue)
+    Gdiplus::Color previewColor(255, GetBValue(g_targetColor), GetGValue(g_targetColor), GetRValue(g_targetColor));
+    Gdiplus::SolidBrush targetColorBrush(previewColor);
     Gdiplus::Pen circleBorder(Gdiplus::Color(255, 200, 200, 200), 1.0f);
 
     graphics.FillEllipse(&targetColorBrush, circleX, circleY, 15, 15);
@@ -126,7 +135,7 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
     graphics.DrawString(L"CURRENT ANGLE (LIVE)", -1, &subFont, PointF(rx + 30, ry + 25), &greyBrush);
 
     Font miniFont(&fontFamily, 10, FontStyleRegular, UnitPixel);
-    graphics.DrawString(L"Reliability Suite v4.9.9 | Build Fix Engine", -1, &miniFont, PointF(rx + 30, ry + 150), &greyBrush);
+    graphics.DrawString(L"Reliability Suite v4.9.10 | Workspace Engine", -1, &miniFont, PointF(rx + 30, ry + 150), &greyBrush);
 
     BitBlt(hdc, 0, 0, sw, sh, hdcMem, 0, 0, SRCCOPY);
     SelectObject(hdcMem, hOld);

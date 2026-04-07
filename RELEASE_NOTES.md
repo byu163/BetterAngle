@@ -1,5 +1,5 @@
-### BetterAngle Pro v4.9.9: "Precision Analytics & Build Recovery"
-💎 v4.9.9: Emergency build fix for C2065 undeclared identifier. Fully synchronized selection state variables. Verified full-screen overlay transparency.
+### BetterAngle Pro v4.9.10: "Workspace Architecture Overhaul"
+💎 v4.9.10: Full-Screen Workspace integration. Two-stage ROI -> Color Scope selection. Removed legacy color buttons. Fixed BGR color preview sync.
 💎 **[NEW] Dynamic Live ROI Visualizer:** Persistent visual box that dynamically shifts from GREEN (Gliding) to RED (Diving).
 🤖 **[NEW] 60FPS UI Engine:** Control panel rendering boosted to 60 FPS (16ms) for buttery-smooth window interaction.
 🔴 **[NEW] Professional Tabbed Dashboard:** Separated General/Binds and Software/Updates for a cleaner, modern workspace.
