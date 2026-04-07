@@ -24,6 +24,8 @@
 
 using namespace Gdiplus;
 
+#include "shared/State.h"
+
 // Global State
 HWND g_hHUD = NULL;
 HWND g_hPanel = NULL;
@@ -31,14 +33,6 @@ ULONG_PTR g_gdiplusToken;
 std::atomic<bool> g_running(true);
 AngleLogic g_logic(800, 6.5);
 FovDetector g_detector;
-std::string g_status = "Connected (v4.6.1 Pro)";
-float g_detectionRatio = 0.0f;
-bool g_showCrosshair = false;
-
-// Selection State
-bool g_isSelectionMode = false;
-RECT g_selectionRect = { 0 };
-POINT g_startPoint = { 0 };
 
 Profile g_currentProfile;
 std::vector<Profile> g_allProfiles;

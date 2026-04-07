@@ -1,12 +1,12 @@
-#include "shared/ControlPanel.h"
+#include "shared/State.h"
+#include "shared/Overlay.h"
 #include "shared/Config.h"
+#include "shared/ControlPanel.h"
 #include <gdiplus.h>
 #include <dwmapi.h>
 #include <string>
 
 using namespace Gdiplus;
-
-extern float g_detectionRatio;
 
 HWND CreateControlPanel(HINSTANCE hInst) {
     WNDCLASS wc = { 0 };

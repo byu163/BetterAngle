@@ -1,12 +1,9 @@
-#include "shared/Overlay.h"
+#include "shared/State.h"
 #include <gdiplus.h>
 #include <iostream>
 #include <string>
 
 using namespace Gdiplus;
-
-extern bool g_isSelectionMode;
-extern RECT g_selectionRect;
 
 void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRatio, bool showCrosshair) {
     PAINTSTRUCT ps;
