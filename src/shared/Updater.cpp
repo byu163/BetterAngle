@@ -1,4 +1,5 @@
 #include "shared/Updater.h"
+#include "shared/State.h"
 #include <windows.h>
 #include <winhttp.h>
 #include <fstream>

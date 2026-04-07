@@ -10,6 +10,8 @@
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "dwrite.lib")
 
+using namespace D2D1;
+
 ID2D1Factory* g_pD2DFactory = NULL;
 IDWriteFactory* g_pDWriteFactory = NULL;
 ID2D1HwndRenderTarget* g_pRenderTarget = NULL;
@@ -28,7 +30,7 @@ void InitD2D(HWND hWnd) {
     g_pD2DFactory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(hWnd, size), &g_pRenderTarget);
 }
 
-void DrawD2DButton(ID2D1HwndRenderTarget* rt, RectF rect, const wchar_t* text, ColorF color, bool isPressed) {
+void DrawD2DButton(ID2D1HwndRenderTarget* rt, D2D1_RECT_F rect, const wchar_t* text, D2D1_COLOR_F color) {
     ID2D1SolidColorBrush* pBrush = NULL;
     rt->CreateSolidColorBrush(color, &pBrush);
     
@@ -104,22 +106,22 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
         case WM_PAINT: {
             if (!g_pRenderTarget) return 0;
             g_pRenderTarget->BeginDraw();
-            g_pRenderTarget->Clear(ColorF(0.05f, 0.06f, 0.07f));
+            g_pRenderTarget->Clear(D2D1::ColorF(0.05f, 0.06f, 0.07f));
 
             ID2D1SolidColorBrush* pWhite = NULL;
-            g_pRenderTarget->CreateSolidColorBrush(ColorF(ColorF::White), &pWhite);
+            g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &pWhite);
             ID2D1SolidColorBrush* pGrey = NULL;
-            g_pRenderTarget->CreateSolidColorBrush(ColorF(0.6f, 0.6f, 0.6f), &pGrey);
+            g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.6f, 0.6f, 0.6f), &pGrey);
 
             IDWriteTextFormat* pTitleFormat = NULL;
             g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 24.0f, L"en-us", &pTitleFormat);
 
-            g_pRenderTarget->DrawText(L"Pro Command Center", 18, pTitleFormat, RectF(40, 40, 380, 80), pWhite);
+            g_pRenderTarget->DrawText(L"Pro Command Center", 18, pTitleFormat, D2D1::RectF(40, 40, 380, 80), pWhite);
             
             // Software & Updates Section
             IDWriteTextFormat* pHeaderFormat = NULL;
             g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 16.0f, L"en-us", &pHeaderFormat);
-            g_pRenderTarget->DrawText(L"SOFTWARE & UPDATES", 18, pHeaderFormat, RectF(40, 120, 380, 150), pWhite);
+            g_pRenderTarget->DrawText(L"SOFTWARE & UPDATES", 18, pHeaderFormat, D2D1::RectF(40, 120, 380, 150), pWhite);
 
             std::wstring curVer = L"Current Version: v4.8.1 (Direct-Readability)";
             std::wstring latestVer = L"Latest Found: v" + std::to_wstring(g_latestVersion).substr(0, 4) + L" (" + g_latestName + L")";
@@ -127,18 +129,18 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             IDWriteTextFormat* pVerFormat = NULL;
             g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 13.0f, L"en-us", &pVerFormat);
             
-            g_pRenderTarget->DrawText(curVer.c_str(), (UINT32)curVer.length(), pVerFormat, RectF(40, 160, 380, 180), pGrey);
-            g_pRenderTarget->DrawText(latestVer.c_str(), (UINT32)latestVer.length(), pVerFormat, RectF(40, 185, 380, 205), pGrey);
+            g_pRenderTarget->DrawText(curVer.c_str(), (UINT32)curVer.length(), pVerFormat, D2D1::RectF(40, 160, 380, 180), pGrey);
+            g_pRenderTarget->DrawText(latestVer.c_str(), (UINT32)latestVer.length(), pVerFormat, D2D1::RectF(40, 185, 380, 205), pGrey);
 
             // Buttons
-            DrawD2DButton(g_pRenderTarget, RectF(40, 320, 380, 370), L"CHECK FOR UPDATES", ColorF(0.15f, 0.17f, 0.2f), false);
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 320, 380, 370), L"CHECK FOR UPDATES", D2D1::ColorF(0.15f, 0.17f, 0.2f));
             
             if (g_latestVersion > 4.81f) {
-                DrawD2DButton(g_pRenderTarget, RectF(40, 380, 380, 430), L"UPDATE NOW", ColorF(0.0f, 0.5f, 0.8f), false);
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 380, 380, 430), L"UPDATE NOW", D2D1::ColorF(0.0f, 0.5f, 0.8f));
             }
 
             // High-Resolution Liquid QUIT Button
-            DrawD2DButton(g_pRenderTarget, RectF(40, 580, 380, 630), L"QUIT SUITE", ColorF(0.7f, 0.1f, 0.15f), false);
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 580, 380, 630), L"QUIT SUITE", D2D1::ColorF(0.7f, 0.1f, 0.15f));
 
             pVerFormat->Release();
             pHeaderFormat->Release();

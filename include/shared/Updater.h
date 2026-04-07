@@ -6,5 +6,7 @@
 
 bool CheckForUpdates();
 void StartUpdate();
+bool DownloadUpdate(const std::wstring& url, const std::wstring& dest);
+void ApplyUpdateAndRestart();
 
 #endif // UPDATER_H
