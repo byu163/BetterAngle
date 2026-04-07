@@ -57,6 +57,21 @@ void DetectorThread() {
     }
 }
 
+// Screen Snapshot for Flicker-Free Selection (v4.9.13)
+void CaptureDesktop() {
+    int sw = GetSystemMetrics(SM_CXSCREEN);
+    int sh = GetSystemMetrics(SM_CYSCREEN);
+    HDC hdcScreen = GetDC(NULL);
+    HDC hdcMem = CreateCompatibleDC(hdcScreen);
+    if (g_screenSnapshot) DeleteObject(g_screenSnapshot);
+    g_screenSnapshot = CreateCompatibleBitmap(hdcScreen, sw, sh);
+    HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
+    BitBlt(hdcMem, 0, 0, sw, sh, hdcScreen, 0, 0, SRCCOPY);
+    SelectObject(hdcMem, hOld);
+    ReleaseDC(NULL, hdcScreen);
+    DeleteDC(hdcMem);
+}
+
 // HUD Window Procedure
 LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
@@ -75,6 +90,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 else ShowWindow(g_hPanel, SW_SHOW);
             } else if (wParam == 2) { // ROI Select Toggle
                 if (g_currentSelection == NONE) {
+                    CaptureDesktop(); // Capture before dimming
                     g_currentSelection = SELECTING_ROI;
                     g_isSelectionActive = true;
                     long exStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
@@ -97,12 +113,20 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 g_startPoint = cur;
                 g_selectionRect = { cur.x, cur.y, cur.x, cur.y };
             } else if (g_currentSelection == SELECTING_COLOR) {
-                // STAGE 2: PRECISION COLOR PICK (Color Scope)
-                HDC hdcScreen = GetDC(NULL);
-                POINT cur; GetCursorPos(&cur);
-                g_targetColor = GetPixel(hdcScreen, cur.x, cur.y);
-                g_pickedColor = g_targetColor;
-                ReleaseDC(NULL, hdcScreen);
+                // STAGE 2: PRECISION COLOR PICK (Snap-Shot Bypass)
+                if (g_screenSnapshot) {
+                    HDC hdcScreen = GetDC(NULL);
+                    HDC hdcMem = CreateCompatibleDC(hdcScreen);
+                    HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
+                    
+                    POINT cur; GetCursorPos(&cur);
+                    g_targetColor = GetPixel(hdcMem, cur.x, cur.y);
+                    g_pickedColor = g_targetColor;
+
+                    SelectObject(hdcMem, hOld);
+                    DeleteDC(hdcMem);
+                    ReleaseDC(NULL, hdcScreen);
+                }
 
                 // Finalize and Exit Selection
                 g_currentSelection = NONE;

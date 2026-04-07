@@ -10,6 +10,7 @@
 enum SelectionState { NONE, SELECTING_ROI, SELECTING_COLOR };
 extern SelectionState g_currentSelection;
 extern bool g_isSelectionActive;
+extern HBITMAP g_screenSnapshot;
 extern bool g_isDiving;
 extern bool g_showROIBox;
 extern int g_currentTab;

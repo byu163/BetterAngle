@@ -162,7 +162,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                     g_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
                 }
 
-                std::wstring curVer = L"Current Version: v4.9.12 (Build Recovery)";
+                std::wstring curVer = L"Current Version: v4.9.13 (Snapshot Engine)";
                 
                 // Use the real version string fetched from GitHub
                 std::wstring latestVerStr = std::wstring(g_latestVersionOnline.begin(), g_latestVersionOnline.end());

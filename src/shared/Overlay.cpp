@@ -23,9 +23,18 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
     graphics.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
     graphics.Clear(Gdiplus::Color(0, 0, 0, 0));
 
+    // Draw Background Snapshot (v4.9.13)
+    if (g_screenSnapshot && g_currentSelection != NONE) {
+        HDC hdcSnap = CreateCompatibleDC(hdcMem);
+        HGDIOBJ hOldSnap = SelectObject(hdcSnap, g_screenSnapshot);
+        BitBlt(hdcMem, 0, 0, sw, sh, hdcSnap, 0, 0, SRCCOPY);
+        SelectObject(hdcSnap, hOldSnap);
+        DeleteDC(hdcSnap);
+    }
+
     // Cinematic Dimming & Two-Stage Selection
     if (g_currentSelection != NONE) {
-        Gdiplus::SolidBrush dimBrush(Gdiplus::Color(180, 0, 0, 0)); 
+        Gdiplus::SolidBrush dimBrush(Gdiplus::Color(100, 0, 0, 0)); // Light dim
         graphics.FillRectangle(&dimBrush, 0, 0, sw, sh);
         
         Gdiplus::FontFamily fontFamily(L"Segoe UI");
@@ -52,10 +61,15 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
             scopePath.AddEllipse(scopeX, scopeY, scopeSize, scopeSize);
             graphics.SetClip(&scopePath);
 
-            HDC hdcScreen = GetDC(NULL);
-            StretchBlt(hdcMem, scopeX, scopeY, scopeSize, scopeSize, 
-                       hdcScreen, mouse.x - 15, mouse.y - 15, 31, 31, SRCCOPY);
-            ReleaseDC(NULL, hdcScreen);
+            // Fetch zoomed content from SNAPSHOT (No Dimming)
+            if (g_screenSnapshot) {
+                HDC hdcSnap = CreateCompatibleDC(hdcMem);
+                HGDIOBJ hOldSnap = SelectObject(hdcSnap, g_screenSnapshot);
+                StretchBlt(hdcMem, scopeX, scopeY, scopeSize, scopeSize, 
+                           hdcSnap, mouse.x - 15, mouse.y - 15, 31, 31, SRCCOPY);
+                SelectObject(hdcSnap, hOldSnap);
+                DeleteDC(hdcSnap);
+            }
 
             // Precision Red Dot Crosshair
             SolidBrush redBrush(Color(255, 255, 0, 0));
@@ -135,7 +149,7 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
     graphics.DrawString(L"CURRENT ANGLE (LIVE)", -1, &subFont, PointF(rx + 30, ry + 25), &greyBrush);
 
     Font miniFont(&fontFamily, 10, FontStyleRegular, UnitPixel);
-    graphics.DrawString(L"Reliability Suite v4.9.12 | Workspace Engine", -1, &miniFont, PointF(rx + 30, ry + 150), &greyBrush);
+    graphics.DrawString(L"Reliability Suite v4.9.13 | Snapshot Overhaul", -1, &miniFont, PointF(rx + 30, ry + 150), &greyBrush);
 
     BitBlt(hdc, 0, 0, sw, sh, hdcMem, 0, 0, SRCCOPY);
     SelectObject(hdcMem, hOld);
