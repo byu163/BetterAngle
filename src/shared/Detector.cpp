@@ -1,4 +1,4 @@
-#include "Detector.h"
+#include "shared/Detector.h"
 #include <iostream>
 #include <cmath>
 #include <vector>

@@ -1,4 +1,4 @@
-#include "Input.h"
+#include "shared/Input.h"
 #include <iostream>
 
 void RegisterRawMouse(HWND hwnd) {

@@ -1,4 +1,4 @@
-#include "Logic.h"
+#include "shared/Logic.h"
 #include <cmath>
 
 AngleLogic::AngleLogic(double dpi, double sens)
