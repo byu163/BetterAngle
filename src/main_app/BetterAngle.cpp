@@ -16,6 +16,8 @@
 #include "shared/Profile.h"
 #include "shared/Tray.h"
 #include "shared/Remote.h"
+#include "shared/Startup.h"
+#include "shared/ControlPanel.h"
 
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "gdiplus.lib")
@@ -23,58 +25,18 @@
 using namespace Gdiplus;
 
 // Global State
-HWND g_hWnd = NULL;
+HWND g_hHUD = NULL;
+HWND g_hPanel = NULL;
 ULONG_PTR g_gdiplusToken;
 std::atomic<bool> g_running(true);
 AngleLogic g_logic(800, 6.5);
 FovDetector g_detector;
-std::string g_status = "Cloud Syncing...";
+std::string g_status = "Connected (v4.5.1 Pro)";
 
-// Modern UI State
 Profile g_currentProfile;
 std::vector<Profile> g_allProfiles;
 int g_selectedProfileIdx = 0;
 bool g_isCursorVisible = false;
-bool g_isSettingsMode = true; // Pro 4.5: Interactive by default
-
-// Cloud Logic
-void CloudProfileFetch() {
-    std::string urlStr = "https://raw.githubusercontent.com/MahanYTT/BetterAngle/main/remote_profiles/Fortnite_Standard.json";
-    std::wstring wUrl(urlStr.begin(), urlStr.end());
-    std::string profilesJson = FetchRemoteString(wUrl);
-    
-    if (!profilesJson.empty()) {
-        std::ofstream f("profiles/cloud_fn.json", std::ios::trunc);
-        f << profilesJson;
-        f.close();
-        
-        Profile p;
-        if (p.Load(L"profiles/cloud_fn.json")) {
-            g_allProfiles.clear();
-            g_allProfiles.push_back(p);
-            g_currentProfile = p;
-            g_status = "Connected (v4.5 Pro)";
-        }
-    } else {
-        g_status = "Offline Mode (Using Local)";
-        g_allProfiles = GetProfiles(L"profiles");
-        if (!g_allProfiles.empty()) {
-             g_currentProfile = g_allProfiles[0];
-        }
-    }
-}
-
-// Toggle Interactivity
-void ToggleHUDInteractivity(HWND hwnd, bool interactive) {
-    long exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-    if (interactive) {
-        exStyle &= ~WS_EX_TRANSPARENT; // Can be clicked
-    } else {
-        exStyle |= WS_EX_TRANSPARENT; // Click-through
-    }
-    SetWindowLong(hwnd, GWL_EXSTYLE, exStyle);
-    SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-}
 
 // FOV Detector Thread
 void DetectorThread() {
@@ -94,55 +56,28 @@ void DetectorThread() {
     }
 }
 
-// Window Procedure
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+// HUD Window Procedure
+LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_CREATE:
             SetLayeredWindowAttributes(hWnd, RGB(0, 0, 0), 0, LWA_COLORKEY);
             RegisterRawMouse(hWnd);
-            AddSystrayIcon(hWnd);
-            RegisterHotKey(hWnd, 1, MOD_CONTROL, 'U'); // CTRL+U to toggle
-            
-            if (CheckForUpdates()) {
-                g_status = "New Update Available!";
-                StartUpdate(); 
-            }
+            RegisterHotKey(hWnd, 1, MOD_CONTROL, 'U'); // CTRL+U to toggle Panel
             return 0;
 
         case WM_HOTKEY:
             if (wParam == 1) {
-                g_isSettingsMode = !g_isSettingsMode;
-                ToggleHUDInteractivity(hWnd, g_isSettingsMode);
-            }
-            return 0;
-
-        case WM_TRAYICON:
-            if (lParam == WM_RBUTTONUP || lParam == WM_LBUTTONUP) {
-                if (lParam == WM_RBUTTONUP) ShowTrayContextMenu(hWnd);
-                else {
-                    g_isSettingsMode = true;
-                    ToggleHUDInteractivity(hWnd, true);
-                    SetForegroundWindow(hWnd);
-                }
-            }
-            return 0;
-
-        case WM_COMMAND:
-            if (LOWORD(wParam) == ID_TRAY_EXIT) {
-                SendMessage(hWnd, WM_CLOSE, 0, 0);
+                if (IsWindowVisible(g_hPanel)) ShowWindow(g_hPanel, SW_HIDE);
+                else ShowWindow(g_hPanel, SW_SHOW);
             }
             return 0;
 
         case WM_INPUT: {
-            if (g_isCursorVisible || g_isSettingsMode) return 0;
+            if (g_isCursorVisible) return 0;
             int dx = GetRawInputDeltaX(lParam);
             g_logic.Update(dx);
             return 0;
         }
-
-        case WM_LBUTTONDOWN:
-            if (g_isSettingsMode) PostMessage(hWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
-            return 0;
 
         case WM_TIMER: {
             CURSORINFO ci = { sizeof(CURSORINFO) };
@@ -153,23 +88,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             return 0;
         }
 
-        case WM_ACTIVATE:
-            if (LOWORD(wParam) != WA_INACTIVE) {
-                g_isSettingsMode = true;
-                ToggleHUDInteractivity(hWnd, true);
-            }
-            return 0;
-
         case WM_PAINT:
             DrawOverlay(hWnd, g_logic.GetAngle(), g_status.c_str());
             return 0;
 
-        case WM_CLOSE:
-            DestroyWindow(hWnd);
-            return 0;
-
         case WM_DESTROY:
-            RemoveSystrayIcon(hWnd);
             g_running = false;
             PostQuitMessage(0);
             return 0;
@@ -183,41 +106,52 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     GdiplusStartupInput gdiplusStartupInput;
     GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
 
+    // Phase 1: Startup Sequence (Splash)
+    ShowSplashLoader(hInstance);
+
+    // Initial Load (Syncing was handled or represented in Splash)
+    g_allProfiles = GetProfiles(L"profiles");
+    if (!g_allProfiles.empty()) g_currentProfile = g_allProfiles[0];
+
+    // Phase 2: Create Control Panel (Interactive)
+    g_hPanel = CreateControlPanel(hInstance);
+    
+    // Phase 3: Create HUD Window (Transparent Overlay)
     WNDCLASS wc = { 0 };
-    wc.lpfnWndProc = WndProc;
+    wc.lpfnWndProc = HUDWndProc;
     wc.hInstance = hInstance;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.lpszClassName = L"BetterAngleV3";
+    wc.lpszClassName = L"BetterAngleHUD";
     RegisterClass(&wc);
 
     int screenW = GetSystemMetrics(SM_CXSCREEN);
     int screenH = GetSystemMetrics(SM_CYSCREEN);
 
-    // v4.5: WS_EX_APPWINDOW for Taskbar visibility, removed WS_EX_TOOLWINDOW
-    g_hWnd = CreateWindowEx(
-        WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_APPWINDOW,
-        L"BetterAngleV3", L"BetterAngle Pro",
+    g_hHUD = CreateWindowEx(
+        WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW,
+        L"BetterAngleHUD", L"BetterAngle HUD",
         WS_POPUP,
         0, 0, screenW, screenH,
         NULL, NULL, hInstance, NULL
     );
 
-    ShowWindow(g_hWnd, nCmdShow);
-    UpdateWindow(g_hWnd);
-    SetTimer(g_hWnd, 1, 25, NULL);
+    ShowWindow(g_hHUD, SW_SHOW);
+    UpdateWindow(g_hHUD);
+    SetTimer(g_hHUD, 1, 25, NULL);
 
     std::thread detThread(DetectorThread);
-    std::thread cloudThread(CloudProfileFetch);
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
+        
+        // If Panel is closed by user (WM_QUIT from Panel should not happen but WM_DESTROY does)
+        if (!IsWindow(g_hPanel) && !IsWindow(g_hHUD)) break;
     }
 
     g_running = false;
     if (detThread.joinable()) detThread.join();
-    if (cloudThread.joinable()) cloudThread.join();
     GdiplusShutdown(g_gdiplusToken);
     return (int)msg.wParam;
 }
