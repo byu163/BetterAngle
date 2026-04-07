@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.9.15: "Release Workflow Fix"
+v4.9.15: Fixed the GitHub Actions release flow so tag pushes create a GitHub Release and upload BetterAngle.exe automatically.
+
 ### BetterAngle Pro v4.9.14: "Zero-Touch Installer & Identity Fix"
 v4.9.14: Implemented Zero-Touch Auto-Installer and Relauncher. Fixed Git contribution identity. Improved full-screen coordinate accuracy.
 
@@ -8,4 +11,3 @@ v4.9.14: Implemented Zero-Touch Auto-Installer and Relauncher. Fixed Git contrib
 🔴 **[NEW] Professional Tabbed Dashboard:** Separated General/Binds and Software/Updates for a cleaner, modern workspace.
 🔍 **[IMPROVED] Cinematic Calibration Tool:** Full-screen cinematic dark dimming when pressing Ctrl+R to focus entirely on the selection area.
 📌 **[FIXED] ROI Visibility Toggle:** Added F9 to instantly toggle the visual scanning box on or off.
-

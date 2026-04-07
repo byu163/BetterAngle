@@ -57,7 +57,7 @@ void DetectorThread() {
     }
 }
 
-// Screen Snapshot for Flicker-Free Selection (v4.9.13)
+// Screen Snapshot for Flicker-Free Selection (v4.9.15)
 void CaptureDesktop() {
     int sw = GetSystemMetrics(SM_CXSCREEN);
     int sh = GetSystemMetrics(SM_CYSCREEN);
