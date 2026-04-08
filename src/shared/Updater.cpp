@@ -10,12 +10,16 @@
 #pragma comment(lib, "urlmon.lib")
 
 #ifndef APP_VERSION
-#define APP_VERSION "4.9.34"
+#define APP_VERSION "4.9.35"
 #endif
+
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
+#define XSTR(x) STRING(x)
 
 bool CheckForUpdates() {
     g_isCheckingForUpdates = true;
-    std::string userAgent = "BetterAngle/" + std::string(APP_VERSION);
+    std::string userAgent = "BetterAngle/" + std::string(XSTR(APP_VERSION));
     HINTERNET hInternet = InternetOpenA(userAgent.c_str(), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
     if (!hInternet) return false;
 
@@ -50,7 +54,7 @@ bool CheckForUpdates() {
         
         g_latestName = L"GitHub Main Branch (v" + std::wstring(newVersion.begin(), newVersion.end()) + L")";
         
-        if (g_latestVersionOnline != ("v" + std::string(APP_VERSION))) {
+        if (g_latestVersionOnline != ("v" + std::string(XSTR(APP_VERSION)))) {
             g_updateAvailable = true;
         } else {
             g_updateAvailable = false;
