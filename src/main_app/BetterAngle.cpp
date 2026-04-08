@@ -90,6 +90,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     if (IsIconic(g_hPanel)) ShowWindow(g_hPanel, SW_RESTORE);
                     else if (IsWindowVisible(g_hPanel)) ShowWindow(g_hPanel, SW_MINIMIZE);
                     else ShowWindow(g_hPanel, SW_SHOW);
+                    break;
                 case 2: // ROI Select Toggle
                     if (g_currentSelection == NONE) {
                         CaptureDesktop(); // Capture before dimming
@@ -104,8 +105,10 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                         g_isSelectionActive = false;
                         SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
                     }
+                    break;
                 case 3:
                     g_showCrosshair = !g_showCrosshair;
+                    break;
         case 4:
             g_currentAngle = 0.0f;
             break;
@@ -127,8 +130,10 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
                     
                     POINT cur; GetCursorPos(&cur);
-                    g_targetColor = GetPixel(hdcMem, cur.x, cur.y);
-                    g_pickedColor = g_targetColor;
+                    COLORREF pixel = GetPixel(hdcMem, cur.x, cur.y);
+                    // Sync: GDI returns 0x00BBGGRR
+                    g_targetColor = pixel; 
+                    g_pickedColor = pixel;
 
                     SelectObject(hdcMem, hOld);
                     DeleteDC(hdcMem);
