@@ -18,9 +18,13 @@ float g_latestVersion = 4.920f; // v4.9.20 format fallback
 std::wstring g_latestName = L"Pending Scan";
 RECT g_selectionRect = { 0, 0, 0, 0 };
 POINT g_startPoint = { 0 };
-std::string g_status = "Connected (v4.9.24 Pro)";
+#ifndef APP_VERSION
+#define APP_VERSION "4.9.27"
+#endif
+
+std::string g_status = "Connected (v" APP_VERSION " Pro)";
 float g_currentAngle = 0.0f;
 bool g_debugMode = false;
 bool g_isCursorVisible = false;
-std::string g_latestVersionOnline = "v4.9.24";
+std::string g_latestVersionOnline = "v" APP_VERSION;
 AngleLogic g_logic(800, 6.5);
