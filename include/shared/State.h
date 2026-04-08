@@ -28,5 +28,6 @@ extern POINT g_startPoint;
 extern std::string g_status;
 extern std::string g_latestVersionOnline;
 extern float g_currentAngle;
+extern bool g_debugMode;
 
 #endif // STATE_H

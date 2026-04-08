@@ -11,7 +11,15 @@ bool IsFortniteFocused() {
 
     // Fortnite's window title is typically "Fortnite  " or contains "Fortnite"
     std::wstring title(windowTitle);
-    if (title.find(L"Fortnite") != std::wstring::npos) {
+    if (title.find(L"Fortnite") != std::wstring::npos || title.find(L"Epic Games") != std::wstring::npos) {
+        return true;
+    }
+
+    // Class Name Check
+    wchar_t className[256];
+    GetClassNameW(hForeground, className, 256);
+    std::wstring cls(className);
+    if (cls == L"UnrealWindow") {
         return true;
     }
 
@@ -22,7 +30,7 @@ AngleLogic::AngleLogic(double dpi, double sens)
     : m_dpi(dpi), m_sens(sens), m_accumDx(0), m_baseDx(0), m_baseAngle(0.0), m_scalePerDx(0.0) {}
 
 void AngleLogic::Update(int dx) {
-    if (!IsFortniteFocused()) return;
+    if (!g_debugMode && !IsFortniteFocused()) return;
     m_accumDx += dx;
 }
 

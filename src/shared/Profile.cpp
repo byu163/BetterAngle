@@ -33,6 +33,8 @@ bool Profile::Load(const std::wstring& path) {
     roi_y = (int)extractDouble("roi_y");
     roi_w = (int)extractDouble("roi_w");
     roi_h = (int)extractDouble("roi_h");
+    target_color = (COLORREF)extractDouble("target_color");
+    tolerance = (int)extractDouble("tolerance");
     
     return true;
 }
@@ -50,7 +52,9 @@ bool Profile::Save(const std::wstring& path) {
     f << "  \"roi_x\": " << roi_x << ",\n";
     f << "  \"roi_y\": " << roi_y << ",\n";
     f << "  \"roi_w\": " << roi_w << ",\n";
-    f << "  \"roi_h\": " << roi_h << "\n";
+    f << "  \"roi_h\": " << roi_h << ",\n";
+    f << "  \"target_color\": " << target_color << ",\n";
+    f << "  \"tolerance\": " << tolerance << "\n";
     f << "}";
 
     return true;

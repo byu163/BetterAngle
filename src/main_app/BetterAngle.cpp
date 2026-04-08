@@ -82,6 +82,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             RegisterHotKey(hWnd, 2, MOD_CONTROL, 'R'); // ROI Select
             RegisterHotKey(hWnd, 3, 0, VK_F10);        // Crosshair
             RegisterHotKey(hWnd, 4, MOD_CONTROL, 'G'); // Zero Angle
+            RegisterHotKey(hWnd, 5, MOD_CONTROL, '9'); // Secret Debug
             return 0;
 
         case WM_HOTKEY:
@@ -107,10 +108,14 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     }
                 case 3:
                     g_showCrosshair = !g_showCrosshair;
-                case 4:
-                    g_currentAngle = 0.0f;
-            }
-            return 0;
+        case 4:
+            g_currentAngle = 0.0f;
+            break;
+        case 5:
+            g_debugMode = !g_debugMode;
+            break;
+    }
+    return 0;
         case WM_LBUTTONDOWN:
             if (g_currentSelection == SELECTING_ROI) {
                 POINT cur; GetCursorPos(&cur);
@@ -144,6 +149,12 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     p.roi_y = min(g_selectionRect.top, g_selectionRect.bottom);
                     p.roi_w = abs(g_selectionRect.right - g_selectionRect.left);
                     p.roi_h = abs(g_selectionRect.bottom - g_selectionRect.top);
+                    
+                    // Save to the actual profile path
+                    std::wstring profilePath = L"profiles/" + p.name + L".json";
+                    p.Save(profilePath);
+                    
+                    // Also maintain the legacy 'last_calibrated' for quick-load logic if needed
                     p.Save(L"profiles/last_calibrated.json");
                 }
             }
@@ -216,7 +227,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // Initial Load (Syncing was handled or represented in Splash)
     g_allProfiles = GetProfiles(L"profiles");
-    if (!g_allProfiles.empty()) g_currentProfile = g_allProfiles[0];
+    if (!g_allProfiles.empty()) {
+        g_currentProfile = g_allProfiles[0];
+        g_logic.SetScale(g_currentProfile.scale_normal);
+    }
 
     // Phase 2: Create Control Panel (Interactive)
     g_hPanel = CreateControlPanel(hInstance);
