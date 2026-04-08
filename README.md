@@ -30,4 +30,4 @@ Check the **[Releases](https://github.com/MahanYTT/BetterAngle/releases)** page 
 2. Open with Visual Studio or compile using `msbuild`.
 
 ---
-*Created by MahanYTT & [itsdolphin](https://github.com/byu163) with ❤️*
+*Created by [MahanYTT](https://github.com/MahanYTT) & [itsdolphin](https://github.com/byu163) with ❤️*
