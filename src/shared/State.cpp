@@ -1,10 +1,6 @@
 #include "shared/State.h"
 #include "shared/Logic.h"
 
-#ifndef APP_VERSION_STR
-#define APP_VERSION_STR "4.9.36"
-#endif
-
 SelectionState g_currentSelection = NONE;
 bool g_isSelectionActive = false;
 HBITMAP g_screenSnapshot = NULL;

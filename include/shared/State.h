@@ -7,9 +7,19 @@
 #include <string>
 #include "shared/Logic.h"
 
+// --- Inside State.h ---
 #define STRING_HELPER(x) #x
 #define TO_STRING(x) STRING_HELPER(x)
 #define TO_WSTRING(x) L"" TO_STRING(x)
+
+// Define the "raw" version if not passed by compiler flags
+#ifndef APP_VERSION
+    #define APP_VERSION 4.9.36
+#endif
+
+// This creates the actual strings "4.9.36" and L"4.9.36"
+#define VERSION_STR TO_STRING(APP_VERSION)
+#define VERSION_WSTR TO_WSTRING(APP_VERSION)
 
 // HUD & Global Shared State
 enum SelectionState { NONE, SELECTING_ROI, SELECTING_COLOR };
