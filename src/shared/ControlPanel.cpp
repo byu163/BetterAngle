@@ -89,10 +89,10 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
         case WM_LBUTTONDOWN: {
             int x = LOWORD(lParam), y = HIWORD(lParam);
             if (y >= 90 && y <= 120) {
-                if (x >= 40 && x <= 200) g_currentTab = 0; 
-                else if (x >= 210 && x <= 380) g_currentTab = 1; 
+                if (x >= 40 && x <= 200) g_currentTab = 0;
+                else if (x >= 210 && x <= 380) g_currentTab = 1;
             }
-            if (g_currentTab == 1) { 
+            if (g_currentTab == 1) {
                 if (x >= 40 && x <= 380 && y >= 320 && y <= 370) {
                     if (g_updateAvailable) {
                         // FIX: Immediately lock the state to prevent multiple threads
@@ -110,7 +110,6 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         std::thread(CheckForUpdates).detach();
                     }
                 }
-                }
                 if (g_updateAvailable && x >= 40 && x <= 380 && y >= 380 && y <= 430) {
                     ShellExecuteW(0, L"open", L"https://github.com/MahanYTT/BetterAngle/releases/latest", 0, 0, SW_SHOW);
                 }
@@ -122,7 +121,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 PostQuitMessage(0);
             }
             return 0;
-        }
+        } // <-- Make sure this closing brace exists!
         case WM_PAINT: {
             if (!g_pRenderTarget) return 0;
             g_pRenderTarget->BeginDraw();
