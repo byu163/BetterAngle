@@ -1,28 +1,34 @@
-#include "shared/State.h"
-#include "shared/Logic.h"
+#include <iostream>
+#include <string>
 
-SelectionState g_currentSelection = NONE;
-bool g_isSelectionActive = false;
-HBITMAP g_screenSnapshot = NULL;
-bool g_isDiving = false;
-bool g_showROIBox = true;
-int g_currentTab = 0;
-float g_detectionRatio = 0.0f;
-bool g_isCheckingForUpdates = false;
-float g_updateSpinAngle = 0.0f;
-bool g_updateAvailable = false;
-bool g_showCrosshair = false;
-COLORREF g_pickedColor = RGB(255, 255, 255);
-COLORREF g_targetColor = RGB(255, 255, 255);
-float g_latestVersion = 4.920f; // v4.9.20 format fallback
-std::wstring g_latestName = L"Pending Scan";
-RECT g_selectionRect = { 0, 0, 0, 0 };
-POINT g_startPoint = { 0 };
+// Function to calculate the sum of two integers
+int add(int a, int b) { return a + b; }
 
+// Function to calculate the difference between two integers
+int subtract(int a, int b) { return a - b; }
 
-std::string g_status = "Connected (v" VERSION_STR " Pro)";
-std::string g_latestVersionOnline = "v" VERSION_STR;
-float g_currentAngle = 0.0f;
-bool g_debugMode = false;
-bool g_isCursorVisible = false;
-AngleLogic g_logic(800, 6.5);
+// Function to calculate the product of two integers
+int multiply(int a, int b) { return a * b; }
+
+// Function to calculate the quotient of two integers
+float divide(float a, float b) {
+  if (b == 0) {
+    std::cout << "Error: Division by zero" << std::endl;
+    return 0.0f;
+  }
+  return a / b;
+}
+
+int main() {
+  int num1 = 5;
+  int num2 = 3;
+
+  // Calculate and display the sum
+  int sum = add(num1, num2);
+  std::cout << "Sum: " << sum << std::endl;
+
+  // Calculate and display the difference
+  int diff<| fim_suffix |> << std::endl;
+
+  return 0;
+}
