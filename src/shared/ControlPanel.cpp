@@ -95,10 +95,11 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             if (g_currentTab == 1) { 
                 if (x >= 40 && x <= 380 && y >= 320 && y <= 370) {
                     if (g_updateAvailable) {
-                        // If update is available, start the silent install sequence
+                        // FIX: Immediately lock the state to prevent multiple threads
+                        g_updateAvailable = false;
+
                         std::thread([]() {
                             std::wstring verStr = std::wstring(g_latestVersionOnline.begin(), g_latestVersionOnline.end());
-                            // Using a more generic download URL if parsing fails or as a primary method
                             std::wstring downloadUrl = L"https://github.com/MahanYTT/BetterAngle/releases/latest/download/BetterAngle.exe";
                             if (DownloadUpdate(downloadUrl, L"update_tmp.exe")) {
                                 ApplyUpdateAndRestart();
@@ -106,8 +107,9 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         }).detach();
                     } else {
                         g_isCheckingForUpdates = true;
-                        std::thread(CheckForUpdates).detach(); 
+                        std::thread(CheckForUpdates).detach();
                     }
+                }
                 }
                 if (g_updateAvailable && x >= 40 && x <= 380 && y >= 380 && y <= 430) {
                     ShellExecuteW(0, L"open", L"https://github.com/MahanYTT/BetterAngle/releases/latest", 0, 0, SW_SHOW);

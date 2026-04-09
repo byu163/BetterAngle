@@ -72,17 +72,23 @@ bool DownloadUpdate(const std::wstring& url, const std::wstring& dest) {
 }
 
 void ApplyUpdateAndRestart() {
-    std::wofstream bat(L"cleanup.bat");
-    bat << L"@echo off\n";
-    bat << L":loop\n";
-    bat << L"taskkill /F /IM BetterAngle.exe >nul 2>&1\n";
-    bat << L"if %errorlevel%==0 goto loop\n";
-    bat << L"del BetterAngle.exe\n";
-    bat << L"rename update_tmp.exe BetterAngle.exe\n";
-    bat << L"start BetterAngle.exe\n";
-    bat << L"del \"%~f0\"\n";
+    // FIX 1: Use standard ofstream (ASCII) so cmd.exe parses it safely
+    std::ofstream bat("cleanup.bat");
+
+    bat << "@echo off\n";
+    // FIX 2: Wait 2 seconds for BetterAngle.exe to fully close and release file locks
+    bat << "timeout /t 2 /nobreak >nul\n";
+    // Force kill just in case, but DO NOT loop on it
+    bat << "taskkill /F /IM BetterAngle.exe >nul 2>&1\n";
+    bat << "del BetterAngle.exe\n";
+    bat << "rename update_tmp.exe BetterAngle.exe\n";
+    // FIX 3: Start securely with empty title quotes to prevent path spacing issues
+    bat << "start \"\" \"BetterAngle.exe\"\n";
+    bat << "del \"%~f0\"\n";
+
     bat.close();
 
-    ShellExecuteW(NULL, L"open", L"cleanup.bat", NULL, NULL, SW_HIDE);
+    // Execute the new ASCII batch script
+    ShellExecuteA(NULL, "open", "cleanup.bat", NULL, NULL, SW_HIDE);
     exit(0);
 }
