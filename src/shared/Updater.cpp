@@ -9,6 +9,10 @@
 #pragma comment(lib, "wininet.lib")
 #pragma comment(lib, "urlmon.lib")
 
+#ifndef VERSION_STR
+#define VERSION_STR TO_STRING(APP_VERSION)
+#define VERSION_WSTR TO_WSTRING(APP_VERSION)
+#endif
 #ifndef APP_VERSION_STR
 #define APP_VERSION_STR "4.9.36"
 #endif

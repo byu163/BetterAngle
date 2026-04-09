@@ -1,6 +1,10 @@
 #include "shared/State.h"
 #include "shared/Logic.h"
 
+#ifndef APP_VERSION_STR
+#define APP_VERSION_STR "4.9.36"
+#endif
+
 SelectionState g_currentSelection = NONE;
 bool g_isSelectionActive = false;
 HBITMAP g_screenSnapshot = NULL;
@@ -18,9 +22,7 @@ float g_latestVersion = 4.920f; // v4.9.20 format fallback
 std::wstring g_latestName = L"Pending Scan";
 RECT g_selectionRect = { 0, 0, 0, 0 };
 POINT g_startPoint = { 0 };
-#ifndef APP_VERSION_STR
-#define APP_VERSION_STR "4.9.36"
-#endif
+
 
 std::string g_status = "Connected (v" VERSION_STR " Pro)";
 std::string g_latestVersionOnline = "v" VERSION_STR;

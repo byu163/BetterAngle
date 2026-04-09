@@ -20,8 +20,10 @@
 #define APP_VERSION_WSTR L"4.9.36"
 #endif
 
+#ifndef VERSION_STR
 #define VERSION_STR TO_STRING(APP_VERSION)
 #define VERSION_WSTR TO_WSTRING(APP_VERSION)
+#endif
 using namespace D2D1;
 
 ID2D1Factory* g_pD2DFactory = NULL;
