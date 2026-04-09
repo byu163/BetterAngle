@@ -22,9 +22,9 @@ POINT g_startPoint = { 0 };
 #define APP_VERSION_STR "4.9.36"
 #endif
 
-std::string g_status = "Connected (v" APP_VERSION_STR " Pro)";
+std::string g_status = "Connected (v" VERSION_STR " Pro)";
+std::string g_latestVersionOnline = "v" VERSION_STR;
 float g_currentAngle = 0.0f;
 bool g_debugMode = false;
 bool g_isCursorVisible = false;
-std::string g_latestVersionOnline = "v" APP_VERSION_STR;
 AngleLogic g_logic(800, 6.5);
