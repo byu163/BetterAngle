@@ -7,6 +7,10 @@
 #include <string>
 #include "shared/Logic.h"
 
+#define STRING_HELPER(x) #x
+#define TO_STRING(x) STRING_HELPER(x)
+#define TO_WSTRING(x) L"" TO_STRING(x)
+
 // HUD & Global Shared State
 enum SelectionState { NONE, SELECTING_ROI, SELECTING_COLOR };
 extern SelectionState g_currentSelection;

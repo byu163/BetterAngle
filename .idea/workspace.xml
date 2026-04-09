@@ -19,7 +19,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ded3ab96-8c88-4192-9044-339706012801" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.github/workflows/msbuild.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/msbuild.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/shared/State.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/shared/State.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
