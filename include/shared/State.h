@@ -11,13 +11,17 @@
 std::wstring GetAppStoragePath();
 
 // Versioning system
+#define APP_QUOTE(x) #x
+#define APP_STR(x) APP_QUOTE(x)
+#define APP_WQUOTE(x) L#x
+#define APP_WSTR(x) APP_WQUOTE(x)
+
 #ifndef APP_VERSION
-#define APP_VERSION "4.20.13"
+#define APP_VERSION 4.20.14
 #endif
 
-// APP_VERSION is now assumed to be a quoted string from the compiler
-#define VERSION_STR APP_VERSION
-#define VERSION_WSTR L"" APP_VERSION
+#define VERSION_STR  APP_STR(APP_VERSION)
+#define VERSION_WSTR APP_WSTR(APP_VERSION)
 
 // Global Profile Management
 extern Profile g_currentProfile;
