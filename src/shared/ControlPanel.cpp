@@ -515,28 +515,30 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             g_pRenderTarget->DrawText(L"SOFTWARE DASHBOARD", 18, pHeader,
                 D2D1::RectF(L.margin, cY, L.W - L.margin, cY + 0.05f * L.H), pWhite);
 
-            std::wstring curVerStr  = L"Installed:  v" VERSION_WSTR;
-            std::wstring latestStr  = std::wstring(g_latestVersionOnline.begin(), g_latestVersionOnline.end());
-            std::wstring latestLine = latestStr.empty() ? L"Latest:     (not checked)" : L"Latest:     " + latestStr;
+            wchar_t cur[64], lat[64];
+            swprintf_s(cur, L"Installed: v%s", VERSION_WSTR);
+            if (g_latestVersionOnline.empty()) swprintf_s(lat, L"Latest:    (not checked)");
+            else swprintf_s(lat, L"Latest:    %S", g_latestVersionOnline.c_str());
 
-            g_pRenderTarget->DrawText(curVerStr.c_str(),  (UINT32)curVerStr.length(), pBody,
+            g_pRenderTarget->DrawText(cur, (UINT32)wcslen(cur), pBody,
                 D2D1::RectF(L.margin, cY + 0.08f * L.H, L.W - L.margin, cY + 0.13f * L.H), pGrey);
-            g_pRenderTarget->DrawText(latestLine.c_str(), (UINT32)latestLine.length(), pBody,
+            g_pRenderTarget->DrawText(lat, (UINT32)wcslen(lat), pBody,
                 D2D1::RectF(L.margin, cY + 0.14f * L.H, L.W - L.margin, cY + 0.19f * L.H), pGrey);
 
+            D2D1_RECT_F btnRect = D2D1::RectF(L.margin, 0.45f * L.H, L.W - L.margin, 0.56f * L.H);
+            ColorF btnCol = g_updateAvailable ? ColorF(0.0f, 0.5f, 0.85f) : ColorF(0.12f, 0.15f, 0.20f);
+
             if (g_isCheckingForUpdates) {
-                g_pRenderTarget->DrawText(L"Checking for updates...", 22, pBody,
+                float pulse = (sinf((float)GetTickCount64() * 0.008f) + 1.0f) * 0.5f;
+                btnCol = ColorF(0.12f + pulse * 0.1f, 0.15f + pulse * 0.45f, 0.2f + pulse * 0.65f);
+                g_pRenderTarget->DrawText(L"SYNCING WITH GITHUB...", 21, pBody,
                     D2D1::RectF(L.margin, cY + 0.22f * L.H, L.W - L.margin, cY + 0.27f * L.H), pBlue);
             } else if (g_updateAvailable) {
                 g_pRenderTarget->DrawText(L"Update available! Click below to install.", 40, pBody,
                     D2D1::RectF(L.margin, cY + 0.22f * L.H, L.W - L.margin, cY + 0.27f * L.H), pBlue);
             }
 
-            DrawD2DButton(g_pRenderTarget,
-                D2D1::RectF(L.margin, 0.45f * L.H, L.W - L.margin, 0.56f * L.H),
-                g_updateAvailable ? L"INSTALL UPDATE NOW" : L"CHECK / DOWNLOAD LATEST",
-                g_updateAvailable ? D2D1::ColorF(0.0f, 0.5f, 0.85f) : D2D1::ColorF(0.12f, 0.15f, 0.20f),
-                13.0f * baseScale);
+            DrawD2DButton(g_pRenderTarget, btnRect, g_updateAvailable ? L"INSTALL UPDATE NOW" : L"CHECK / DOWNLOAD LATEST", btnCol, 13.0f * baseScale);
 
         } else if (g_currentTab == 2) {
             // ─ COLORS ───────────────────────────────────────────────────────
