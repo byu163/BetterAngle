@@ -260,7 +260,8 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
         };
 
         bool fortFocused = IsFortniteFocused();
-
+        int matchPct = int(detectionRatio * 100.0f);
+        
         DrawRow(L"FPS", FmtFloat(s_fps, 0), s_fps >= 60.0f ? &colGood : &colWarn);
         DrawRow(L"Angle (raw)", FmtFloat(angle, 2) + L"°", &colVal);
         DrawRow(L"Detection Ratio", FmtFloat(detectionRatio * 100.0, 0) + L"% / match " + std::to_wstring(matchPct) + L"%", matchPct > 5 ? &colGood : &colVal);
