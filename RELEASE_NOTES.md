@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.10.3: "Bugfix: Angle Trajectory Anchor & Config Sub-linking"
+v4.10.3: Re-anchored the core tracking geometry (`m_baseAngle`) whenever Sensitivity natively changes state (i.e. changing into Skydiving Mode). Prevents visual target angles from snapping. Hard-linked the remaining missing `State.cpp` and `Logic.cpp` footprint into `BetterAngleConfig` to satisfy GitHub Actions' aggressive strict execution limits on the Input thread wrapper. Repaired the custom Zero Angle keybind which wasn't pushing memory to the calculation core layer. 
+
 ### BetterAngle Pro v4.10.2: "Hotfix: Secondary Executable Linker Isolation"
 v4.10.2: Resolved a GitHub Actions build abort (`LNK2019`) triggered when the CI system blindly compiled the global `ControlPanel.cpp` UI layer into the lightweight `BetterAngleConfig.exe` footprint. The secondary executable now strict-links only its necessary core logic components (`Input.cpp`, `Profile.cpp`), permanently isolating it from the main software namespace wrapper.
 

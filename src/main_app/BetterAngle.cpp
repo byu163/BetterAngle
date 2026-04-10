@@ -125,6 +125,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     break;
         case 4:
             g_currentAngle = 0.0f;
+            g_logic.SetZero();
             break;
         case 5:
             g_debugMode = !g_debugMode;

@@ -56,6 +56,13 @@ void AngleLogic::SetZero() {
 }
 
 void AngleLogic::SetScale(double scale) {
+    if (scale == m_scalePerDx) return;
+    
+    // Prevent the angle jump when swapping Sensitivity mid-air:
+    // We anchor the currently computed angle and reset the historical baseline
+    m_baseAngle = GetAngle();
+    m_baseDx = m_accumDx;
+    
     m_scalePerDx = scale;
 }
 
