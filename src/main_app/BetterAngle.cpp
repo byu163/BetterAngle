@@ -196,11 +196,12 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     p.roi_h = g_selectionRect.bottom - g_selectionRect.top;
                     
                     // Save to the actual profile path
-                    std::wstring profilePath = GetAppStoragePath() + p.name + L".json";
+                    std::wstring profilePath = GetProfilesPath() + p.name + L".json";
                     p.Save(profilePath);
                     
                     // Also maintain the legacy 'last_calibrated' for quick-load logic if needed
-                    p.Save(GetAppStoragePath() + L"last_calibrated.json");
+                    p.Save(GetProfilesPath() + L"last_calibrated.json");
+
                 }
             }
             return 0;
@@ -356,7 +357,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         g_allProfiles[0].sensitivityX = setupProfiles[0].sensitivityX;
         g_allProfiles[0].sensitivityY = setupProfiles[0].sensitivityY;
         // Re-save to ensure the correct values are on disk too
-        g_allProfiles[0].Save(GetAppStoragePath() + g_allProfiles[0].name + L".json");
+        g_allProfiles[0].Save(GetProfilesPath() + g_allProfiles[0].name + L".json");
     }
     
     // Sensitivity is loaded from the JSON profile; Do not blindly overwrite it here.
@@ -438,6 +439,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // Final Save on Exit
     if (!g_allProfiles.empty()) {
         Profile& p = g_allProfiles[g_selectedProfileIdx];
+        p.crossPulse = g_crossPulse;
         p.Save(GetProfilesPath() + p.name + L".json");
     }
 

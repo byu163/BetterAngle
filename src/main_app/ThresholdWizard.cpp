@@ -52,7 +52,7 @@ LRESULT CALLBACK ThresholdWizProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
                 if (diff_g == 0) diff_g = 1;
 
                 Profile p;
-                std::wstring path = GetAppStoragePath() + L"last_calibrated.json";
+                std::wstring path = GetProfilesPath() + L"last_calibrated.json";
                 p.Load(path); 
                 
                 double normalScaleTested = 120.0 / (std::max)(1.0, diff_n);

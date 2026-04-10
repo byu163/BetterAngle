@@ -237,15 +237,38 @@ void BetterAngleBackend::terminateApp() {
 }
 
 void BetterAngleBackend::checkForUpdates() {
-  g_hasCheckedForUpdates = false; // Reset state for new check
+  g_hasCheckedForUpdates = false; 
+  g_updateAvailable = false;
   emit updateStatusChanged();
   std::thread([]() { CheckForUpdates(); }).detach();
 }
 
-
-void BetterAngleBackend::downloadUpdate() { UpdateApp(); }
+void BetterAngleBackend::downloadUpdate() {
+  if (g_downloadComplete) {
+      ApplyUpdateAndRestart();
+      return;
+  }
+  UpdateApp();
+}
 
 void BetterAngleBackend::saveThresholds() { SaveSettings(); }
+
+QString BetterAngleBackend::versionStr() const { return QString(VERSION_STR); }
+QString BetterAngleBackend::latestVersion() const { return QString::fromStdString(g_latestVersionOnline); }
+bool BetterAngleBackend::updateAvailable() const { return g_updateAvailable; }
+bool BetterAngleBackend::isDownloading() const { return g_isDownloadingUpdate; }
+bool BetterAngleBackend::downloadComplete() const { return g_downloadComplete; }
+QString BetterAngleBackend::updateHistory() const { return QString::fromStdString(g_updateHistory); }
+
+QString BetterAngleBackend::updateStatus() const {
+  if (g_isCheckingForUpdates) return "Checking...";
+  if (g_isDownloadingUpdate) return "Downloading...";
+  if (g_downloadComplete) return "Ready to Install";
+  if (g_updateAvailable) return "Update Found!";
+  if (g_hasCheckedForUpdates) return "Checking for updates...";
+  return "Check for Updates";
+}
+
 
 QStringList BetterAngleBackend::crosshairPresetNames() const {
   QStringList list;
@@ -272,13 +295,14 @@ void BetterAngleBackend::saveCrosshairPreset(const QString &name) {
   for (auto &existing : p.crosshairPresets) {
     if (existing.name == cp.name) {
       existing = cp;
-      p.Save(GetAppStoragePath() + p.name + L".json");
+      p.Save(GetProfilesPath() + p.name + L".json");
       emit crosshairPresetsChanged();
       return;
     }
   }
   p.crosshairPresets.push_back(cp);
-  p.Save(GetAppStoragePath() + p.name + L".json");
+  p.Save(GetProfilesPath() + p.name + L".json");
+
   emit crosshairPresetsChanged();
 }
 

@@ -29,14 +29,15 @@ double FetchFortniteSensitivity() {
         }
     }
 
-    // Folders to search: We will iterate through all subfolders of Config
-    // to find GameUserSettings.ini, handling variations like WindowClient, WindowsClient, etc.
-    std::vector<std::wstring> potentialPaths;
-    
+    // High-priority paths based on user feedback
+    potentialPaths.push_back(basePath + L"\\WindowClient\\GameUserSettings.ini");
+    potentialPaths.push_back(basePath + L"\\WindowsClient\\GameUserSettings.ini");
+    potentialPaths.push_back(basePath + L"\\WindowsNoEditor\\GameUserSettings.ini");
+
+    // Dynamic search fallback
     WIN32_FIND_DATAW findData;
     std::wstring searchPattern = basePath + L"\\*";
     HANDLE hFind = FindFirstFileW(searchPattern.c_str(), &findData);
-    
     if (hFind != INVALID_HANDLE_VALUE) {
         do {
             if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -47,11 +48,7 @@ double FetchFortniteSensitivity() {
         } while (FindNextFileW(hFind, &findData));
         FindClose(hFind);
     }
-    
-    // Also add the common defaults just in case the directory iteration is restricted
-    potentialPaths.push_back(basePath + L"\\WindowsClient\\GameUserSettings.ini");
-    potentialPaths.push_back(basePath + L"\\WindowsNoEditor\\GameUserSettings.ini");
-    potentialPaths.push_back(basePath + L"\\WindowClient\\GameUserSettings.ini");
+
 
     for (const auto& pPath : potentialPaths) {
         std::ifstream ifs(pPath, std::ios::binary);
