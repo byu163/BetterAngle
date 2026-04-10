@@ -250,6 +250,13 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     g_hudY = g_dragStartHUD.y + (pt.y - g_dragStartMouse.y);
                     InvalidateRect(hWnd, NULL, FALSE);
                 }
+
+                // SAFETY GUARD: Enforce Click-Through
+                // Occasionally Windows may lose the transparency bit after focus changes.
+                long ex = GetWindowLong(hWnd, GWL_EXSTYLE);
+                if (!(ex & WS_EX_TRANSPARENT)) {
+                    SetWindowLong(hWnd, GWL_EXSTYLE, ex | WS_EX_TRANSPARENT);
+                }
             }
 
             // Only repaint if the angle or diving state actually changed
@@ -377,7 +384,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     );
     ShowWindow(g_hHUD, SW_SHOW);
     UpdateWindow(g_hHUD);
-    SetTimer(g_hHUD, 1, 8, NULL); // ~120fps for snappy crosshair & drag response
+    SetTimer(g_hHUD, 1, 16, NULL); // Throttled to 60fps (~16ms) to prevent message queue congestion
 
     std::thread detThread(DetectorThread);
 
