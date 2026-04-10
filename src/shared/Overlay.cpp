@@ -183,27 +183,12 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // === Main Glass HUD ====================================================
+    // === Minimalist HUD (v4.20.36) =========================================
     // ══════════════════════════════════════════════════════════════════════
-    const int rx = g_hudX, ry = g_hudY, rw = 340, rh = 200;
-    const int RAD = 18;
+    const int rx = g_hudX, ry = g_hudY, rw = 220, rh = 100;
+    const int RAD = 12;
 
-    // Outer glow  
-    {
-        Color glowCol = g_isDiving ? Color(60, 240, 240, 240) : Color(40, 120, 120, 120);
-        SolidBrush glowBrush(glowCol);
-        for (int g = 6; g >= 1; g--) {
-            GraphicsPath gp;
-            gp.AddArc(rx - g, ry - g, RAD, RAD, 180, 90);
-            gp.AddArc(rx + rw - RAD + g, ry - g, RAD, RAD, 270, 90);
-            gp.AddArc(rx + rw - RAD + g, ry + rh - RAD + g, RAD, RAD, 0, 90);
-            gp.AddArc(rx - g, ry + rh - RAD + g, RAD, RAD, 90, 90);
-            gp.CloseFigure();
-            graphics.FillPath(&SolidBrush(Color(BYTE(30 - g * 4), 200, 200, 200)), &gp);
-        }
-    }
-
-    // Panel body
+    // Body
     GraphicsPath path;
     path.AddArc(rx,           ry,           RAD, RAD, 180, 90);
     path.AddArc(rx + rw - RAD, ry,           RAD, RAD, 270, 90);
@@ -211,71 +196,43 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     path.AddArc(rx,           ry + rh - RAD, RAD, RAD,  90, 90);
     path.CloseFigure();
 
-    LinearGradientBrush bgBrush(Point(rx, ry), Point(rx, ry + rh),
-                                Color(210, 12, 15, 20), Color(210, 4, 5, 8));
+    SolidBrush bgBrush(Color(220, 10, 10, 10)); // Solid minimalist black
     graphics.FillPath(&bgBrush, &path);
 
-    // Bright top highlight stripe
-    LinearGradientBrush topStripe(Point(rx, ry), Point(rx, ry + 40),
-                                  Color(30, 255, 255, 255), Color(0, 255, 255, 255));
-    graphics.FillPath(&topStripe, &path);   // clips to rounded rect naturally
-
     // Border
-    Color borderCol = g_isDiving ? Color(200, 255, 255, 255) : Color(100, 150, 150, 150);
+    Color borderCol = g_isDiving ? Color(255, 255, 255, 255) : Color(120, 100, 100, 100);
     Pen borderPen(borderCol, 1.2f);
     graphics.DrawPath(&borderPen, &path);
 
+    // Center Angle Text
     FontFamily ff(L"Segoe UI");
+    Font angleFont(&ff, 54, FontStyleBold, UnitPixel);
+    std::wstring angleStr = FmtFloat(angle, 1) + L"°"; 
 
-    // ── Label row ─────────────────────────────────────────────────────────
-    Font     labelFont(&ff, 10, FontStyleRegular, UnitPixel);
-    SolidBrush labelBrush(Color(180, 140, 155, 170));
-    graphics.DrawString(L"CURRENT ANGLE", -1, &labelFont, PointF(float(rx + 18), float(ry + 14)), &labelBrush);
+    StringFormat sf;
+    sf.SetAlignment(StringAlignmentCenter);
+    sf.SetLineAlignment(StringAlignmentCenter);
 
-    // -- Angle text --------------------------------------------------------
-    Font      angleFont(&ff, 68, FontStyleBold, UnitPixel);
-    std::wstring    angleStr = FmtFloat(angle, 1) + L"°"; 
-    // Colour: teal idle, cyan when diving
-    Color angleCol = g_isDiving ? Color(255, 255, 255, 255) : Color(255, 210, 210, 210);
+    Color angleCol = g_isDiving ? Color(255, 255, 255, 255) : Color(255, 220, 220, 220);
     SolidBrush angleBrush(angleCol);
-    graphics.DrawString(angleStr.c_str(), -1, &angleFont, PointF(float(rx + 14), float(ry + 26)), &angleBrush);
+    
+    RectF textRect(float(rx), float(ry), float(rw), float(rh));
+    graphics.DrawString(angleStr.c_str(), -1, &angleFont, textRect, &sf, &angleBrush);
 
-    // -- Match % label -----------------------------------------------------
-    Font subFont(&ff, 12, FontStyleBold, UnitPixel);
-    int matchPct = int(detectionRatio * 100.0f);
-    std::wstring matchStr = L"Match  " + std::to_wstring(matchPct) + L"%";
-    Color matchLabelCol(200, 160, 170, 185);
-    graphics.DrawString(matchStr.c_str(), -1, &subFont,
-                        PointF(float(rx + 18), float(ry + rh - 56)), &SolidBrush(matchLabelCol));
-
-    // ── Match progress bar ────────────────────────────────────────────────
-    int barX = rx + 18, barY = ry + rh - 40, barW = rw - 36, barH = 9;
-    // Track
-    graphics.FillRectangle(&SolidBrush(Color(80, 255, 255, 255)), barX, barY, barW, barH);
-    // Fill — colour-grade based on match level
-    float clampedRatio = detectionRatio > 1.0f ? 1.0f : detectionRatio;
-    int fillW = int(clampedRatio * barW);
-    if (fillW > 0) {
-        BYTE r = BYTE((1.0f - clampedRatio) * 255);
-        BYTE g = BYTE(clampedRatio * 255);
-        LinearGradientBrush barFill(Point(barX, barY), Point(barX + fillW, barY),
-                                    Color(220, r, g, 40), Color(220, r / 2, g, 80));
-        graphics.FillRectangle(&barFill, barX, barY, fillW, barH);
-    }
-    // Bar border
-    graphics.DrawRectangle(&Pen(Color(50, 255, 255, 255), 1.0f), barX, barY, barW, barH);
-
-    // ── Target colour swatch (anchored to HUD, top-right corner) ─────────
-    int swatchX = rx + rw - 38, swatchY = ry + 14;
+    // Subtle Target Swatch (Top-Right)
+    int swatchSize = 12;
+    int swatchX = rx + rw - swatchSize - 10, swatchY = ry + 10;
     Color swatch(255, GetBValue(g_targetColor), GetGValue(g_targetColor), GetRValue(g_targetColor));
-    graphics.FillEllipse(&SolidBrush(swatch),        swatchX, swatchY, 18, 18);
-    graphics.DrawEllipse(&Pen(Color(120, 220, 220, 220), 1.0f), swatchX, swatchY, 18, 18);
+    graphics.FillEllipse(&SolidBrush(swatch), swatchX, swatchY, swatchSize, swatchSize);
+    graphics.DrawEllipse(&Pen(Color(100, 255, 255, 255), 1.0f), swatchX, swatchY, swatchSize, swatchSize);
 
-    // ── Drag hint ─────────────────────────────────────────────────────────
+    // Subtle Drag Hint (Bottom-Center)
     Font tinyFont(&ff, 9, FontStyleRegular, UnitPixel);
-    SolidBrush tinyBrush(Color(g_isDraggingHUD ? 130 : 55, 200, 210, 220));
-    graphics.DrawString(L"⠿ drag", -1, &tinyFont,
-                        PointF(float(rx + rw / 2 - 18), float(ry + rh - 14)), &tinyBrush);
+    SolidBrush tinyBrush(Color(40, 200, 200, 200));
+    StringFormat sfBottom;
+    sfBottom.SetAlignment(StringAlignmentCenter);
+    RectF hintRect(float(rx), float(ry + rh - 14), float(rw), 14.0f);
+    graphics.DrawString(L"⠿ drag", -1, &tinyFont, hintRect, &sfBottom, &tinyBrush);
 
     // ══════════════════════════════════════════════════════════════════════
     // ── Debug Dashboard (Ctrl+9) ──────────────────────────────────────────
