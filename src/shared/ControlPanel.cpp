@@ -315,16 +315,22 @@ void RenderImGuiFrame() {
             PrecisionSlider("Offset Y", &g_crossOffsetY, -500.0f, 500.0f, 0.5f);
 
             ImGui::Spacing();
-            ImGui::TextDisabled("DIRECTIONAL NUDGE (1px)");
-            float nudgeW = 60.0f;
-            ImGui::SetCursorPosX(ImGui::GetWindowWidth()/2 - nudgeW/2);
-            if (ImGui::Button("UP", ImVec2(nudgeW, 30))) { g_crossOffsetY -= 1.0f; }
-            ImGui::SetCursorPosX(ImGui::GetWindowWidth()/2 - nudgeW - 5);
-            if (ImGui::Button("LEFT", ImVec2(nudgeW, 30))) { g_crossOffsetX -= 1.0f; }
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            ImGui::TextDisabled("DIRECTIONAL NUDGE (PIXEL-PERFECT)");
+            float nudgeW = 70.0f;
+            float centerOffset = (ImGui::GetContentRegionAvail().x - nudgeW) * 0.5f;
+
+            ImGui::SetCursorPosX(centerOffset);
+            if (ImGui::Button("UP", ImVec2(nudgeW, 35))) { g_crossOffsetY -= 1.0f; }
+
+            ImGui::SetCursorPosX(centerOffset - nudgeW - 8);
+            if (ImGui::Button("LEFT", ImVec2(nudgeW, 35))) { g_crossOffsetX -= 1.0f; }
             ImGui::SameLine();
-            if (ImGui::Button("DOWN", ImVec2(nudgeW, 30))) { g_crossOffsetY += 1.0f; }
+            if (ImGui::Button("DOWN", ImVec2(nudgeW, 35))) { g_crossOffsetY += 1.0f; }
             ImGui::SameLine();
-            if (ImGui::Button("RIGHT", ImVec2(nudgeW, 30))) { g_crossOffsetX += 1.0f; }
+            if (ImGui::Button("RIGHT", ImVec2(nudgeW, 35))) { g_crossOffsetX += 1.0f; }
             
             // Auto-save helper
             auto SyncAndSaveCurrentProfile = [&]() {
@@ -555,32 +561,33 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM 
             style.ItemInnerSpacing  = ImVec2(8.0f, 6.0f);
             style.ScrollbarSize     = 14.0f;
             
-            // Sleek Modern Dark 2D Colors (No blue, no lines)
-            style.Colors[ImGuiCol_Text]                  = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-            style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-            style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.07f, 0.08f, 0.10f, 1.00f);
-            style.Colors[ImGuiCol_ChildBg]               = ImVec4(0.12f, 0.13f, 0.15f, 1.00f);
-            style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.10f, 0.11f, 0.13f, 1.00f);
-            style.Colors[ImGuiCol_Border]                = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+            // Premium Stealth Dark Theme (No blues, zero borders)
+            style.Colors[ImGuiCol_Text]                  = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+            style.Colors[ImGuiCol_TextDisabled]          = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+            style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.05f, 0.05f, 0.06f, 1.00f);
+            style.Colors[ImGuiCol_ChildBg]               = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
+            style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
+            style.Colors[ImGuiCol_Border]                = ImVec4(0.15f, 0.15f, 0.15f, 0.30f);
             style.Colors[ImGuiCol_BorderShadow]          = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-            style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.13f, 0.15f, 0.19f, 1.00f);
-            style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.18f, 0.21f, 0.26f, 1.00f);
-            style.Colors[ImGuiCol_FrameBgActive]         = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
-            style.Colors[ImGuiCol_MenuBarBg]             = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-            style.Colors[ImGuiCol_CheckMark]             = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
-            style.Colors[ImGuiCol_SliderGrab]            = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
-            style.Colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-            style.Colors[ImGuiCol_Button]                = ImVec4(0.15f, 0.17f, 0.22f, 1.00f);
-            style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(0.20f, 0.23f, 0.28f, 1.00f);
-            style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
-            style.Colors[ImGuiCol_Header]                = ImVec4(0.15f, 0.17f, 0.22f, 1.00f);
-            style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(0.20f, 0.23f, 0.28f, 1.00f);
-            style.Colors[ImGuiCol_HeaderActive]          = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
-            style.Colors[ImGuiCol_Tab]                   = ImVec4(0.11f, 0.12f, 0.16f, 1.00f);
-            style.Colors[ImGuiCol_TabHovered]            = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-            style.Colors[ImGuiCol_TabActive]             = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
-            style.Colors[ImGuiCol_TabUnfocused]          = ImVec4(0.11f, 0.12f, 0.16f, 1.00f);
-            style.Colors[ImGuiCol_TabUnfocusedActive]    = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+            style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.12f, 0.13f, 0.15f, 1.00f);
+            style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.16f, 0.17f, 0.20f, 1.00f);
+            style.Colors[ImGuiCol_FrameBgActive]         = ImVec4(0.20f, 0.22f, 0.25f, 1.00f);
+            style.Colors[ImGuiCol_TitleBg]               = ImVec4(0.05f, 0.05f, 0.06f, 1.00f);
+            style.Colors[ImGuiCol_TitleBgActive]         = ImVec4(0.08f, 0.08f, 0.09f, 1.00f);
+            style.Colors[ImGuiCol_CheckMark]             = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
+            style.Colors[ImGuiCol_SliderGrab]            = ImVec4(0.30f, 0.30f, 0.35f, 1.00f);
+            style.Colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.50f, 0.50f, 0.55f, 1.00f);
+            style.Colors[ImGuiCol_Button]                = ImVec4(0.12f, 0.13f, 0.15f, 1.00f);
+            style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(0.18f, 0.19f, 0.22f, 1.00f);
+            style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.25f, 0.26f, 0.30f, 1.00f);
+            style.Colors[ImGuiCol_Header]                = ImVec4(0.12f, 0.13f, 0.15f, 1.00f);
+            style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(0.18f, 0.19f, 0.22f, 1.00f);
+            style.Colors[ImGuiCol_HeaderActive]          = ImVec4(0.25f, 0.26f, 0.30f, 1.00f);
+            style.Colors[ImGuiCol_Tab]                   = ImVec4(0.07f, 0.07f, 0.08f, 1.00f);
+            style.Colors[ImGuiCol_TabHovered]            = ImVec4(0.14f, 0.15f, 0.18f, 1.00f);
+            style.Colors[ImGuiCol_TabActive]             = ImVec4(0.12f, 0.13f, 0.15f, 1.00f);
+            style.Colors[ImGuiCol_TabUnfocused]          = ImVec4(0.07f, 0.07f, 0.08f, 1.00f);
+            style.Colors[ImGuiCol_TabUnfocusedActive]    = ImVec4(0.12f, 0.13f, 0.15f, 1.00f);
             style.Colors[ImGuiCol_Separator]             = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
             style.Colors[ImGuiCol_SeparatorHovered]      = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
             style.Colors[ImGuiCol_SeparatorActive]       = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);

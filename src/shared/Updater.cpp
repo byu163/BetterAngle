@@ -230,9 +230,15 @@ bool CheckForUpdates() {
         return false;
     }
 
-    g_latestVersionOnline = highestTag;
-    g_latestName = L"GitHub Release (" +
-                   std::wstring(highestTag.begin(), highestTag.end()) + L")";
+    // Sanitize: Strip any non-version characters (v4.20.45-abc -> 4.20.45)
+    std::string cleanTag = "";
+    for (char c : highestTag) {
+        if (isdigit(c) || c == '.') cleanTag += c;
+    }
+    if (cleanTag.empty()) cleanTag = highestTag; // Fallback
+
+    g_latestVersionOnline = cleanTag;
+    g_latestName = L"Latest Version: " + std::wstring(cleanTag.begin(), cleanTag.end());
 
     std::string local = APP_VERSION_STR;
     g_updateAvailable = IsVersionHigher(highestTag, local);

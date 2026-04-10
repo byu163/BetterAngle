@@ -352,6 +352,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     g_logic.LoadProfile(g_currentProfile.sensitivityX); // Now using the auto-fetched 800 DPI matched sens
 
+    // Phase 1.5: Finalize Global Hotkeys (v4.20.46)
+    {
+        Profile& p = g_currentProfile;
+        UnregisterHotKey(NULL, 1); UnregisterHotKey(NULL, 2);
+        UnregisterHotKey(NULL, 3); UnregisterHotKey(NULL, 4);
+        UnregisterHotKey(NULL, 5);
+        RegisterHotKey(NULL, 1, p.keybinds.toggleMod, p.keybinds.toggleKey);
+        RegisterHotKey(NULL, 2, p.keybinds.roiMod,    p.keybinds.roiKey);
+        RegisterHotKey(NULL, 3, p.keybinds.crossMod,  p.keybinds.crossKey);
+        RegisterHotKey(NULL, 4, p.keybinds.zeroMod,   p.keybinds.zeroKey);
+        RegisterHotKey(NULL, 5, p.keybinds.debugMod,  p.keybinds.debugKey);
+    }
+
     // Message Window for Raw Input (Bypasses Layered Window UI Bugs)
     WNDCLASS wcMsg = { 0 };
     wcMsg.lpfnWndProc = MsgWndProc;
