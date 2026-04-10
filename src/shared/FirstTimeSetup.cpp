@@ -15,18 +15,10 @@ using namespace Gdiplus;
 int g_setupState = 1;
 
 std::wstring g_setupDPI = L"";
-std::wstring g_setupSens = L"";
-std::wstring g_setupFOV = L"";
-std::wstring g_setupRes = L"";
-std::wstring g_setupScale = L"";
+std::wstring g_setupSensX = L"";
+std::wstring g_setupSensY = L"";
 
-bool g_sensManual = false;
-bool g_fovManual = false;
-bool g_resManual = false;
-bool g_scaleManual = false;
-
-int g_ptrSpeed = 10;
-int g_ptrEnhance = 0;
+bool g_extractedConfig = false;
 
 void FinishSetup() {
     Profile p;
@@ -39,18 +31,23 @@ void FinishSetup() {
     try { dpiVal = std::stod(g_setupDPI); } catch(...) {}
     if (dpiVal <= 0) dpiVal = 800.0;
 
-    double sensVal = 0.05;
-    try { sensVal = std::stod(g_setupSens); } catch(...) {}
-    if (sensVal <= 0) sensVal = 0.05;
+    double sensXVal = 0.05;
+    try { sensXVal = std::stod(g_setupSensX); } catch(...) {}
+    if (sensXVal <= 0) sensXVal = 0.05;
+
+    double sensYVal = 0.05;
+    try { sensYVal = std::stod(g_setupSensY); } catch(...) {}
+    if (sensYVal <= 0) sensYVal = 0.05;
 
     p.dpi = (int)dpiVal;
-    p.sensitivity = sensVal;
+    p.sensitivityX = sensXVal;
+    p.sensitivityY = sensYVal;
     p.divingScaleMultiplier = 1.22;
 
-    try { p.fov = std::stof(g_setupFOV); } catch(...) { p.fov = 80.0f; }
+    p.fov = 80.0f;
     p.resolutionWidth = GetSystemMetrics(SM_CXSCREEN);
     p.resolutionHeight = GetSystemMetrics(SM_CYSCREEN);
-    try { p.renderScale = std::stof(g_setupScale); } catch(...) { p.renderScale = 100.0f; }
+    p.renderScale = 100.0f;
 
     extern std::vector<Profile> g_allProfiles;
     extern int g_selectedProfileIdx;
@@ -80,26 +77,40 @@ void DrawSetupButton(Graphics& g, Font* f, const wchar_t* text, int x, int y, in
     g.DrawString(text, -1, f, PointF(x + 10, y + 10), &white);
 }
 
+// 0 for neither, 1 for SensX, 2 for SensY
+int g_focusedInput = 1;
+
 LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_CREATE) {
         return 0;
     }
     if (message == WM_CHAR) {
+        if (wParam == VK_RETURN) { // Enter confirms the step
+            if (g_setupState == 1) {
+                g_setupState = 2; // Fixed state jump
+            } else if (g_setupState == 2) {
+                FinishSetup();
+                DestroyWindow(hWnd);
+            }
+            InvalidateRect(hWnd, NULL, FALSE);
+            return 0;
+        }
+
         if (wParam == VK_BACK) {
             std::wstring* active = nullptr;
             if (g_setupState == 1) active = &g_setupDPI;
-            else if (g_setupState == 2 && g_sensManual) active = &g_setupSens;
-            else if (g_setupState == 3 && g_fovManual) active = &g_setupFOV;
-            else if (g_setupState == 4 && g_resManual) active = &g_setupRes;
-            else if (g_setupState == 5 && g_scaleManual) active = &g_setupScale;
+            else if (g_setupState == 2) {
+                if (g_focusedInput == 1) active = &g_setupSensX;
+                else if (g_focusedInput == 2) active = &g_setupSensY;
+            }
             if (active && !active->empty()) active->pop_back();
         } else if (wParam >= 32 && wParam <= 126) {
             std::wstring* active = nullptr;
             if (g_setupState == 1) active = &g_setupDPI;
-            else if (g_setupState == 2 && g_sensManual) active = &g_setupSens;
-            else if (g_setupState == 3 && g_fovManual) active = &g_setupFOV;
-            else if (g_setupState == 4 && g_resManual) active = &g_setupRes;
-            else if (g_setupState == 5 && g_scaleManual) active = &g_setupScale;
+            else if (g_setupState == 2) {
+                if (g_focusedInput == 1) active = &g_setupSensX;
+                else if (g_focusedInput == 2) active = &g_setupSensY;
+            }
             if (active) active->push_back((wchar_t)wParam);
         }
         InvalidateRect(hWnd, NULL, FALSE);
@@ -109,47 +120,18 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
         int x = GET_X_LPARAM(lParam);
         int y = GET_Y_LPARAM(lParam);
         
-        auto nextState = [&]() {
-            g_setupState++;
-            if (g_setupState == 6 && g_ptrSpeed == 10) g_setupState++;
-            if (g_setupState == 7 && g_ptrEnhance == 0) g_setupState++;
-            if (g_setupState > 7) {
+        if (g_setupState == 1) {
+            if (y > 150 && y < 190 && x > 20 && x < 200) {
+                g_setupState = 2;
+                InvalidateRect(hWnd, NULL, FALSE);
+            }
+        } else if (g_setupState == 2) {
+            if (y > 220 && y < 260 && x > 20 && x < 200) {
                 FinishSetup();
                 DestroyWindow(hWnd);
-            }
-            InvalidateRect(hWnd, NULL, FALSE);
-        };
-        
-        if (g_setupState == 1) {
-            if (y > 150 && y < 190 && x > 20 && x < 200) nextState();
-        } else if (g_setupState >= 2 && g_setupState <= 5) {
-            bool isManual = false;
-            if (g_setupState == 2) isManual = g_sensManual;
-            else if (g_setupState == 3) isManual = g_fovManual;
-            else if (g_setupState == 4) isManual = g_resManual;
-            else if (g_setupState == 5) isManual = g_scaleManual;
-            
-            if (!isManual) {
-                if (y > 150 && y < 190) {
-                    if (x > 20 && x < 120) nextState(); // YES
-                    else if (x > 140 && x < 240) { // NO
-                        if (g_setupState == 2) g_sensManual = true;
-                        else if (g_setupState == 3) g_fovManual = true;
-                        else if (g_setupState == 4) g_resManual = true;
-                        else if (g_setupState == 5) g_scaleManual = true;
-                        InvalidateRect(hWnd, NULL, FALSE);
-                    }
-                }
-            } else {
-                if (y > 220 && y < 260 && x > 20 && x < 200) nextState();
-            }
-        } else if (g_setupState == 6 || g_setupState == 7) {
-            if (y > 220 && y < 260) {
-                if (x > 20 && x < 250) {
-                    ShellExecuteW(NULL, L"open", L"control", L"main.cpl", NULL, SW_SHOWNORMAL);
-                } else if (x > 270 && x < 450) {
-                    nextState();
-                }
+            } else if (y > 140 && y < 170) {
+                if (x > 20 && x < 150) { g_focusedInput = 1; InvalidateRect(hWnd, NULL, FALSE); }
+                else if (x > 180 && x < 310) { g_focusedInput = 2; InvalidateRect(hWnd, NULL, FALSE); }
             }
         }
         return 0;
@@ -163,52 +145,58 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
         FontFamily ff(L"Segoe UI");
         Font title(&ff, 20, FontStyleBold, UnitPixel);
         Font text(&ff, 15, FontStyleRegular, UnitPixel);
+        Font smallText(&ff, 12, FontStyleRegular, UnitPixel);
         SolidBrush white(Color(255, 255, 255));
         SolidBrush gray(Color(180, 180, 180));
         SolidBrush inputBg(Color(40, 45, 50));
+        SolidBrush inputFocusedBg(Color(60, 65, 70));
 
         g.DrawString(L"First Time Integration Setup", -1, &title, PointF(20, 20), &white);
 
         if (g_setupState == 1) {
             g.DrawString(L"Step 1: Mouse DPI", -1, &text, PointF(20, 60), &gray);
-            g.DrawString(L"Enter your mouse DPI (check your mouse software):", -1, &text, PointF(20, 85), &white);
+            g.DrawString(L"Enter your mouse DPI", -1, &text, PointF(20, 85), &white);
             g.FillRectangle(&inputBg, 20, 110, 300, 30);
-            std::wstring disp = g_setupDPI + L"_";
-            g.DrawString(disp.c_str(), -1, &text, PointF(25, 115), &white);
-            DrawSetupButton(g, &text, L"Confirm", 20, 150, 180, 40, Color(0, 120, 215));
-        } else if (g_setupState >= 2 && g_setupState <= 5) {
-            std::wstring label, activeVal;
-            bool manual = false;
-            if (g_setupState == 2) { label = L"Step 2: Fortnite Parameter"; activeVal = g_setupSens; manual = g_sensManual; }
-            if (g_setupState == 3) { label = L"Step 3: Fortnite FOV"; activeVal = g_setupFOV; manual = g_fovManual; }
-            if (g_setupState == 4) { label = L"Step 4: Monitor Resolution"; activeVal = g_setupRes; manual = g_resManual; }
-            if (g_setupState == 5) { label = L"Step 5: Render Scale"; activeVal = g_setupScale; manual = g_scaleManual; }
             
-            g.DrawString(label.c_str(), -1, &text, PointF(20, 60), &gray);
-            
-            if (!manual) {
-                std::wstring q = L"We detected: " + activeVal + L" \nIs this correct?";
-                g.DrawString(q.c_str(), -1, &text, PointF(20, 90), &white);
-                DrawSetupButton(g, &text, L"YES", 20, 150, 100, 40, Color(0, 160, 50));
-                DrawSetupButton(g, &text, L"NO", 140, 150, 100, 40, Color(200, 50, 50));
+            std::wstring disp = g_setupDPI;
+            if (disp.empty()) {
+                g.DrawString(L"e.g. 800", -1, &text, PointF(25, 115), &gray);
             } else {
-                g.DrawString(L"Please enter the value manually:", -1, &text, PointF(20, 90), &white);
-                g.FillRectangle(&inputBg, 20, 140, 300, 30);
-                std::wstring disp = activeVal + L"_";
-                g.DrawString(disp.c_str(), -1, &text, PointF(25, 145), &white);
-                DrawSetupButton(g, &text, L"Confirm Manual", 20, 220, 180, 40, Color(0, 120, 215));
+                disp += L"_";
+                g.DrawString(disp.c_str(), -1, &text, PointF(25, 115), &white);
             }
-        } else if (g_setupState == 6 || g_setupState == 7) {
-            std::wstring label = (g_setupState == 6) ? L"Step 6: Windows Pointer Speed" : L"Step 7: Pointer Precision";
-            g.DrawString(label.c_str(), -1, &text, PointF(20, 60), &gray);
             
-            std::wstring warn;
-            if (g_setupState == 6) warn = L"Your Windows pointer speed is not at the default (6/11).\nThis strongly affects accuracy.\nWe recommend setting it to the 6th notch.";
-            else warn = L"Enhance Pointer Precision is currently enabled!\nThis literally breaks angle tracking math.\nYou must turn it off in Windows settings.";
+            DrawSetupButton(g, &text, L"Next", 20, 150, 180, 40, Color(0, 120, 215));
+        } else if (g_setupState == 2) {
+            g.DrawString(L"Step 2: Fortnite Sensitivity", -1, &text, PointF(20, 60), &gray);
             
-            g.DrawString(warn.c_str(), -1, &text, PointF(20, 90), &white);
-            DrawSetupButton(g, &text, L"Open Windows Mouse Settings", 20, 220, 230, 40, Color(200, 100, 20));
-            DrawSetupButton(g, &text, L"Continue Anyway", 270, 220, 180, 40, Color(80, 80, 80));
+            if (g_extractedConfig) {
+                g.DrawString(L"We found your Fortnite sensitivity from your game files.\nIf this looks correct just press Enter to confirm.", -1, &smallText, PointF(20, 90), &white);
+            } else {
+                g.DrawString(L"We couldn't detect your config. Please enter manually.", -1, &smallText, PointF(20, 90), &white);
+            }
+            
+            g.DrawString(L"Sensitivity X", -1, &text, PointF(20, 120), &gray);
+            g.FillRectangle(g_focusedInput == 1 ? &inputFocusedBg : &inputBg, 20, 140, 130, 30);
+            std::wstring dispX = g_setupSensX;
+            if (dispX.empty()) {
+                g.DrawString(L"Enter manually", -1, &text, PointF(25, 145), &gray);
+            } else {
+                if (g_focusedInput == 1) dispX += L"_";
+                g.DrawString(dispX.c_str(), -1, &text, PointF(25, 145), &white);
+            }
+
+            g.DrawString(L"Sensitivity Y", -1, &text, PointF(180, 120), &gray);
+            g.FillRectangle(g_focusedInput == 2 ? &inputFocusedBg : &inputBg, 180, 140, 130, 30);
+            std::wstring dispY = g_setupSensY;
+            if (dispY.empty()) {
+                g.DrawString(L"Enter manually", -1, &text, PointF(185, 145), &gray);
+            } else {
+                if (g_focusedInput == 2) dispY += L"_";
+                g.DrawString(dispY.c_str(), -1, &text, PointF(185, 145), &white);
+            }
+            
+            DrawSetupButton(g, &text, L"Confirm", 20, 220, 180, 40, Color(0, 120, 215));
         }
 
         EndPaint(hWnd, &ps);
@@ -232,15 +220,16 @@ void StartModalSetupLoop(HWND hwnd) {
 
 void ShowFirstTimeSetup(HINSTANCE hInstance) {
     g_setupState = 1;
-    g_setupDPI = L""; g_setupSens = L""; g_setupFOV = L""; g_setupRes = L""; g_setupScale = L"";
-    g_sensManual = false; g_fovManual = false; g_resManual = false; g_scaleManual = false;
+    g_setupDPI = L""; g_setupSensX = L""; g_setupSensY = L"";
+    g_focusedInput = 1;
+    g_extractedConfig = false;
 
     // Parse Phase
     std::string iniContent = "";
     wchar_t path[MAX_PATH];
     if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path))) {
         std::wstring p = std::wstring(path) + L"\\FortniteGame\\Saved\\Config\\WindowsClient\\GameUserSettings.ini";
-        std::ifstream ifs(p);
+        std::ifstream ifs(p.c_str());
         if (ifs.good()) {
             iniContent.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
         }
@@ -255,24 +244,12 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
         return L"";
     };
 
-    g_setupSens = extractValue("MouseX");
-    g_setupFOV = extractValue("FOV");
-    if (g_setupFOV.empty()) {
-        std::wstring w = extractValue("DesiredScreenWidth");
-        std::wstring h = extractValue("DesiredScreenHeight");
-        if (!w.empty() && !h.empty()) g_setupFOV = L"Aspect (" + w + L"x" + h + L")";
+    g_setupSensX = extractValue("MouseX");
+    g_setupSensY = extractValue("MouseY");
+    
+    if (!g_setupSensX.empty() || !g_setupSensY.empty()) {
+        g_extractedConfig = true;
     }
-    if (g_setupSens.empty()) g_setupSens = L"0.05";
-    if (g_setupFOV.empty()) g_setupFOV = L"Unknown";
-
-    g_setupRes = std::to_wstring(GetSystemMetrics(SM_CXSCREEN)) + L"x" + std::to_wstring(GetSystemMetrics(SM_CYSCREEN));
-    g_setupScale = extractValue("ResolutionQuality");
-    if (g_setupScale.empty()) g_setupScale = L"100.0";
-
-    SystemParametersInfo(SPI_GETMOUSESPEED, 0, &g_ptrSpeed, 0);
-    int mouseParams[3];
-    SystemParametersInfo(SPI_GETMOUSE, 0, mouseParams, 0);
-    g_ptrEnhance = mouseParams[2];
 
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = FirstTimeSetupProc;

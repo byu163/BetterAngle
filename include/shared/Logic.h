@@ -5,17 +5,17 @@
 
 class AngleLogic {
 public:
-    AngleLogic(double dpi, double sens);
+    AngleLogic(double dpi, double sensX);
     void Update(int dx);
     double GetAngle() const;
     long long GetAccumDx() const { return m_accumDx; }
     void SetZero();
-    void LoadProfile(int dpi, double sens, double divingMult);
+    void LoadProfile(int dpi, double sensX, double divingMult);
     void SetDivingState(bool diving);
 
 private:
     double m_dpi;
-    double m_sens;
+    double m_sensX;
     double m_divingMult;
     bool m_isDiving;
     

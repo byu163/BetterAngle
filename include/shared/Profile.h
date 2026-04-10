@@ -9,7 +9,8 @@
 struct Profile {
   std::wstring name;
   int dpi;
-  double sensitivity;
+  double sensitivityX;
+  double sensitivityY;
   double divingScaleMultiplier;
 
   // Reference Metadata

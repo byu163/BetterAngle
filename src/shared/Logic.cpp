@@ -15,8 +15,8 @@ bool IsFortniteFocused() {
     return (cls == L"UnrealWindow");
 }
 
-AngleLogic::AngleLogic(double dpi, double sens)
-    : m_dpi(dpi), m_sens(sens), m_divingMult(1.22), m_isDiving(false), m_accumDx(0), m_baseDx(0), m_baseAngle(0.0) {}
+AngleLogic::AngleLogic(double dpi, double sensX)
+    : m_dpi(dpi), m_sensX(sensX), m_divingMult(1.22), m_isDiving(false), m_accumDx(0), m_baseDx(0), m_baseAngle(0.0) {}
 
 void AngleLogic::Update(int dx) {
     if (!g_debugMode) {
@@ -26,7 +26,7 @@ void AngleLogic::Update(int dx) {
 }
 
 double AngleLogic::GetAngle() const {
-    double normalScale = 0.5573 / (m_dpi * m_sens);
+    double normalScale = 0.5555 / (m_dpi * m_sensX);
     double scale = m_isDiving ? (normalScale * m_divingMult) : normalScale;
     
     if (scale == 0.0) scale = 0.0031415; // Bullet-proof fallback
@@ -42,15 +42,15 @@ void AngleLogic::SetZero() {
     m_baseDx = m_accumDx;
 }
 
-void AngleLogic::LoadProfile(int dpi, double sens, double divingMult) {
-    if (m_dpi == dpi && m_sens == sens && m_divingMult == divingMult) return;
+void AngleLogic::LoadProfile(int dpi, double sensX, double divingMult) {
+    if (m_dpi == dpi && m_sensX == sensX && m_divingMult == divingMult) return;
     
     // Prevent the angle jump when swapping Sensitivity mid-air
     m_baseAngle = GetAngle();
     m_baseDx = m_accumDx;
     
     m_dpi = dpi;
-    m_sens = sens;
+    m_sensX = sensX;
     m_divingMult = divingMult;
 }
 

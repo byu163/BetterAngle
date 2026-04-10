@@ -52,8 +52,11 @@ bool Profile::Load(const std::wstring &path) {
   dpi = (int)extractDouble("dpi");
   if (dpi == 0) dpi = 800;
   
-  sensitivity = extractDouble("sensitivity");
-  if (sensitivity <= 0.0) sensitivity = 0.05;
+  sensitivityX = extractDouble("sensitivityX");
+  if (sensitivityX <= 0.0) sensitivityX = 0.05;
+  
+  sensitivityY = extractDouble("sensitivityY");
+  if (sensitivityY <= 0.0) sensitivityY = 0.05;
   
   divingScaleMultiplier = extractDouble("divingScaleMultiplier");
   if (divingScaleMultiplier <= 0) divingScaleMultiplier = 1.22;
@@ -87,7 +90,8 @@ bool Profile::Save(const std::wstring &path) {
   oss << "{\n";
   oss << "  \"name\": \"" << n << "\",\n";
   oss << "  \"dpi\": " << dpi << ",\n";
-  oss << "  \"sensitivity\": " << sensitivity << ",\n";
+  oss << "  \"sensitivityX\": " << sensitivityX << ",\n";
+  oss << "  \"sensitivityY\": " << sensitivityY << ",\n";
   oss << "  \"divingScaleMultiplier\": " << divingScaleMultiplier << ",\n";
   oss << "  \"fov\": " << fov << ",\n";
   oss << "  \"resolutionWidth\": " << resolutionWidth << ",\n";

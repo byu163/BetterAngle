@@ -54,7 +54,7 @@ LRESULT CALLBACK ThresholdWizProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
                 
                 double dpiBase = p.dpi <= 0 ? 800.0 : (double)p.dpi;
                 double normalScaleTested = 120.0 / diff_n;
-                p.sensitivity = 0.5573 / (dpiBase * normalScaleTested);
+                p.sensitivityX = 0.5555 / (dpiBase * normalScaleTested);
                 p.divingScaleMultiplier = (double)diff_n / (double)diff_f;
                 
                 p.name = L"last_calibrated";

@@ -42,7 +42,7 @@ void DetectorThread() {
     while (g_running) {
         if (!g_allProfiles.empty() && g_currentSelection == NONE) {
             Profile& p = g_allProfiles[g_selectedProfileIdx];
-            g_logic.LoadProfile(p.dpi, p.sensitivity, p.divingScaleMultiplier);
+            g_logic.LoadProfile(p.dpi, p.sensitivityX, p.divingScaleMultiplier);
             
             RoiConfig cfg = { p.roi_x, p.roi_y, p.roi_w, p.roi_h, p.target_color, p.tolerance };
             
@@ -261,7 +261,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
     
     g_currentProfile = g_allProfiles[g_selectedProfileIdx];
-    g_logic.LoadProfile(g_currentProfile.dpi, g_currentProfile.sensitivity, g_currentProfile.divingScaleMultiplier);
+    g_logic.LoadProfile(g_currentProfile.dpi, g_currentProfile.sensitivityX, g_currentProfile.divingScaleMultiplier);
 
     // Message Window for Raw Input (Bypasses Layered Window UI Bugs)
     WNDCLASS wcMsg = { 0 };
