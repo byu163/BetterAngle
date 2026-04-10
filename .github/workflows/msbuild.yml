@@ -39,6 +39,20 @@ jobs:
           echo "VERSION=$ver" >> $env:GITHUB_ENV
           echo "TAG=v$ver" >> $env:GITHUB_ENV
 
+      - name: Extract Latest Release Notes
+        run: |
+          $lines = Get-Content RELEASE_NOTES.md
+          $outLines = @()
+          $seenFirst = $false
+          foreach ($line in $lines) {
+              if ($line.StartsWith("### ")) {
+                  if ($seenFirst) { break }
+                  $seenFirst = $true
+              }
+              if ($seenFirst) { $outLines += $line }
+          }
+          $outLines | Out-File CURRENT_RELEASE_NOTES.md -Encoding utf8
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -47,9 +61,7 @@ jobs:
             bin/BetterAngleConfig.exe
           tag_name: ${{ env.TAG }}
           name: BetterAngle Pro ${{ env.TAG }}
-          body: |
-            ### BetterAngle Pro Flagship Update
-            - v${{ env.VERSION }}
+          body_path: CURRENT_RELEASE_NOTES.md
           draft: false
           prerelease: false
         env:
