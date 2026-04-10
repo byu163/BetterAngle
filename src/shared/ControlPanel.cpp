@@ -72,7 +72,7 @@ HWND CreateControlPanel(HINSTANCE hInst) {
     wc.lpszClassName = L"BetterAngleControlPanel";
     RegisterClass(&wc);
 
-    int w = 420, h = 580;
+    int w = 540, h = 580;
     HWND hPanel = CreateWindowEx(
         WS_EX_TOPMOST | WS_EX_APPWINDOW,
         L"BetterAngleControlPanel", L"BetterAngle Pro | Global Command Center",
@@ -148,16 +148,16 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
             // Tab Navigation (Y: 90-120)
             if (y >= 90 && y <= 120) {
-                if (x >= 40 && x <= 105) { g_currentTab = 0; g_listeningKey = -1; }
-                else if (x >= 110 && x <= 175) { g_currentTab = 1; g_listeningKey = -1; }
-                else if (x >= 180 && x <= 245) { g_currentTab = 2; g_listeningKey = -1; }
-                else if (x >= 250 && x <= 310) { g_currentTab = 3; g_listeningKey = -1; }
-                else if (x >= 315 && x <= 380) { g_currentTab = 4; g_listeningKey = -1; }
+                if (x >= 40 && x <= 120) { g_currentTab = 0; g_listeningKey = -1; }
+                else if (x >= 130 && x <= 210) { g_currentTab = 1; g_listeningKey = -1; }
+                else if (x >= 220 && x <= 300) { g_currentTab = 2; g_listeningKey = -1; }
+                else if (x >= 310 && x <= 390) { g_currentTab = 3; g_listeningKey = -1; }
+                else if (x >= 400 && x <= 480) { g_currentTab = 4; g_listeningKey = -1; }
             }
 
             if (g_currentTab == 0 && g_listeningKey == -1) {
                 // Keybinds Selection (160 - 280)
-                if (x >= 200 && x <= 380) {
+                if (x >= 300 && x <= 480) {
                     if (y >= 160 && y <= 180) g_listeningKey = 1;
                     else if (y >= 185 && y <= 205) g_listeningKey = 2;
                     else if (y >= 210 && y <= 230) g_listeningKey = 3;
@@ -165,31 +165,31 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                     else if (y >= 260 && y <= 280) g_listeningKey = 5;
                 }
                 
-                if (x >= 40 && x <= 380 && y >= 390 && y <= 430) {
+                if (x >= 40 && x <= 480 && y >= 390 && y <= 430) {
                     void ShowFirstTimeSetup(HINSTANCE hInstance);
                     ShowFirstTimeSetup((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
                 }
-                if (x >= 40 && x <= 380 && y >= 440 && y <= 480) {
+                if (x >= 40 && x <= 480 && y >= 440 && y <= 480) {
                     void StartThresholdWizard(HINSTANCE hInstance);
                     StartThresholdWizard((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
                 }
             }
 
             if (g_currentTab == 3) {
-                if (x >= 40 && x <= 380 && y >= 150 && y <= 180) g_debugMode = !g_debugMode;
-                else if (x >= 40 && x <= 380 && y >= 190 && y <= 220) g_forceDiving = !g_forceDiving;
-                else if (x >= 40 && x <= 380 && y >= 230 && y <= 260) g_forceDetection = !g_forceDetection;
-                else if (x >= 40 && x <= 380 && y >= 270 && y <= 300) {
+                if (x >= 40 && x <= 480 && y >= 150 && y <= 180) g_debugMode = !g_debugMode;
+                else if (x >= 40 && x <= 480 && y >= 190 && y <= 220) g_forceDiving = !g_forceDiving;
+                else if (x >= 40 && x <= 480 && y >= 230 && y <= 260) g_forceDetection = !g_forceDetection;
+                else if (x >= 40 && x <= 480 && y >= 270 && y <= 300) {
                     g_currentAngle = 0.0f;
                     g_logic.SetZero();
                 }
-                else if (x >= 40 && x <= 200 && y >= 350 && y <= 380) {
+                else if (x >= 40 && x <= 250 && y >= 350 && y <= 380) {
                     if (!g_allProfiles.empty()) {
                         g_allProfiles[g_selectedProfileIdx].tolerance = max(0, g_allProfiles[g_selectedProfileIdx].tolerance - 2);
                         g_allProfiles[g_selectedProfileIdx].Save(GetAppStoragePath() + g_allProfiles[g_selectedProfileIdx].name + L".json");
                     }
                 }
-                else if (x >= 220 && x <= 380 && y >= 350 && y <= 380) {
+                else if (x >= 270 && x <= 480 && y >= 350 && y <= 380) {
                     if (!g_allProfiles.empty()) {
                         g_allProfiles[g_selectedProfileIdx].tolerance += 2;
                         g_allProfiles[g_selectedProfileIdx].Save(GetAppStoragePath() + g_allProfiles[g_selectedProfileIdx].name + L".json");
@@ -212,7 +212,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         g_crossColor = cc.rgbResult;
                     }
                 }
-                else if (x >= 220 && x <= 380 && y >= 160 && y <= 190) { // Pulse Toggle
+                else if (x >= 220 && x <= 480 && y >= 160 && y <= 190) { // Pulse Toggle
                     g_crossPulse = !g_crossPulse;
                 }
                 else if (x >= 200 && x <= 250 && y >= 200 && y <= 230) g_crossThickness = max(1.0f, g_crossThickness - 1.0f);
@@ -229,7 +229,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             }
 
             if (g_currentTab == 1) {
-                if (x >= 40 && x <= 380 && y >= 320 && y <= 370) {
+                if (x >= 40 && x <= 480 && y >= 320 && y <= 370) {
                     if (g_updateAvailable) {
                         g_updateAvailable = false; // Lock immediately to prevent thread spam
                         std::thread([]() {
@@ -243,12 +243,12 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         std::thread(CheckForUpdates).detach();
                     }
                 }
-                if (g_updateAvailable && x >= 40 && x <= 380 && y >= 380 && y <= 430) {
+                if (g_updateAvailable && x >= 40 && x <= 480 && y >= 380 && y <= 430) {
                     ShellExecuteW(0, L"open", L"https://github.com/MahanYTT/BetterAngle/releases/latest", 0, 0, SW_SHOW);
                 }
             }
 
-            if (x >= 40 && x <= 380 && y >= 520 && y <= 560) {
+            if (x >= 40 && x <= 480 && y >= 520 && y <= 560) {
                 PostQuitMessage(0);
             }
             return 0;
@@ -272,22 +272,22 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             IDWriteTextFormat* pVerFormat = NULL;
             g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 13.0f, L"en-us", &pVerFormat);
 
-            g_pRenderTarget->DrawText(L"Pro Command Center", 18, pTitleFormat, D2D1::RectF(40, 40, 380, 80), pWhite);
+            g_pRenderTarget->DrawText(L"Pro Command Center", 18, pTitleFormat, D2D1::RectF(40, 40, 480, 80), pWhite);
 
             // Draw 5 Tabs
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 90, 105, 120), L"GEN", g_currentTab == 0 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(110, 90, 175, 120), L"UPDT", g_currentTab == 1 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(180, 90, 245, 120), L"COLR", g_currentTab == 2 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(250, 90, 310, 120), L"DBUG", g_currentTab == 3 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(315, 90, 380, 120), L"XHAIR", g_currentTab == 4 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 90, 120, 120), L"GENERAL", g_currentTab == 0 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(130, 90, 210, 120), L"UPDATES", g_currentTab == 1 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(220, 90, 300, 120), L"COLORS", g_currentTab == 2 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(310, 90, 390, 120), L"DEBUG", g_currentTab == 3 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(400, 90, 480, 120), L"XHAIR", g_currentTab == 4 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
 
             if (g_currentTab == 0) {
-                g_pRenderTarget->DrawText(L"HOTKEYS (Click to Rebind)", 25, pHeaderFormat, D2D1::RectF(40, 130, 380, 150), pWhite);
+                g_pRenderTarget->DrawText(L"HOTKEYS (Click to Rebind)", 25, pHeaderFormat, D2D1::RectF(40, 130, 480, 150), pWhite);
 
                 auto drawBind = [&](int id, std::wstring name, UINT mod, UINT vk, float y) {
                     g_pRenderTarget->DrawText(name.c_str(), name.length(), pVerFormat, D2D1::RectF(40, y, 200, y+20), pGrey);
                     std::wstring bindText = (g_listeningKey == id) ? L"[ Press Key... ]" : (L"[ " + GetKeyName(mod, vk) + L" ]");
-                    g_pRenderTarget->DrawText(bindText.c_str(), bindText.length(), pVerFormat, D2D1::RectF(210, y, 380, y+20), (g_listeningKey == id) ? pBlue : pWhite);
+                    g_pRenderTarget->DrawText(bindText.c_str(), bindText.length(), pVerFormat, D2D1::RectF(300, y, 480, y+20), (g_listeningKey == id) ? pBlue : pWhite);
                 };
                 drawBind(1, L"Toggle Dashboard:", g_keybinds.toggleMod, g_keybinds.toggleKey, 160);
                 drawBind(2, L"Visual ROI Selector:", g_keybinds.roiMod, g_keybinds.roiKey, 185);
@@ -297,17 +297,17 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
 
 
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 390, 380, 430), L"RECALIBRATE BASE SETTINGS", D2D1::ColorF(0.6f, 0.2f, 0.2f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 390, 480, 430), L"RECALIBRATE BASE SETTINGS", D2D1::ColorF(0.6f, 0.2f, 0.2f));
 
                 std::wstring act = L"Active: " + g_currentProfile.name;
-                g_pRenderTarget->DrawText(act.c_str(), act.length(), pVerFormat, D2D1::RectF(40, 495, 380, 515), pBlue);
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 440, 380, 480), L"MASTER CALIBRATION WIZARD", D2D1::ColorF(0.8f, 0.4f, 0.0f));
+                g_pRenderTarget->DrawText(act.c_str(), act.length(), pVerFormat, D2D1::RectF(40, 495, 480, 515), pBlue);
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 440, 480, 480), L"MASTER CALIBRATION WIZARD", D2D1::ColorF(0.8f, 0.4f, 0.0f));
 
             } else if (g_currentTab == 1) {
-                g_pRenderTarget->DrawText(L"SOFTWARE DASHBOARD", 18, pHeaderFormat, D2D1::RectF(40, 140, 380, 170), pWhite);
+                g_pRenderTarget->DrawText(L"SOFTWARE DASHBOARD", 18, pHeaderFormat, D2D1::RectF(40, 140, 480, 170), pWhite);
 
                 if (g_isCheckingForUpdates) {
-                    D2D1_POINT_2F center = D2D1::Point2F(365.0f, 155.0f);
+                    D2D1_POINT_2F center = D2D1::Point2F(465.0f, 155.0f);
                     g_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Rotation(g_updateSpinAngle, center));
                     g_pRenderTarget->DrawEllipse(D2D1::Ellipse(center, 6.0f, 6.0f), pBlue, 2.0f);
                     g_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
@@ -319,20 +319,20 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 std::wstring latestVerStr = std::wstring(g_latestVersionOnline.begin(), g_latestVersionOnline.end());
                 std::wstring latestVer = L"Latest Found: " + latestVerStr + L" (" + g_latestName + L")";
 
-                g_pRenderTarget->DrawText(curVer.c_str(), (UINT32)curVer.length(), pVerFormat, D2D1::RectF(40, 170, 380, 190), pGrey);
-                g_pRenderTarget->DrawText(latestVer.c_str(), (UINT32)latestVer.length(), pVerFormat, D2D1::RectF(40, 195, 380, 215), pGrey);
+                g_pRenderTarget->DrawText(curVer.c_str(), (UINT32)curVer.length(), pVerFormat, D2D1::RectF(40, 170, 480, 190), pGrey);
+                g_pRenderTarget->DrawText(latestVer.c_str(), (UINT32)latestVer.length(), pVerFormat, D2D1::RectF(40, 195, 480, 215), pGrey);
 
                 if (g_updateAvailable) {
                     std::wstring changelog = L"BetterAngle v" VERSION_WSTR L" is now available online!\nNewest Stable Version.";
-                    g_pRenderTarget->DrawText(changelog.c_str(), (UINT32)changelog.length(), pVerFormat, D2D1::RectF(40, 230, 380, 260), pWhite);
+                    g_pRenderTarget->DrawText(changelog.c_str(), (UINT32)changelog.length(), pVerFormat, D2D1::RectF(40, 230, 480, 260), pWhite);
                     std::wstring viewFull = L"View Full Changelog ->";
-                    g_pRenderTarget->DrawText(viewFull.c_str(), (UINT32)viewFull.length(), pVerFormat, D2D1::RectF(40, 270, 380, 290), pBlue);
-                    DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 380, 380, 430), L"DOWNLOAD UPDATE", D2D1::ColorF(0.0f, 0.5f, 0.8f));
+                    g_pRenderTarget->DrawText(viewFull.c_str(), (UINT32)viewFull.length(), pVerFormat, D2D1::RectF(40, 270, 480, 290), pBlue);
+                    DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 380, 480, 430), L"DOWNLOAD UPDATE", D2D1::ColorF(0.0f, 0.5f, 0.8f));
                 }
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 320, 380, 370), g_updateAvailable ? L"INSTALL UPDATE NOW" : L"DOWNLOAD AND INSTALL NOW", D2D1::ColorF(0.15f, 0.17f, 0.2f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 320, 480, 370), g_updateAvailable ? L"INSTALL UPDATE NOW" : L"DOWNLOAD AND INSTALL NOW", D2D1::ColorF(0.15f, 0.17f, 0.2f));
 
             } else if (g_currentTab == 2) {
-                g_pRenderTarget->DrawText(L"ALGORITHM COLOR CONFIG", 22, pHeaderFormat, D2D1::RectF(40, 140, 380, 170), pWhite);
+                g_pRenderTarget->DrawText(L"ALGORITHM COLOR CONFIG", 22, pHeaderFormat, D2D1::RectF(40, 140, 480, 170), pWhite);
 
                 std::wstring statusText;
                 D2D1_COLOR_F statusColor;
@@ -367,33 +367,33 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 std::wstring instructions = L"1. Press CTRL+R to start ROI selection.\n"
                                             L"2. Drag a box over your target area.\n"
                                             L"3. Release the mouse and click the exact color you want the app to track.";
-                g_pRenderTarget->DrawText(instructions.c_str(), (UINT32)instructions.length(), pVerFormat, D2D1::RectF(40, 410, 380, 500), pGrey);
+                g_pRenderTarget->DrawText(instructions.c_str(), (UINT32)instructions.length(), pVerFormat, D2D1::RectF(40, 410, 480, 500), pGrey);
             } else if (g_currentTab == 3) {
-                g_pRenderTarget->DrawText(L"DEBUG & SIMULATION", 18, pHeaderFormat, D2D1::RectF(40, 130, 380, 150), pWhite);
+                g_pRenderTarget->DrawText(L"DEBUG & SIMULATION", 18, pHeaderFormat, D2D1::RectF(40, 130, 480, 150), pWhite);
 
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 150, 380, 180), g_debugMode ? L"Simulation [ ON ]" : L"Simulation [ OFF ]", g_debugMode ? D2D1::ColorF(0.0f, 0.6f, 0.2f) : D2D1::ColorF(0.3f, 0.3f, 0.3f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 190, 380, 220), g_forceDiving ? L"Force Diving [ ON ]" : L"Force Diving [ OFF ]", g_forceDiving ? D2D1::ColorF(0.0f, 0.6f, 0.2f) : D2D1::ColorF(0.3f, 0.3f, 0.3f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 230, 380, 260), g_forceDetection ? L"Force Color Match [ ON ]" : L"Force Color Match [ OFF ]", g_forceDetection ? D2D1::ColorF(0.0f, 0.6f, 0.2f) : D2D1::ColorF(0.3f, 0.3f, 0.3f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 270, 380, 300), L"Reset Angle to Zero", D2D1::ColorF(0.8f, 0.4f, 0.0f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 150, 480, 180), g_debugMode ? L"Simulation [ ON ]" : L"Simulation [ OFF ]", g_debugMode ? D2D1::ColorF(0.0f, 0.6f, 0.2f) : D2D1::ColorF(0.3f, 0.3f, 0.3f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 190, 480, 220), g_forceDiving ? L"Force Diving [ ON ]" : L"Force Diving [ OFF ]", g_forceDiving ? D2D1::ColorF(0.0f, 0.6f, 0.2f) : D2D1::ColorF(0.3f, 0.3f, 0.3f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 230, 480, 260), g_forceDetection ? L"Force Color Match [ ON ]" : L"Force Color Match [ OFF ]", g_forceDetection ? D2D1::ColorF(0.0f, 0.6f, 0.2f) : D2D1::ColorF(0.3f, 0.3f, 0.3f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 270, 480, 300), L"Reset Angle to Zero", D2D1::ColorF(0.8f, 0.4f, 0.0f));
 
-                g_pRenderTarget->DrawText(L"COLOR TOLERANCE", 16, pHeaderFormat, D2D1::RectF(40, 320, 380, 340), pWhite);
+                g_pRenderTarget->DrawText(L"COLOR TOLERANCE", 16, pHeaderFormat, D2D1::RectF(40, 320, 480, 340), pWhite);
                 
                 int currentTolerance = 0;
                 if (!g_allProfiles.empty()) currentTolerance = g_allProfiles[g_selectedProfileIdx].tolerance;
 
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 350, 200, 380), L"- DECREASE", D2D1::ColorF(0.2f, 0.2f, 0.2f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(220, 350, 380, 380), L"+ INCREASE", D2D1::ColorF(0.2f, 0.2f, 0.2f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 350, 250, 380), L"- DECREASE", D2D1::ColorF(0.2f, 0.2f, 0.2f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(270, 350, 480, 380), L"+ INCREASE", D2D1::ColorF(0.2f, 0.2f, 0.2f));
 
                 wchar_t diagText[128];
                 swprintf_s(diagText, L"Diag: Angle=%.1f, Match=%.0f%%", g_currentAngle, g_detectionRatio * 100.0f);
-                g_pRenderTarget->DrawText(diagText, (UINT32)wcslen(diagText), pVerFormat, D2D1::RectF(40, 390, 380, 410), pGrey);
+                g_pRenderTarget->DrawText(diagText, (UINT32)wcslen(diagText), pVerFormat, D2D1::RectF(40, 390, 480, 410), pGrey);
 
 
             } else if (g_currentTab == 4) {
-                g_pRenderTarget->DrawText(L"PRECISION CROSSHAIR CONFIG", 26, pHeaderFormat, D2D1::RectF(40, 130, 380, 160), pWhite);
+                g_pRenderTarget->DrawText(L"PRECISION CROSSHAIR CONFIG", 26, pHeaderFormat, D2D1::RectF(40, 130, 480, 160), pWhite);
 
                 DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 160, 200, 190), L"CHOOSE COLOR", D2D1::ColorF(0.15f, 0.17f, 0.2f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(220, 160, 380, 190), g_crossPulse ? L"PULSE: ON" : L"PULSE: OFF", g_crossPulse ? D2D1::ColorF(0.5f, 0.1f, 0.5f) : D2D1::ColorF(0.15f, 0.17f, 0.2f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(220, 160, 480, 190), g_crossPulse ? L"PULSE: ON" : L"PULSE: OFF", g_crossPulse ? D2D1::ColorF(0.5f, 0.1f, 0.5f) : D2D1::ColorF(0.15f, 0.17f, 0.2f));
                 
                 auto drawSetting = [&](std::wstring label, std::wstring val, float y) {
                     g_pRenderTarget->DrawText(label.c_str(), label.length(), pVerFormat, D2D1::RectF(40, y, 160, y+30), pWhite);
@@ -407,10 +407,10 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 drawSetting(L"Offset Y:", std::to_wstring((int)g_crossOffsetY), 280);
                 drawSetting(L"Rotation:", std::to_wstring((int)g_crossAngle), 320);
                 
-                g_pRenderTarget->DrawText(L"Press F10 in-game to toggle Crosshair", 37, pVerFormat, D2D1::RectF(40, 380, 380, 400), pGrey);
+                g_pRenderTarget->DrawText(L"Press F10 in-game to toggle Crosshair", 37, pVerFormat, D2D1::RectF(40, 380, 480, 400), pGrey);
             }
 
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 520, 380, 560), L"QUIT SUITE", D2D1::ColorF(0.7f, 0.1f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 520, 480, 560), L"QUIT SUITE", D2D1::ColorF(0.7f, 0.1f, 0.15f));
 
             pVerFormat->Release();
             pHeaderFormat->Release();
