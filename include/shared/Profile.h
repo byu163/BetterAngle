@@ -8,10 +8,8 @@
 
 struct Profile {
   std::wstring name;
-  int dpi;
   double sensitivityX;
   double sensitivityY;
-  double divingScaleMultiplier;
 
   // Reference Metadata
   float fov;

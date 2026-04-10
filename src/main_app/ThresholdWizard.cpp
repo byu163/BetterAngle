@@ -55,10 +55,8 @@ LRESULT CALLBACK ThresholdWizProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
                 std::wstring path = GetAppStoragePath() + L"last_calibrated.json";
                 p.Load(path); 
                 
-                double dpiBase = p.dpi <= 0 ? 800.0 : (double)p.dpi;
                 double normalScaleTested = 120.0 / (std::max)(1.0, diff_n);
-                p.sensitivityX = 0.5555 / (dpiBase * normalScaleTested);
-                p.divingScaleMultiplier = (double)diff_n / (std::max)(1.0, diff_f);
+                p.sensitivityX = normalScaleTested / 0.00555;
                 
                 p.name = L"last_calibrated";
                 

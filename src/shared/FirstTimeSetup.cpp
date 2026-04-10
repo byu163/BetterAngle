@@ -20,8 +20,7 @@ static const COLORREF C_WHITE   = RGB(255, 255, 255);
 static const COLORREF C_CYAN    = RGB( 34, 211, 238);
 static const COLORREF C_BTNOFF  = RGB( 35,  38,  48);
 
-static int g_setupState    = 1;
-static std::wstring g_setupDPI   = L"";
+static int g_setupState    = 2;
 static std::wstring g_setupSensX = L"";
 static std::wstring g_setupSensY = L"";
 static bool g_extractedConfig    = false;
@@ -64,18 +63,15 @@ void FinishSetup() {
     p.roi_x = 760; p.roi_y = 640; p.roi_w = 400; p.roi_h = 70;
     p.target_color = RGB(150, 150, 150);
     p.fov = 80.0f;
-    p.divingScaleMultiplier = 1.22;
     p.resolutionWidth  = GetSystemMetrics(SM_CXSCREEN);
     p.resolutionHeight = GetSystemMetrics(SM_CYSCREEN);
     p.renderScale = 100.0f;
 
     // Parse numeric values safely
-    double dpiVal = 800.0, sensX = 0.05, sensY = 0.05;
-    try { if (!g_setupDPI.empty())   dpiVal = std::stod(g_setupDPI); }   catch(...) {}
+    double sensX = 0.05, sensY = 0.05;
     try { if (!g_setupSensX.empty()) sensX  = std::stod(g_setupSensX); } catch(...) {}
     try { if (!g_setupSensY.empty()) sensY  = std::stod(g_setupSensY); } catch(...) {}
     
-    p.dpi = (int)(std::max)(1.0, dpiVal);
     p.sensitivityX = (std::max)(0.0001, sensX);
     p.sensitivityY = (std::max)(0.0001, sensY);
 
@@ -89,7 +85,6 @@ void FinishSetup() {
             g_selectedProfileIdx = 0;
         }
         Profile& e = g_allProfiles[g_selectedProfileIdx];
-        e.dpi = p.dpi;
         e.sensitivityX = p.sensitivityX;
         e.sensitivityY = p.sensitivityY;
         e.Save(GetAppStoragePath() + e.name + L".json");
@@ -119,35 +114,13 @@ static void PaintSetup(HWND hWnd) {
     FillR(buf, pilX,      22, 70, 2, p1);
     FillR(buf, pilX + 78, 22, 70, 2, p2);
 
-    DrawT(buf, (g_setupState == 1) ? L"INITIATING SENSOR SYNC" : L"CALIBRATING SENSITIVITY",
+    DrawT(buf, L"CALIBRATING SENSITIVITY",
           0, 36, W, 18, C_ACCENT, 9, true);
 
-    const wchar_t* hd = (g_setupState == 1) ? L"Mouse DPI" : L"In-Game Sens";
+    const wchar_t* hd = L"In-Game Sens";
     DrawT(buf, hd, 0, 64, W, 34, C_WHITE, 28, true);
 
-    if (g_setupState == 1) {
-        DrawT(buf, L"Required for high-precision angle calculation.",
-              30, 108, W-60, 20, C_GRAY, 11);
-
-        int ix = 40, iw = W-80, iy = 142, ih = 44;
-        FillR(buf, ix, iy, iw, ih, C_INPUT);
-        
-        HPEN pen = CreatePen(PS_SOLID, 1, C_ACCENT);
-        HPEN op  = (HPEN)SelectObject(buf, pen);
-        HBRUSH ob = (HBRUSH)SelectObject(buf, GetStockObject(NULL_BRUSH));
-        Rectangle(buf, ix, iy, ix+iw, iy+ih);
-        SelectObject(buf, op); SelectObject(buf, ob); DeleteObject(pen);
-
-        std::wstring val = g_setupDPI.empty() ? L"Enter DPI (e.g. 800)" : g_setupDPI + L"_";
-        COLORREF tc = g_setupDPI.empty() ? C_DIM : C_WHITE;
-        DrawT(buf, val.c_str(), ix+16, iy, iw-32, ih, tc, 16, false, DT_LEFT|DT_VCENTER|DT_SINGLELINE);
-
-        bool rdy = !g_setupDPI.empty();
-        int bx = (W-200)/2, by = H-74, bw = 200, bh = 42;
-        FillR(buf, bx, by, bw, bh, rdy ? C_ACCENT : C_BTNOFF);
-        DrawT(buf, L"CONTINUE  →", bx, by, bw, bh, C_WHITE, 12, true);
-
-    } else {
+    {
         const wchar_t* sub = g_extractedConfig
             ? L"Retrieved automatically from your game files."
             : L"Enter your X and Y sensitivity from game settings.";
@@ -205,9 +178,7 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
             return 0;
         }
         if (wParam == VK_RETURN) {
-            if (g_setupState == 1 && !g_setupDPI.empty()) {
-                g_setupState = 2; g_focusedInput = 1;
-            } else if (g_setupState == 2) {
+            if (g_setupState == 2) {
                 FinishSetup(); DestroyWindow(hWnd);
             }
             InvalidateRect(hWnd, NULL, FALSE);
@@ -216,8 +187,7 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
         return 0;
 
     case WM_CHAR: {
-        std::wstring* cur = (g_setupState == 1) ? &g_setupDPI
-                          : (g_focusedInput == 1) ? &g_setupSensX : &g_setupSensY;
+        std::wstring* cur = (g_focusedInput == 1) ? &g_setupSensX : &g_setupSensY;
         if (wParam == VK_BACK) {
             if (!cur->empty()) cur->pop_back();
         } else if (iswdigit((wchar_t)wParam) || (wchar_t)wParam == L'.') {
@@ -234,12 +204,7 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
         RECT rc; GetClientRect(hWnd, &rc);
         int W = rc.right, H = rc.bottom;
 
-        if (g_setupState == 1) {
-            int bx = (W-200)/2, by = H-74;
-            if (mx>=bx && mx<=bx+200 && my>=by && my<=by+42 && !g_setupDPI.empty()) {
-                g_setupState = 2; g_focusedInput = 1;
-            }
-        } else {
+        {
             int fw = (W-90)/2, fxA = 40, fxB = fxA+fw+10, fy = 166, fh = 44;
             if (my >= fy && my <= fy+fh) {
                 if      (mx>=fxA && mx<=fxA+fw) g_focusedInput=1;
@@ -263,7 +228,7 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 
 void ShowFirstTimeSetup(HINSTANCE hInstance) {
     // Reset state locally
-    g_setupState = 1; g_setupDPI = L""; g_setupSensX = L""; g_setupSensY = L"";
+    g_setupState = 2; g_setupSensX = L""; g_setupSensY = L"";
     g_focusedInput = 1; g_extractedConfig = false;
 
     // Fast GameUserSettings.ini extraction

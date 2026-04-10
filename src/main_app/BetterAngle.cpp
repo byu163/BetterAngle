@@ -53,7 +53,7 @@ void DetectorThread() {
     while (g_running) {
         if (!g_allProfiles.empty() && g_currentSelection == NONE) {
             Profile& p = g_allProfiles[g_selectedProfileIdx];
-            g_logic.LoadProfile(p.dpi, p.sensitivityX, p.divingScaleMultiplier);
+            g_logic.LoadProfile(p.sensitivityX);
 
             bool fortFocused = IsFortniteFocused();
 
@@ -310,7 +310,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     g_crossAngle     = g_currentProfile.crossAngle;
     g_crossPulse     = g_currentProfile.crossPulse;
 
-    g_logic.LoadProfile(g_currentProfile.dpi, g_currentProfile.sensitivityX, g_currentProfile.divingScaleMultiplier);
+    g_logic.LoadProfile(g_currentProfile.sensitivityX);
 
     // Message Window for Raw Input (Bypasses Layered Window UI Bugs)
     WNDCLASS wcMsg = { 0 };

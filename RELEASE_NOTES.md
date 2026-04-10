@@ -1,3 +1,9 @@
+### BetterAngle Pro v4.20.13
+- Streamlined configuration architecture: completely purged DPI logic and `divingScaleMultiplier` from memory parsing.
+- Refactored Angle calculations to use `0.00555 * sensX` exactly.
+- Enforced hardcoded `1.0916` diving sensitivity multiplier.
+- Stripped FirstTimeSetup to directly target sensitivity and ignore DPI indexing entirely.
+
 ### BetterAngle Pro v4.20.4
 - RUTHLESS REWRITE of ControlPanel.cpp.
 - Introduced Layout struct: both WM_PAINT and WM_LBUTTONDOWN now share exact same coordinate system. Buttons always clickable.

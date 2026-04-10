@@ -12,7 +12,7 @@ std::wstring GetAppStoragePath();
 
 // Versioning system
 #ifndef APP_VERSION
-#define APP_VERSION "4.20.7"
+#define APP_VERSION "4.20.13"
 #endif
 
 // APP_VERSION is now assumed to be a quoted string from the compiler
