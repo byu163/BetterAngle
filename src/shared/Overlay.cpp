@@ -216,7 +216,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     Color angleCol = g_isDiving ? Color(255, 255, 255, 255) : Color(255, 220, 220, 220);
     SolidBrush angleBrush(angleCol);
     
-    RectF textRect(float(rx), float(ry), float(rw), float(rh));
+    RectF textRect((REAL)rx, (REAL)ry, (REAL)rw, (REAL)rh);
     graphics.DrawString(angleStr.c_str(), -1, &angleFont, textRect, &sf, &angleBrush);
 
     // Subtle Target Swatch (Top-Right)
@@ -231,7 +231,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     SolidBrush tinyBrush(Color(40, 200, 200, 200));
     StringFormat sfBottom;
     sfBottom.SetAlignment(StringAlignmentCenter);
-    RectF hintRect(float(rx), float(ry + rh - 14), float(rw), 14.0f);
+    RectF hintRect((REAL)rx, (REAL)ry + rh - 14, (REAL)rw, 14.0f);
     graphics.DrawString(L"⠿ drag", -1, &tinyFont, hintRect, &sfBottom, &tinyBrush);
 
     // ══════════════════════════════════════════════════════════════════════
@@ -288,6 +288,8 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
         bool fortFocused = IsFortniteFocused();
 
         // ── Rows ──────────────────────────────────────────────────────────
+        int matchPct = int(detectionRatio * 100.0f);
+        
         DrawRow(L"FPS",
                 FmtFloat(s_fps, 0),
                 s_fps >= 60.0f ? &colGood : &colWarn);
