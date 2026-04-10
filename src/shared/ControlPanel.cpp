@@ -211,6 +211,14 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         g_allProfiles[g_selectedProfileIdx].Save(L"profiles/" + g_allProfiles[g_selectedProfileIdx].name + L".json");
                     }
                 }
+                else if (x >= 40 && x <= 200 && y >= 490 && y <= 530) {
+                    g_promptThreshold = max(0.01f, g_promptThreshold - 0.05f);
+                    SaveSettings();
+                }
+                else if (x >= 220 && x <= 380 && y >= 490 && y <= 530) {
+                    g_promptThreshold = min(1.0f, g_promptThreshold + 0.05f);
+                    SaveSettings();
+                }
             }
 
             if (g_currentTab == 1) {
@@ -236,7 +244,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 }
             }
 
-            if (x >= 40 && x <= 380 && y >= 580 && y <= 630) {
+            if (x >= 40 && x <= 380 && y >= 610 && y <= 660) {
                 PostQuitMessage(0);
             }
             return 0;
@@ -386,9 +394,17 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 wchar_t diagText[128];
                 swprintf_s(diagText, L"Diag: Angle=%.1f, dx_sum=%lld, Match=%.0f%%", g_currentAngle, g_logic.GetAccumDx(), g_detectionRatio * 100.0f);
                 g_pRenderTarget->DrawText(diagText, (UINT32)wcslen(diagText), pVerFormat, D2D1::RectF(40, 460, 380, 480), pGrey);
+
+                g_pRenderTarget->DrawText(L"PROMPT THRESHOLD (LIVE TWEAK)", 16, pHeaderFormat, D2D1::RectF(40, 490, 380, 510), pWhite);
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 520, 200, 560), L"- 5% DOWN", D2D1::ColorF(0.2f, 0.2f, 0.2f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(220, 520, 380, 560), L"+ 5% UP", D2D1::ColorF(0.2f, 0.2f, 0.2f));
+                
+                wchar_t threshText[64];
+                swprintf_s(threshText, L"Required Context Match: %.0f%%", g_promptThreshold * 100.0f);
+                g_pRenderTarget->DrawText(threshText, (UINT32)wcslen(threshText), pVerFormat, D2D1::RectF(40, 570, 380, 590), pGrey);
             }
 
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 580, 380, 630), L"QUIT SUITE", D2D1::ColorF(0.7f, 0.1f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 610, 380, 660), L"QUIT SUITE", D2D1::ColorF(0.7f, 0.1f, 0.15f));
 
             pVerFormat->Release();
             pHeaderFormat->Release();

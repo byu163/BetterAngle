@@ -14,6 +14,7 @@ bool g_updateAvailable = false;
 
 Keybinds g_keybinds;
 std::wstring g_lastLoadedProfileName = L"";
+float g_promptThreshold = 0.05f;
 
 #include <fstream>
 #include <string>
@@ -22,6 +23,13 @@ void LoadSettings() {
     std::ifstream ifs("profiles/settings.json");
     if (!ifs.is_open()) return;
     std::string content((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    auto eFloat = [&](std::string k, float def) -> float {
+        size_t p = content.find("\"" + k + "\":");
+        if (p == std::string::npos) return def;
+        size_t end = content.find(",", p + k.length() + 1);
+        if (end == std::string::npos) end = content.find("}", p);
+        try { return std::stof(content.substr(p + k.length() + 1, end - (p + k.length() + 1))); } catch(...) { return def; }
+    };
     auto eInt = [&](std::string k, UINT def) -> UINT {
         size_t p = content.find("\"" + k + "\":");
         if (p == std::string::npos) return def;
@@ -37,6 +45,8 @@ void LoadSettings() {
     g_keybinds.zeroKey = eInt("zeroKey", 'G');
     g_keybinds.debugMod = eInt("debugMod", MOD_CONTROL);
     g_keybinds.debugKey = eInt("debugKey", '9');
+    
+    g_promptThreshold = eFloat("promptThreshold", 0.05f);
     
     size_t pp = content.find("\"lastProfile\":\"");
     if (pp != std::string::npos) {
@@ -59,6 +69,7 @@ void SaveSettings() {
     ofs << "  \"zeroKey\": " << g_keybinds.zeroKey << ",\n";
     ofs << "  \"debugMod\": " << g_keybinds.debugMod << ",\n";
     ofs << "  \"debugKey\": " << g_keybinds.debugKey << ",\n";
+    ofs << "  \"promptThreshold\": " << g_promptThreshold << ",\n";
     
     std::string lp = "Fallback_Default";
     lp = "";

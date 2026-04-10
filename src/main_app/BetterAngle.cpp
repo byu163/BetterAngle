@@ -49,10 +49,13 @@ void DetectorThread() {
             if (g_forceDetection) g_detectionRatio = 1.0f; // SIMULATE MATCH
             
             if (g_forceDiving) {
+                g_isDiving = true;
                 g_logic.SetScale(p.scale_diving);
-            } else if (g_detectionRatio > 0.05f) {
+            } else if (g_detectionRatio >= g_promptThreshold) {
+                g_isDiving = true;
                 g_logic.SetScale(p.scale_diving);
             } else {
+                g_isDiving = false;
                 g_logic.SetScale(p.scale_normal);
             }
         }

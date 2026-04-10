@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.10.5: "True Optical FOV Calibration Layer"
+v4.10.5: Completely restructured the engine overriding logic that was artificially snapping the active prompt ROI box (Red/Green state) based on raw angle thresholds instead of genuine algorithm target color matching. Added a new native "Prompt Detection Threshold" slider/modifier within the Control Panel Simulation tab, allowing absolute micro-calibration of the exact spatial ratio required for the software to dynamically shift between Normal and Skydiving sensitivities. Re-wired these values natively into the local `settings.json` registry to permanently persist custom sensitivities alongside native profiles.
+
 ### BetterAngle Pro v4.10.4: "Dynamic Cloud Release Logs"
 v4.10.4: Native implementation mapped to `msbuild.yml` that seamlessly parses and extracts the latest `RELEASE_NOTES.md` changelog array, injecting it directly into the GitHub Actions active context body at compile time instead of printing static generic build text.
 

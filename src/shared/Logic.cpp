@@ -37,15 +37,7 @@ double AngleLogic::GetAngle() const {
     if (scale == 0.0) scale = 0.0031415; // Bullet-proof fallback
     double angle = Norm360(m_baseAngle + (m_accumDx - m_baseDx) * scale);
     
-    // Heuristic Check (v4.9.15)
     g_currentAngle = (float)angle;
-    if (g_currentSelection == NONE) {
-        if (g_currentAngle > 50.0f || g_currentAngle < -50.0f) {
-            g_isDiving = true;
-        } else {
-            g_isDiving = false;
-        }
-    }
     
     return angle;
 }

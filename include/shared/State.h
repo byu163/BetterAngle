@@ -14,7 +14,7 @@
 
 // Define the "raw" version if not passed by compiler flags
 #ifndef APP_VERSION
-    #define APP_VERSION 4.10.4
+    #define APP_VERSION 4.10.5
 #endif
 
 // This creates the actual strings "4.9.36" and L"4.9.36"
@@ -32,6 +32,7 @@ extern int g_currentTab;
 extern std::wstring g_latestName;
 extern bool g_isCheckingForUpdates;
 extern bool g_updateAvailable;
+extern float g_promptThreshold;
 
 struct Keybinds {
     UINT toggleMod = MOD_CONTROL; UINT toggleKey = 'U';
