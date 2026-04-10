@@ -246,6 +246,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     g_allProfiles = GetProfiles(GetAppStoragePath());
     if (g_allProfiles.empty()) {
         ShowFirstTimeSetup(hInstance);
+        // Reload profiles from disk after setup wizard completes
+        g_allProfiles = GetProfiles(GetAppStoragePath());
+    }
+    
+    // Guard: if still empty after setup, something went wrong — exit cleanly
+    if (g_allProfiles.empty()) {
+        MessageBoxW(NULL, L"Setup failed to create a profile. Please restart.", L"BetterAngle Setup Error", MB_OK | MB_ICONERROR);
+        return 1;
     }
     
     g_selectedProfileIdx = 0;

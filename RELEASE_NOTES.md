@@ -1,5 +1,5 @@
-### BetterAngle Pro v4.14.0: "Top-Level App Integration & Focus Recovery"
-v4.14.0: Resolved persistent keyboard focus issues in the first-time setup by elevating the Setup Wizard to a primary Windows taskbar application (`WS_EX_APPWINDOW`). This ensures the Windows Focus Manager prioritizes the setup window for keyboard telemetry. Additionally, refined the mouse activation layer to allow standard OS activation pass-through, guaranteeing immediate input eligibility on the first click.
+### BetterAngle Pro v4.15.0: "Post-Setup Crash Recovery & Draggable Setup Window"
+v4.15.0: Fixed a critical startup crash that occurred immediately after the first-time setup wizard completed. The root cause was the main application indexing into `g_allProfiles` before reloading the profiles from disk following the wizard's save. A safety reload and empty-profile guard have been added. Additionally, the setup window is now draggable by clicking and holding the top title region, and the `PostQuitMessage` bug that was interfering with the main app's message loop has been resolved.
 
 ### BetterAngle Pro v4.13.0: "Neon Pro Splash & GDI+ Scoping Cleanup"
 v4.13.0: Complete visual overhaul of the startup sequence. Introduced a premium "Neon Cyan" aesthetic with animated progress tracking. Under the hood, refactored the GDI+ Graphics engine scoping to ensure thread-safe resource termination, eliminating rare startup hangs and the "blue wheel of death" unresponsiveness during asset initialization.

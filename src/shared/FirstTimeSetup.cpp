@@ -211,8 +211,18 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
         EndPaint(hWnd, &ps);
         return 0;
     }
+    if (message == WM_NCHITTEST) {
+        // Allow dragging from the top title bar area (top 50px)
+        LRESULT hit = DefWindowProc(hWnd, message, wParam, lParam);
+        if (hit == HTCLIENT) {
+            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+            ScreenToClient(hWnd, &pt);
+            if (pt.y < 50) return HTCAPTION; // Top area acts as drag handle
+        }
+        return hit;
+    }
     if (message == WM_DESTROY) {
-        PostQuitMessage(0);
+        // Do NOT call PostQuitMessage here - the loop exits via IsWindow check
         return 0;
     }
     return DefWindowProc(hWnd, message, wParam, lParam);
