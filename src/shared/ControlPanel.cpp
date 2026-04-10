@@ -404,7 +404,11 @@ void RenderImGuiFrame() {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.4f, 1.0f));
                 ImGui::TextWrapped("A new update is available for BetterAngle Pro!");
                 ImGui::PopStyleColor();
-                if (ImGui::Button("DOWNLOAD & INSTALL v" VERSION_STR "+ NOW", ImVec2(-1, 40))) {
+                
+                std::string btnText = "DOWNLOAD & INSTALL " + g_latestVersionOnline + " NOW";
+                if (g_isDownloadingUpdate) btnText = "DOWNLOADING... PLEASE WAIT";
+                
+                if (ImGui::Button(btnText.c_str(), ImVec2(-1, 40))) {
                     UpdateApp();
                 }
             } else {

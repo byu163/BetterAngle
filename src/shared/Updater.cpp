@@ -242,6 +242,9 @@ bool CheckForUpdates() {
 }
 
 void UpdateApp() {
+    if (g_isDownloadingUpdate) return;
+    g_isDownloadingUpdate = true;
+    
     std::thread([]() {
         wchar_t exePath[MAX_PATH];
         GetModuleFileNameW(NULL, exePath, MAX_PATH);
@@ -251,6 +254,7 @@ void UpdateApp() {
         if (DownloadUpdate(L"", tmpPath)) {
             ApplyUpdateAndRestart();
         }
+        g_isDownloadingUpdate = false;
     }).detach();
 }
 

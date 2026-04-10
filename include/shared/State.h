@@ -20,7 +20,7 @@ extern std::atomic<bool> g_fortniteFocusedCache;
 #ifndef V_MAJ
 #define V_MAJ 4
 #define V_MIN 20
-#define V_PAT 40
+#define V_PAT 41
 #endif
 extern bool g_setupComplete;
 
@@ -45,6 +45,7 @@ extern std::wstring g_latestName;
 extern bool g_isCheckingForUpdates;
 extern bool g_hasCheckedForUpdates;
 extern bool g_updateAvailable;
+extern bool g_isDownloadingUpdate;
 extern float g_freefallThreshold;
 extern float g_glideThreshold;
 
