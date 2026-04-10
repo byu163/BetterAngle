@@ -100,9 +100,9 @@ HWND CreateControlPanel(HINSTANCE hInst) {
         WS_EX_TOPMOST | WS_EX_APPWINDOW,
         L"BetterAngleControlPanel",
         L"BetterAngle Pro | Global Command Center",
-        WS_OVERLAPPEDWINDOW,          // ← this gives drag-resize handles
+        WS_OVERLAPPEDWINDOW,          // <- this gives drag-resize handles
         CW_USEDEFAULT, CW_USEDEFAULT,
-        580, 620,
+        640, 700,
         NULL, NULL, hInst, NULL
     );
     ShowWindow(hPanel, SW_SHOW);
@@ -128,9 +128,9 @@ std::wstring GetKeyName(UINT mod, UINT vk) {
 
 extern HWND g_hHUD;
 
-// ─────────────────────────────────────────────────────────────────────────────
+// =============================================================================
 // Layout helpers — returns consistent rects for both PAINT and HITTEST
-// ─────────────────────────────────────────────────────────────────────────────
+// =============================================================================
 struct Layout {
     float W, H;
     float margin;
@@ -264,7 +264,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             }
         }
 
-        // ── TAB 1 — UPDATES ───────────────────────────────────────────────
+        // - TAB 1 - UPDATES -----------------------------------------------
         else if (g_currentTab == 1) {
             // Check / Install button
             if (fx >= L.margin && fx <= L.W - L.margin && fy >= 0.45f * L.H && fy <= 0.56f * L.H) {
@@ -435,7 +435,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
         Layout L(sz.width, sz.height);
 
         // Base scale for fonts
-        float baseScale = (std::min)(L.W / 560.0f, L.H / 600.0f);
+        float baseScale = (std::min)(L.W / 640.0f, L.H / 700.0f);
         if (baseScale < 0.65f) baseScale = 0.65f;
 
         // ── Brushes ──────────────────────────────────────────────────────────
@@ -451,7 +451,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
         g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD,    DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 14.0f * baseScale, L"en-us", &pHeader);
         g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 12.0f * baseScale, L"en-us", &pBody);
 
-        // ── Title bar ────────────────────────────────────────────────────────
+        // -----------------------------------------------------------------------------
         g_pRenderTarget->DrawText(
             L"BetterAngle Pro | Command Center", 33,
             pTitle,
@@ -508,7 +508,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             }
 
         } else if (g_currentTab == 1) {
-            // ─ UPDATES ──────────────────────────────────────────────────────
+            // - UPDATES -
             g_pRenderTarget->DrawText(L"SOFTWARE DASHBOARD", 18, pHeader,
                 D2D1::RectF(L.margin, cY, L.W - L.margin, cY + 0.05f * L.H), pWhite);
 
@@ -598,7 +598,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 D2D1::RectF(L.margin, 0.70f*L.H, L.W-L.margin, 0.76f*L.H), pGrey);
 
         } else if (g_currentTab == 4) {
-            // ─ CROSSHAIR ────────────────────────────────────────────────────
+            // --- CROSSHAIR ---
             g_pRenderTarget->DrawText(L"PRECISION CROSSHAIR CONFIG", 26, pHeader,
                 D2D1::RectF(L.margin, cY, L.W - L.margin, cY + 0.05f * L.H), pWhite);
 

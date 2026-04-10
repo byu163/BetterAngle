@@ -44,7 +44,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     int sw = rect.right  - rect.left;
     int sh = rect.bottom - rect.top;
 
-    // ── Double-buffered drawing ────────────────────────────────────────────
+    // === Double-buffered drawing ===========================================
     HDC      hdcMem = CreateCompatibleDC(hdc);
     HBITMAP  hbmMem = CreateCompatibleBitmap(hdc, sw, sh);
     HGDIOBJ  hOld   = SelectObject(hdcMem, hbmMem);
@@ -183,7 +183,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // ── Main Glass HUD ────────────────────────────────────────────────────
+    // === Main Glass HUD ====================================================
     // ══════════════════════════════════════════════════════════════════════
     const int rx = g_hudX, ry = g_hudY, rw = 340, rh = 200;
     const int RAD = 18;
@@ -232,15 +232,15 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     SolidBrush labelBrush(Color(180, 140, 155, 170));
     graphics.DrawString(L"CURRENT ANGLE", -1, &labelFont, PointF(float(rx + 18), float(ry + 14)), &labelBrush);
 
-    // ── Angle text ────────────────────────────────────────────────────────
+    // -- Angle text --------------------------------------------------------
     Font      angleFont(&ff, 68, FontStyleBold, UnitPixel);
-    std::wstring angleStr = FmtFloat(angle, 1) + L"°";
+    std::wstring    angleStr = FmtFloat(angle, 1) + L" deg"; 
     // Colour: teal idle, cyan when diving
     Color angleCol = g_isDiving ? Color(255, 0, 220, 255) : Color(255, 0, 210, 140);
     SolidBrush angleBrush(angleCol);
     graphics.DrawString(angleStr.c_str(), -1, &angleFont, PointF(float(rx + 14), float(ry + 26)), &angleBrush);
 
-    // ── Match % label ─────────────────────────────────────────────────────
+    // -- Match % label -----------------------------------------------------
     Font subFont(&ff, 12, FontStyleBold, UnitPixel);
     int matchPct = int(detectionRatio * 100.0f);
     std::wstring matchStr = L"Match  " + std::to_wstring(matchPct) + L"%";
