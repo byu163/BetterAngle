@@ -30,9 +30,7 @@ using namespace Gdiplus;
 #include "shared/State.h"
 
 // Global State
-// Global HUD and Panel Handles
-HWND g_hHUD = NULL;
-HWND g_hPanel = NULL;
+// Global handles defined in State.h/cpp
 ULONG_PTR g_gdiplusToken;
 std::atomic<bool> g_running(true);
 FovDetector g_detector;
@@ -366,7 +364,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // Phase 2: Create Control Panel (Interactive)
     g_hPanel = CreateControlPanel(hInstance);
     
-    // Phase 2.5: Ensure Setup is Complete (v4.20.29 Wizard Restoration)
+    // Phase 2.5: Ensure Setup is Complete (v4.20.35 Optimized Guard)
+    if (!g_allProfiles.empty()) g_setupComplete = true; 
+    
     if (!g_setupComplete) {
         ShowFirstTimeSetup(hInstance);
     }

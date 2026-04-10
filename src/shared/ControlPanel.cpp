@@ -281,9 +281,14 @@ void RenderImGuiFrame() {
             // Large Toggle Button (Java-style visibility control)
             ImVec4 toggleCol = g_showCrosshair ? ImVec4(0.2f, 0.7f, 0.3f, 1.0f) : ImVec4(0.7f, 0.2f, 0.2f, 1.0f);
             ImGui::PushStyleColor(ImGuiCol_Button, toggleCol);
-            if (ImGui::Button(g_showCrosshair ? "MANUAL CROSSHAIR: ON" : "MANUAL CROSSHAIR: OFF", ImVec2(-1, 40))) {
+            if (ImGui::Button("TOGGLE MANUAL CROSSHAIR", ImVec2(-1, 40))) {
                 g_showCrosshair = !g_showCrosshair;
                 SaveSettings();
+                // v4.20.35: Immediate Refresh
+                if (g_hHUD) {
+                    InvalidateRect(g_hHUD, NULL, FALSE);
+                    UpdateWindow(g_hHUD);
+                }
             }
             ImGui::PopStyleColor();
 

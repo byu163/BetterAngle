@@ -92,6 +92,7 @@ void LoadSettings() {
   g_crossAngle     = eFloat("crossAngle", 0.0f);
   g_crossPulse     = eFloat("crossPulse", 0.0f) > 0.5f;
   g_setupComplete  = eFloat("setupComplete", 0.0f) > 0.5f;
+  g_showCrosshair  = eFloat("showCrosshair", 1.0f) > 0.5f; // Default to true
 
   size_t pp = content.find("\"lastProfile\":\"");
   if (pp != std::string::npos) {
@@ -126,6 +127,7 @@ void SaveSettings() {
   ofs << "  \"crossAngle\": " << g_crossAngle << ",\n";
   ofs << "  \"crossPulse\": " << (g_crossPulse ? 1 : 0) << ",\n";
   ofs << "  \"setupComplete\": " << (g_setupComplete ? 1 : 0) << ",\n";
+  ofs << "  \"showCrosshair\": " << (g_showCrosshair ? 1 : 0) << ",\n";
 
   std::string lp = "Fallback_Default";
   lp = "";
@@ -162,3 +164,5 @@ int g_hudY = 40;
 bool g_isDraggingHUD = false;
 POINT g_dragStartHUD = {0, 0};
 POINT g_dragStartMouse = {0, 0};
+HWND g_hHUD = NULL;
+HWND g_hPanel = NULL;

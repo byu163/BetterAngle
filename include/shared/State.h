@@ -20,7 +20,7 @@ extern std::atomic<bool> g_fortniteFocusedCache;
 #ifndef V_MAJ
 #define V_MAJ 4
 #define V_MIN 20
-#define V_PAT 34
+#define V_PAT 35
 #endif
 extern bool g_setupComplete;
 
@@ -92,5 +92,7 @@ extern int g_hudY;
 extern bool g_isDraggingHUD;
 extern POINT g_dragStartHUD;
 extern POINT g_dragStartMouse;
+extern HWND g_hHUD; 
+extern HWND g_hPanel;
 
 #endif // STATE_H
