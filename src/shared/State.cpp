@@ -33,25 +33,15 @@ float g_freefallThreshold = 0.20f;
 #pragma comment(lib, "advapi32.lib")
 
 std::wstring GetAppStoragePath() {
-    wchar_t exePath[MAX_PATH];
-    GetModuleFileNameW(NULL, exePath, MAX_PATH);
-    std::wstring path = exePath;
-    size_t lastBackslash = path.find_last_of(L"\\/");
-    if (lastBackslash != std::wstring::npos) {
-        path = path.substr(0, lastBackslash) + L"\\.BetterAngle";
-    } else {
-        path = L".\\.BetterAngle";
+    wchar_t appdata[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata))) {
+        std::wstring path = std::wstring(appdata) + L"\\BetterAngle";
+        CreateDirectoryW(path.c_str(), NULL);
+        std::wstring pPath = path + L"\\profiles";
+        CreateDirectoryW(pPath.c_str(), NULL);
+        return pPath + L"\\";
     }
-    
-    // Create directoy and ensure it is HIDDEN on Windows
-    CreateDirectoryW(path.c_str(), NULL);
-    SetFileAttributesW(path.c_str(), FILE_ATTRIBUTE_HIDDEN);
-    
-    std::wstring pPath = path + L"\\profiles";
-    CreateDirectoryW(pPath.c_str(), NULL);
-    SetFileAttributesW(pPath.c_str(), FILE_ATTRIBUTE_HIDDEN);
-    
-    return path + L"\\profiles\\";
+    return L"";
 }
 
 void LoadFromRegistry() {

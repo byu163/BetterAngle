@@ -287,6 +287,9 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
                 if (!g_setupSensX.empty() || !g_setupSensY.empty()) {
                     g_extractedConfig = true;
                     break;
+                } else {
+                    g_setupSensX = L"0.05";
+                    g_setupSensY = L"0.05";
                 }
             }
         }

@@ -112,6 +112,39 @@ Item {
                         visible: backend.syncResult !== ""
                     }
 
+                    Text { text: "TRIGGER CALIBRATION (%)"; color: "#666"; font.pixelSize: 12; topPadding: 10 }
+                    RowLayout {
+                        Text { text: "Glide if match <"; color: "white"; Layout.preferredWidth: 100 }
+                        Slider { 
+                            from: 1; to: 100; value: backend.glideThreshold * 100
+                            onValueChanged: backend.glideThreshold = value / 100.0
+                        }
+                        Text { text: Math.round(backend.glideThreshold * 100).toString() + "%"; color: "#aaa" }
+                    }
+                    RowLayout {
+                        Text { text: "Dive if match >"; color: "white"; Layout.preferredWidth: 100 }
+                        Slider { 
+                            from: 1; to: 100; value: backend.freefallThreshold * 100
+                            onValueChanged: backend.freefallThreshold = value / 100.0
+                        }
+                        Text { text: Math.round(backend.freefallThreshold * 100).toString() + "%"; color: "#aaa" }
+                    }
+
+                    Text { text: "ACTIVE HOTKEYS (Edit from JSON)"; color: "#666"; font.pixelSize: 12; topPadding: 10 }
+                    RowLayout {
+                        Text { text: "Selection Overlay:"; color: "white"; Layout.preferredWidth: 150 }
+                        Text { text: "Ctrl + 8"; color: "#00cca3" }
+                    }
+                    RowLayout {
+                        Text { text: "Debug Overlay:"; color: "white"; Layout.preferredWidth: 150 }
+                        Text { text: "Ctrl + 9"; color: "#00cca3" }
+                    }
+                    RowLayout {
+                        Text { text: "Toggle Crosshair:"; color: "white"; Layout.preferredWidth: 150 }
+                        Text { text: "F10"; color: "#00cca3" }
+                    }
+
+
                     Button {
                         text: "QUIT APP"
                         width: parent.width

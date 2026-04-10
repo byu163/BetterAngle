@@ -39,6 +39,7 @@ set(SRC_FILES
     src/shared/Tray.cpp
     src/shared/Updater.cpp
     qml.qrc
+    assets/resource.rc
 )
 
 add_executable(BetterAngle WIN32 ${SRC_FILES})
