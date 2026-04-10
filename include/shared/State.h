@@ -11,15 +11,19 @@
 std::wstring GetAppStoragePath();
 
 // Versioning system
-#define APP_QUOTE(x) #x
-#define APP_STR(x) APP_QUOTE(x)
-#define APP_WQUOTE(x) L#x
-#define APP_WSTR(x) APP_WQUOTE(x)
+#define APP_STR_Z(x) #x
+#define APP_STR_Y(x) APP_STR_Z(x)
+#define APP_WSTR_Z(x) L#x
+#define APP_WSTR_Y(x) APP_WSTR_Z(x)
 
-#define APP_VERSION 4.20.15
+#ifndef V_MAJ
+#define V_MAJ 4
+#define V_MIN 20
+#define V_PAT 15
+#endif
 
-#define VERSION_STR  APP_STR(APP_VERSION)
-#define VERSION_WSTR APP_WSTR(APP_VERSION)
+#define VERSION_STR  APP_STR_Y(V_MAJ) "." APP_STR_Y(V_MIN) "." APP_STR_Y(V_PAT)
+#define VERSION_WSTR APP_WSTR_Y(V_MAJ) L"." APP_WSTR_Y(V_MIN) L"." APP_WSTR_Y(V_PAT)
 
 // Global Profile Management
 extern Profile g_currentProfile;
