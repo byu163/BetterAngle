@@ -227,8 +227,8 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 bool lDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
                 POINT pt; GetCursorPos(&pt);
                 if (lDown && !g_isDraggingHUD) {
-                    if (pt.x >= g_hudX && pt.x <= g_hudX + 320 && 
-                        pt.y >= g_hudY && pt.y <= g_hudY + 180) {
+                    if (pt.x >= g_hudX && pt.x <= g_hudX + 160 && 
+                        pt.y >= g_hudY && pt.y <= g_hudY + 80) {
                         g_isDraggingHUD = true;
                         g_dragStartMouse = pt;
                         g_dragStartHUD.x = g_hudX;
