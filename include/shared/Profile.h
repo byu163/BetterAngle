@@ -8,14 +8,15 @@
 
 struct Profile {
   std::wstring name;
-  double scale_normal;
-  double scale_diving;
-  double scale_gliding;
+  int dpi;
+  double sensitivity;
+  double divingScaleMultiplier;
 
   // Reference Metadata
-  std::string fov;
-  std::string resolution;
-  std::string render_scale;
+  float fov;
+  int resolutionWidth;
+  int resolutionHeight;
+  float renderScale;
 
   // Detector Logic
   int roi_x, roi_y, roi_w, roi_h;

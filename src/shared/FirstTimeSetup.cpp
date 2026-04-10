@@ -43,14 +43,14 @@ void FinishSetup() {
     try { sensVal = std::stod(g_setupSens); } catch(...) {}
     if (sensVal <= 0) sensVal = 0.05;
 
-    double normalScale = 0.5573 / (dpiVal * sensVal);
-    p.scale_normal = normalScale;
-    p.scale_diving = normalScale;
-    p.scale_gliding = normalScale;
+    p.dpi = (int)dpiVal;
+    p.sensitivity = sensVal;
+    p.divingScaleMultiplier = 1.22;
 
-    p.fov = std::string(g_setupFOV.begin(), g_setupFOV.end());
-    p.resolution = std::string(g_setupRes.begin(), g_setupRes.end());
-    p.render_scale = std::string(g_setupScale.begin(), g_setupScale.end());
+    try { p.fov = std::stof(g_setupFOV); } catch(...) { p.fov = 80.0f; }
+    p.resolutionWidth = GetSystemMetrics(SM_CXSCREEN);
+    p.resolutionHeight = GetSystemMetrics(SM_CYSCREEN);
+    try { p.renderScale = std::stof(g_setupScale); } catch(...) { p.renderScale = 100.0f; }
 
     extern std::vector<Profile> g_allProfiles;
     extern int g_selectedProfileIdx;

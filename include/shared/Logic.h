@@ -8,18 +8,20 @@ public:
     AngleLogic(double dpi, double sens);
     void Update(int dx);
     double GetAngle() const;
-    double GetScale() const { return m_scalePerDx; }
     long long GetAccumDx() const { return m_accumDx; }
     void SetZero();
-    void SetScale(double scale);
+    void LoadProfile(int dpi, double sens, double divingMult);
+    void SetDivingState(bool diving);
 
 private:
     double m_dpi;
     double m_sens;
+    double m_divingMult;
+    bool m_isDiving;
+    
     long long m_accumDx;
     long long m_baseDx;
     double m_baseAngle;
-    double m_scalePerDx; // Calibrated scale
     
     double Norm360(double a) const;
 };

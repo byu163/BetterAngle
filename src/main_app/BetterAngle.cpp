@@ -42,6 +42,8 @@ void DetectorThread() {
     while (g_running) {
         if (!g_allProfiles.empty() && g_currentSelection == NONE) {
             Profile& p = g_allProfiles[g_selectedProfileIdx];
+            g_logic.LoadProfile(p.dpi, p.sensitivity, p.divingScaleMultiplier);
+            
             RoiConfig cfg = { p.roi_x, p.roi_y, p.roi_w, p.roi_h, p.target_color, p.tolerance };
             
             g_detectionRatio = g_detector.Scan(cfg);
@@ -50,16 +52,16 @@ void DetectorThread() {
             
             if (g_forceDiving) {
                 g_isDiving = true;
-                g_logic.SetScale(p.scale_diving);
+                g_logic.SetDivingState(true);
             } else if (g_detectionRatio >= g_freefallThreshold) {
                 g_isDiving = true;
-                g_logic.SetScale(p.scale_diving);
+                g_logic.SetDivingState(true);
             } else if (g_detectionRatio >= g_glideThreshold) {
                 g_isDiving = true;
-                g_logic.SetScale(p.scale_gliding);
+                g_logic.SetDivingState(false); // Gliding uses normalScale
             } else {
                 g_isDiving = false;
-                g_logic.SetScale(p.scale_normal);
+                g_logic.SetDivingState(false);
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -259,7 +261,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
     
     g_currentProfile = g_allProfiles[g_selectedProfileIdx];
-    g_logic.SetScale(g_currentProfile.scale_normal);
+    g_logic.LoadProfile(g_currentProfile.dpi, g_currentProfile.sensitivity, g_currentProfile.divingScaleMultiplier);
 
     // Message Window for Raw Input (Bypasses Layered Window UI Bugs)
     WNDCLASS wcMsg = { 0 };

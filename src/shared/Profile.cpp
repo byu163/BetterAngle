@@ -49,13 +49,19 @@ bool Profile::Load(const std::wstring &path) {
     return content.substr(pos + 4 + key.length(), end - (pos + 4 + key.length()));
   };
 
-  scale_normal = extractDouble("scale_normal");
-  scale_diving = extractDouble("scale_diving");
-  scale_gliding = extractDouble("scale_gliding");
+  dpi = (int)extractDouble("dpi");
+  if (dpi == 0) dpi = 800;
+  
+  sensitivity = extractDouble("sensitivity");
+  if (sensitivity <= 0.0) sensitivity = 0.05;
+  
+  divingScaleMultiplier = extractDouble("divingScaleMultiplier");
+  if (divingScaleMultiplier <= 0) divingScaleMultiplier = 1.22;
 
-  fov = extractString("fov");
-  resolution = extractString("resolution");
-  render_scale = extractString("render_scale");
+  fov = (float)extractDouble("fov");
+  resolutionWidth = (int)extractDouble("resolutionWidth");
+  resolutionHeight = (int)extractDouble("resolutionHeight");
+  renderScale = (float)extractDouble("renderScale");
 
   roi_x = (int)extractDouble("roi_x");
   roi_y = (int)extractDouble("roi_y");
@@ -80,12 +86,13 @@ bool Profile::Save(const std::wstring &path) {
   oss.imbue(std::locale("C"));
   oss << "{\n";
   oss << "  \"name\": \"" << n << "\",\n";
-  oss << "  \"scale_normal\": " << scale_normal << ",\n";
-  oss << "  \"scale_diving\": " << scale_diving << ",\n";
-  oss << "  \"scale_gliding\": " << scale_gliding << ",\n";
-  oss << "  \"fov\": \"" << fov << "\",\n";
-  oss << "  \"resolution\": \"" << resolution << "\",\n";
-  oss << "  \"render_scale\": \"" << render_scale << "\",\n";
+  oss << "  \"dpi\": " << dpi << ",\n";
+  oss << "  \"sensitivity\": " << sensitivity << ",\n";
+  oss << "  \"divingScaleMultiplier\": " << divingScaleMultiplier << ",\n";
+  oss << "  \"fov\": " << fov << ",\n";
+  oss << "  \"resolutionWidth\": " << resolutionWidth << ",\n";
+  oss << "  \"resolutionHeight\": " << resolutionHeight << ",\n";
+  oss << "  \"renderScale\": " << renderScale << ",\n";
   oss << "  \"roi_x\": " << roi_x << ",\n";
   oss << "  \"roi_y\": " << roi_y << ",\n";
   oss << "  \"roi_w\": " << roi_w << ",\n";
