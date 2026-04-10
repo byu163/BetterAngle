@@ -90,7 +90,11 @@ std::wstring GetKeyName(UINT mod, UINT vk) {
 
 std::string GetKeyNameStr(UINT mod, UINT vk) {
     std::wstring w = GetKeyName(mod, vk);
-    return std::string(w.begin(), w.end());
+    if (w.empty()) return "";
+    int sz = WideCharToMultiByte(CP_UTF8, 0, w.c_str(), -1, NULL, 0, NULL, NULL);
+    std::string res(sz - 1, 0);
+    WideCharToMultiByte(CP_UTF8, 0, w.c_str(), -1, &res[0], sz, NULL, NULL);
+    return res;
 }
 
 void RenderImGuiFrame() {

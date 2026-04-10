@@ -67,8 +67,8 @@ double AngleLogic::GetAngle() const {
 }
 
 void AngleLogic::SetZero() {
-    m_baseAngle = 0.0;
-    m_baseDx = m_accumDx;
+    m_baseAngle.store(0.0);
+    m_baseDx.store(m_accumDx.load());
 }
 
 void AngleLogic::LoadProfile(double sensX) {
