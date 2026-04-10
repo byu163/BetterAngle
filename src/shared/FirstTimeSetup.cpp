@@ -190,19 +190,32 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
     case WM_ERASEBKGND: return 1;
 
     case WM_KEYDOWN:
-        if (wParam == VK_TAB && g_setupState == 2) {
+        if (wParam == VK_TAB) {
             g_focusedInput = (g_focusedInput == 1) ? 2 : 1;
             InvalidateRect(hWnd, NULL, FALSE);
             return 0;
         }
         if (wParam == VK_RETURN) {
-            if (g_setupState == 2) {
-                FinishSetup(); DestroyWindow(hWnd);
+            // Only finish setup if we are in a valid finishing state
+            bool canFinish = false;
+            if (g_extractedConfig && !g_isEditingManual) {
+                // In confirmation stage, Enter = YES
+                canFinish = true;
+            } else {
+                // In manual stage, only finish if we have some data
+                if (!g_setupSensX.empty() && !g_setupSensY.empty()) {
+                    canFinish = true;
+                }
             }
-            InvalidateRect(hWnd, NULL, FALSE);
-            return 0;
+            
+            if (canFinish) {
+                FinishSetup(); 
+                DestroyWindow(hWnd);
+                return 0;
+            }
         }
         return 0;
+
 
     case WM_CHAR: {
         std::wstring* cur = (g_focusedInput == 1) ? &g_setupSensX : &g_setupSensY;
