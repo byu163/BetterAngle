@@ -9,16 +9,9 @@
 #include <cwctype>
 #include "shared/Profile.h"
 #include "shared/State.h"
+#include <gdiplus.h>
 
-// ─── Pure GDI colours (no GDI+, zero GPU cost) ───────────────────────────
-static const COLORREF C_BG      = RGB( 10,  12,  18);
-static const COLORREF C_INPUT   = RGB( 22,  24,  32);
-static const COLORREF C_ACCENT  = RGB( 59, 130, 246);
-static const COLORREF C_DIM     = RGB( 45,  50,  65);
-static const COLORREF C_GRAY    = RGB(100, 105, 125);
-static const COLORREF C_WHITE   = RGB(255, 255, 255);
-static const COLORREF C_CYAN    = RGB( 34, 211, 238);
-static const COLORREF C_BTNOFF  = RGB( 35,  38,  48);
+using namespace Gdiplus;
 
 static int g_setupState    = 2;
 static std::wstring g_setupSensX = L"";
@@ -28,31 +21,6 @@ static int  g_focusedInput       = 1;
 
 extern std::vector<Profile> g_allProfiles;
 extern int g_selectedProfileIdx;
-
-// ── GDI helpers ───────────────────────────────────────────────────────────
-static void FillR(HDC hdc, int x, int y, int w, int h, COLORREF c) {
-    RECT r = { x, y, x+w, y+h };
-    HBRUSH br = CreateSolidBrush(c);
-    FillRect(hdc, &r, br);
-    DeleteObject(br);
-}
-
-static void DrawT(HDC hdc, const wchar_t* t, int x, int y, int w, int h,
-                  COLORREF c, int sz, bool bold = false, UINT fmt = DT_CENTER|DT_VCENTER|DT_SINGLELINE) {
-    HFONT f = CreateFontW(-sz, 0, 0, 0,
-                          bold ? FW_BOLD : FW_NORMAL,
-                          0, 0, 0, DEFAULT_CHARSET,
-                          OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                          CLEARTYPE_QUALITY, DEFAULT_PITCH,
-                          L"Segoe UI");
-    HFONT old = (HFONT)SelectObject(hdc, f);
-    SetTextColor(hdc, c);
-    SetBkMode(hdc, TRANSPARENT);
-    RECT r = { x, y, x+w, y+h };
-    DrawTextW(hdc, t, -1, &r, fmt);
-    SelectObject(hdc, old);
-    DeleteObject(f);
-}
 
 // ── Profile save ─────────────────────────────────────────────────────────
 void FinishSetup() {
@@ -98,62 +66,79 @@ static void PaintSetup(HWND hWnd) {
     RECT rc; GetClientRect(hWnd, &rc);
     int W = rc.right, H = rc.bottom;
 
-    HDC     buf = CreateCompatibleDC(hdc);
-    HBITMAP bmp = CreateCompatibleBitmap(hdc, W, H);
-    HGDIOBJ old = SelectObject(buf, bmp);
+    HDC hdcMem = CreateCompatibleDC(hdc);
+    HBITMAP hbmMem = CreateCompatibleBitmap(hdc, W, H);
+    HGDIOBJ hOld = SelectObject(hdcMem, hbmMem);
 
-    FillR(buf, 0, 0, W, H, C_BG);
+    Graphics graphics(hdcMem);
+    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+    graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
-    // Header drag area hint
-    FillR(buf, 0, 0, W, 48, RGB(18, 20, 26));
+    // Background Gradient (Matched to ImGui Dashboard)
+    LinearGradientBrush bgBrush(Point(0,0), Point(0, H), Color(255, 12, 14, 18), Color(255, 5, 5, 5));
+    graphics.FillRectangle(&bgBrush, 0, 0, W, H);
+
+    FontFamily ff(L"Segoe UI");
+    Font fTit(&ff, 28, FontStyleBold, UnitPixel);
+    Font fSub(&ff, 11, FontStyleRegular, UnitPixel);
+    Font fInp(&ff, 20, FontStyleBold, UnitPixel);
+    Font fBod(&ff, 13, FontStyleRegular, UnitPixel);
+
+    SolidBrush bWhite(Color(255, 255, 255, 255));
+    SolidBrush bAccent(Color(255, 59, 130, 246));
+    SolidBrush bDim(Color(255, 80, 85, 105));
+    SolidBrush bCyan(Color(255, 34, 211, 238));
+
+    StringFormat fmtC; fmtC.SetAlignment(StringAlignmentCenter); fmtC.SetLineAlignment(StringAlignmentCenter);
+    StringFormat fmtL; fmtL.SetAlignment(StringAlignmentNear);   fmtL.SetLineAlignment(StringAlignmentCenter);
+    StringFormat fmtR; fmtR.SetAlignment(StringAlignmentFar);    fmtR.SetLineAlignment(StringAlignmentCenter);
+
+    // Header Glow Bar
+    LinearGradientBrush glw(Point(0,0), Point(W,0), Color(0,0,0,0), Color(80, 59, 130, 246));
+    glw.SetWrapMode(WrapModeTileFlipX);
+    graphics.FillRectangle(&glw, 0, 0, W, 48);
 
     // Progress
-    COLORREF p1 = (g_setupState >= 1) ? C_ACCENT : C_DIM;
-    COLORREF p2 = (g_setupState >= 2) ? C_ACCENT : C_DIM;
     int pilX = (W - 148) / 2;
-    FillR(buf, pilX,      22, 70, 2, p1);
-    FillR(buf, pilX + 78, 22, 70, 2, p2);
+    SolidBrush bp1(g_setupState >= 1 ? Color(255, 59, 130, 246) : Color(255, 45, 50, 65));
+    SolidBrush bp2(g_setupState >= 2 ? Color(255, 59, 130, 246) : Color(255, 45, 50, 65));
+    graphics.FillRectangle(&bp1, pilX, 22, 70, 3);
+    graphics.FillRectangle(&bp2, pilX + 78, 22, 70, 3);
 
-    DrawT(buf, L"CALIBRATING SENSITIVITY",
-          0, 36, W, 18, C_ACCENT, 9, true);
+    graphics.DrawString(L"PRO CALIBRATION WIZARD", -1, &fSub, RectF(0, 36, (float)W, 18), &fmtC, &bAccent);
+    graphics.DrawString(L"In-Game Sensitivity",   -1, &fTit, RectF(0, 64, (float)W, 34), &fmtC, &bWhite);
 
-    const wchar_t* hd = L"In-Game Sens";
-    DrawT(buf, hd, 0, 64, W, 34, C_WHITE, 28, true);
+    const wchar_t* sub = g_extractedConfig ? L"Game settings found! Automatic sync complete." : L"Manually set your mouse sensitivity below.";
+    graphics.DrawString(sub, -1, &fBod, RectF(0, 108, (float)W, 20), &fmtC, g_extractedConfig ? &bCyan : &bDim);
 
-    {
-        const wchar_t* sub = g_extractedConfig
-            ? L"Retrieved automatically from your game files."
-            : L"Enter your X and Y sensitivity from game settings.";
-        DrawT(buf, sub, 30, 108, W-60, 20, g_extractedConfig ? C_CYAN : C_GRAY, 11);
+    // Input fields
+    int fw = (W - 90) / 2, fxA = 40, fxB = fxA + fw + 10, fy = 166, fh = 44;
 
-        int fw = (W - 90) / 2;
-        int fxA = 40, fxB = fxA + fw + 10;
-        int fy = 166, fh = 44;
+    auto field = [&](float fx, int foc, const wchar_t* lab, const std::wstring& val) {
+        graphics.DrawString(lab, -1, &fSub, RectF(fx, (float)fy-20, (float)fw, 18), &fmtL, &bDim);
+        SolidBrush inBg(Color(255, 20, 22, 28));
+        graphics.FillRectangle(&inBg, fx, (float)fy, (float)fw, (float)fh);
+        Pen border(g_focusedInput == foc ? Color(255, 59, 130, 246) : Color(255, 45, 50, 60), 1.5f);
+        graphics.DrawRectangle(&border, fx, (float)fy, (float)fw, (float)fh);
+        
+        std::wstring d = val.empty() ? L"0.00" : val + (g_focusedInput==foc ? L"_" : L"");
+        SolidBrush tx(val.empty() ? Color(255, 50, 55, 75) : Color(255, 255, 255, 255));
+        graphics.DrawString(d.c_str(), -1, &fInp, RectF(fx+12, (float)fy, (float)fw-24, (float)fh), &fmtL, &tx);
+    };
+    field((float)fxA, 1, L"SENSITIVITY X", g_setupSensX);
+    field((float)fxB, 2, L"SENSITIVITY Y", g_setupSensY);
 
-        auto drawField = [&](int fx, int focusIdx, const std::wstring& label, const std::wstring& val) {
-            DrawT(buf, label.c_str(), fx, fy-22, fw, 20, C_GRAY, 10, false, DT_LEFT|DT_SINGLELINE);
-            FillR(buf, fx, fy, fw, fh, C_INPUT);
-            HPEN pen = CreatePen(PS_SOLID, 1, (g_focusedInput == focusIdx) ? C_ACCENT : C_DIM);
-            HPEN op  = (HPEN)SelectObject(buf, pen);
-            HBRUSH ob = (HBRUSH)SelectObject(buf, GetStockObject(NULL_BRUSH));
-            Rectangle(buf, fx, fy, fx+fw, fy+fh);
-            SelectObject(buf, op); SelectObject(buf, ob); DeleteObject(pen);
-            std::wstring d = val.empty() ? L"0.00" : val + (g_focusedInput==focusIdx ? L"_" : L"");
-            DrawT(buf, d.c_str(), fx+14, fy, fw-28, fh, val.empty() ? C_DIM : C_WHITE, 15, false, DT_LEFT|DT_VCENTER|DT_SINGLELINE);
-        };
-        drawField(fxA, 1, L"SENSITIVITY X", g_setupSensX);
-        drawField(fxB, 2, L"SENSITIVITY Y", g_setupSensY);
+    // Button
+    int bx = (W-200)/2, by = H-74, bw = 200, bh = 42;
+    LinearGradientBrush bB(Point(bx, by), Point(bx, by+bh), Color(255, 60, 140, 250), Color(255, 30, 90, 200));
+    graphics.FillRectangle(&bB, bx, by, bw, bh);
+    graphics.DrawString(L"LOCK IN CONFIG  \x2713", -1, &fBod, RectF((float)bx, (float)by, (float)bw, (float)bh), &fmtC, &bWhite);
 
-        int bx = (W-200)/2, by = H-74, bw = 200, bh = 42;
-        FillR(buf, bx, by, bw, bh, C_ACCENT);
-        DrawT(buf, L"FINALIZE SETUP  ✓", bx, by, bw, bh, C_WHITE, 12, true);
-    }
+    graphics.DrawString(L"PRO SUITE ACTIVE", -1, &fSub, RectF(20, (float)H-28, 150, 20), &fmtL, &bAccent);
+    graphics.DrawString(L"DRAG HEADER TO MOVE", -1, &fSub, RectF((float)W-170, (float)H-28, 150, 20), &fmtR, &bDim);
 
-    DrawT(buf, L"PRO VERSION ACTIVE", 20, H-22, 160, 16, C_ACCENT, 9, true, DT_LEFT|DT_SINGLELINE);
-    DrawT(buf, L"DRAG TO MOVE", W-100, H-22, 80, 16, C_DIM, 9, false, DT_RIGHT|DT_SINGLELINE);
-
-    BitBlt(hdc, 0, 0, W, H, buf, 0, 0, SRCCOPY);
-    SelectObject(buf, old); DeleteObject(bmp); DeleteDC(buf);
+    BitBlt(hdc, 0, 0, W, H, hdcMem, 0, 0, SRCCOPY);
+    SelectObject(hdcMem, hOld); DeleteObject(hbmMem); DeleteDC(hdcMem);
     EndPaint(hWnd, &ps);
 }
 

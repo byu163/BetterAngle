@@ -127,6 +127,31 @@ void RenderImGuiFrame() {
             BindRow("Precision Crosshair", 3, g_keybinds.crossMod, g_keybinds.crossKey);
             BindRow("Zero Angle Reset", 4, g_keybinds.zeroMod, g_keybinds.zeroKey);
             BindRow("Secret Debug Tab", 5, g_keybinds.debugMod, g_keybinds.debugKey);
+
+            ImGui::Spacing();
+            ImGui::SeparatorText("MANUAL SENSITIVITY");
+            ImGui::Spacing();
+
+            if (!g_allProfiles.empty()) {
+                Profile& p = g_allProfiles[g_selectedProfileIdx];
+                float sX = (float)p.sensitivityX;
+                float sY = (float)p.sensitivityY;
+
+                ImGui::SetNextItemWidth(150);
+                if (ImGui::DragFloat("Sensitivity X", &sX, 0.001f, 0.001f, 5.0f, "%.4f")) {
+                    p.sensitivityX = (double)sX;
+                    p.Save(GetAppStoragePath() + p.name + L".json");
+                }
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(150);
+                if (ImGui::DragFloat("Sensitivity Y", &sY, 0.001f, 0.001f, 5.0f, "%.4f")) {
+                    p.sensitivityY = (double)sY;
+                    p.Save(GetAppStoragePath() + p.name + L".json");
+                }
+            } else {
+                ImGui::TextDisabled("No profiles available to adjust sensitivity.");
+            }
+
             ImGui::EndTabItem();
         }
 
