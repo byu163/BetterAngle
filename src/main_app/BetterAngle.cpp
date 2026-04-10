@@ -15,7 +15,6 @@
 #include "shared/Updater.h"
 #include "shared/Profile.h"
 #include "shared/Tray.h"
-#include "shared/Remote.h"
 #include "shared/Startup.h"
 #include "shared/ControlPanel.h"
 

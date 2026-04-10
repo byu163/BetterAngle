@@ -165,35 +165,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                     else if (y >= 260 && y <= 280) g_listeningKey = 5;
                 }
                 
-                // Cloud Sync
-                if (g_cloudProfileNames.empty() && !g_isCheckingCloud && x >= 40 && x <= 380 && y >= 330 && y <= 370) {
-                    std::thread(FetchCloudProfiles).detach();
-                } else if (!g_cloudProfileNames.empty() && x >= 40 && x <= 380) {
-                    for (int i=0; i<min(5, (int)g_cloudProfileNames.size()); i++) {
-                        float cy = 330.0f + (i * 35);
-                        if (y >= cy && y <= cy + 30) {
-                            DownloadCloudProfile(i);
-                            g_lastLoadedProfileName = g_cloudProfileNames[i];
-                            // Remove .json for display/internal
-                            if (g_lastLoadedProfileName.find(L".json") != std::wstring::npos) {
-                                g_lastLoadedProfileName = g_lastLoadedProfileName.substr(0, g_lastLoadedProfileName.length() - 5);
-                            }
-                            SaveSettings();
-                            
-                            // Reload Profiles Array
-                            g_allProfiles = GetProfiles(GetAppStoragePath());
-                            g_selectedProfileIdx = 0;
-                            for (size_t pidx = 0; pidx < g_allProfiles.size(); pidx++) {
-                                if (g_allProfiles[pidx].name == g_lastLoadedProfileName) {
-                                    g_selectedProfileIdx = pidx; break;
-                                }
-                            }
-                            g_currentProfile = g_allProfiles[g_selectedProfileIdx];
-                            g_logic.SetScale(g_currentProfile.scale_normal);
-                            break;
-                        }
-                    }
-                }
+                
                 
                 if (x >= 40 && x <= 380 && y >= 440 && y <= 480) {
                     void StartThresholdWizard(HINSTANCE hInstance);
@@ -293,18 +265,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 drawBind(4, L"Zero Angle Reset:", g_keybinds.zeroMod, g_keybinds.zeroKey, 235);
                 drawBind(5, L"Secret Debug Tab:", g_keybinds.debugMod, g_keybinds.debugKey, 260);
 
-                g_pRenderTarget->DrawText(L"CLOUD PROFILES REPOSITORY", 25, pHeaderFormat, D2D1::RectF(40, 300, 380, 320), pWhite);
 
-                if (g_cloudProfileNames.empty() && !g_isCheckingCloud) {
-                    DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 330, 380, 370), L"FETCH GITHUB PROFILES", D2D1::ColorF(0.2f, 0.4f, 0.8f));
-                } else if (g_isCheckingCloud) {
-                    g_pRenderTarget->DrawText(L"Connecting to GitHub API...", 25, pVerFormat, D2D1::RectF(40, 340, 380, 360), pGrey);
-                } else {
-                    for (int i=0; i<min(5, (int)g_cloudProfileNames.size()); i++) {
-                        float cy = 330.0f + (i * 35);
-                        DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, cy, 380, cy+30), g_cloudProfileNames[i].c_str(), D2D1::ColorF(0.2f, 0.2f, 0.25f));
-                    }
-                }
 
                 std::wstring act = L"Active: " + g_currentProfile.name;
                 g_pRenderTarget->DrawText(act.c_str(), act.length(), pVerFormat, D2D1::RectF(40, 495, 380, 515), pBlue);
