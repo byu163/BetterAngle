@@ -14,21 +14,35 @@ double FetchFortniteSensitivity() {
     std::wstring pPath = std::wstring(appdata) +
         L"\\FortniteGame\\Saved\\Config\\WindowsClient\\GameUserSettings.ini";
 
-    std::ifstream ifs(pPath.c_str());
+    std::ifstream ifs(pPath, std::ios::binary);
     if (!ifs.is_open() || !ifs.good())
         return -1.0; 
 
-    std::string line;
-    while (std::getline(ifs, line)) {
-        if (line.find("MouseSensitivityX=") != std::string::npos) {
-            size_t eqPos = line.find('=');
-            if (eqPos != std::string::npos) {
+    ifs.seekg(0, std::ios::end);
+    std::streamsize size = ifs.tellg();
+    ifs.seekg(0, std::ios::beg);
+
+    std::string buffer;
+    buffer.resize(size);
+    if (ifs.read(&buffer[0], size)) {
+        // Remove null bytes seamlessly, converting UTF-16LE to standard string for basic ASCII keys
+        buffer.erase(std::remove(buffer.begin(), buffer.end(), '\0'), buffer.end());
+
+        // Fortnite often uses MouseSensitivityX, but search for MouseSensitivity as fallback
+        const char* keys[] = { "MouseSensitivityX=", "MouseSensitivity=" };
+        for (const char* key : keys) {
+            size_t pos = buffer.find(key);
+            if (pos != std::string::npos) {
+                size_t valStart = pos + std::string(key).length();
+                size_t valEnd = buffer.find_first_of("\r\n", valStart);
+                if (valEnd == std::string::npos) valEnd = buffer.length();
+
+                std::string valStr = buffer.substr(valStart, valEnd - valStart);
                 try {
-                    double val = std::stod(line.substr(eqPos + 1));
-                    return (std::max)(val, 0.0001); 
+                    double val = std::stod(valStr);
+                    return (std::max)(val, 0.0001);
                 } catch (...) { }
             }
-            break;
         }
     }
     return -1.0; 
