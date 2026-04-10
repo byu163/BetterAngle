@@ -31,7 +31,6 @@ double FetchFortniteSensitivity() {
         }
     }
 
-    std::vector<std::wstring> potentialPaths;
     potentialPaths.push_back(basePath + L"\\WindowClient\\GameUserSettings.ini");
     potentialPaths.push_back(basePath + L"\\WindowsClient\\GameUserSettings.ini");
     potentialPaths.push_back(basePath + L"\\WindowsNoEditor\\GameUserSettings.ini");
