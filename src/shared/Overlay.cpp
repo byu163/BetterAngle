@@ -12,6 +12,15 @@ using namespace Gdiplus;
 
 bool IsFortniteFocused();
 
+void AddRoundedRect(GraphicsPath& path, int x, int y, int width, int height, int radius) {
+    int d = radius * 2;
+    path.AddArc(x, y, d, d, 180, 90);
+    path.AddArc(x + width - d, y, d, d, 270, 90);
+    path.AddArc(x + width - d, y + height - d, d, d, 0, 90);
+    path.AddArc(x, y + height - d, d, d, 90, 90);
+    path.CloseFigure();
+}
+
 // Helper: format float to N decimal places
 static std::wstring FmtFloat(double v, int decimals = 2) {
     std::wostringstream ss;
@@ -168,16 +177,16 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     int rw = 260, rh = 150;
     int rx = g_hudX, ry = g_hudY;
 
-    // Background gradient
+    // Background gradient (More transparent for sleekness)
     LinearGradientBrush bgBrush(
         Point(rx, ry), Point(rx, ry + rh),
-        Color(210, 10, 14, 20), Color(210, 4, 6, 10));
+        Color(150, 6, 8, 12), Color(150, 2, 3, 5));
     GraphicsPath path;
-    path.AddRectangle(Rect(rx, ry, rw, rh));
+    AddRoundedRect(path, rx, ry, rw, rh, 8); // 8px rounded corners
     graphics.FillPath(&bgBrush, &path);
 
     // Border: white when diving, subtle when not
-    Color borderCol = g_isDiving ? Color(255, 255, 255, 255) : Color(140, 50, 65, 80);
+    Color borderCol = g_isDiving ? Color(200, 255, 255, 255) : Color(90, 50, 65, 80);
     Pen borderPen(borderCol, 1.5f);
     graphics.DrawPath(&borderPen, &path);
 
@@ -250,11 +259,11 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
         if (dy + dh > sh) dy = ry - dh - 8;
 
         GraphicsPath dbgPath;
-        dbgPath.AddRectangle(Rect(dx, dy, dw, dh));
+        AddRoundedRect(dbgPath, dx, dy, dw, dh, 6);
         LinearGradientBrush dbgBg(Point(dx, dy), Point(dx, dy + dh),
-                                  Color(225, 8, 10, 14), Color(225, 3, 4, 6));
+                                  Color(160, 8, 10, 14), Color(160, 3, 4, 6)); // Softer alpha
         graphics.FillPath(&dbgBg, &dbgPath);
-        Pen dbgP(Color(100, 0, 190, 255), 1.0f);
+        Pen dbgP(Color(80, 0, 190, 255), 1.0f);
         graphics.DrawPath(&dbgP, &dbgPath);
 
         SolidBrush headerBgB(Color(60, 0, 160, 255));

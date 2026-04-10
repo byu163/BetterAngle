@@ -4,11 +4,11 @@ import QtQuick.Controls 2.15
 
 Window {
     id: mainWindow
-    width: 800
-    height: 600
+    width: 650
+    height: 480
     visible: true
     title: qsTr("BetterAngle Pro Command Center")
-    color: "#0d0d12"
+    color: "#0a0a0f"
 
     // Frameless window style for a custom sleek look
     flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint

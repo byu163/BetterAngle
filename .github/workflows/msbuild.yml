@@ -45,8 +45,8 @@ jobs:
       - name: Archive Build
         run: |
           New-Item -ItemType Directory -Force -Path bin
-          cd build/Release
-          Compress-Archive -Path * -DestinationPath ../../bin/BetterAngle_Release.zip
+          $ver = (Get-Content VERSION).Trim()
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /dAppVer=$ver installer.iss
       - name: Get Version
         id: get_version
         run: |
@@ -72,7 +72,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            bin/BetterAngle_Release.zip
+            bin/BetterAngle_Setup.exe
           tag_name: ${{ env.TAG }}
           name: BetterAngle Pro ${{ env.TAG }}
           body_path: CURRENT_RELEASE_NOTES.md

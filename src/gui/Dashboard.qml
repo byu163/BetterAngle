@@ -134,7 +134,7 @@ Item {
                 CheckBox {
                     text: "Pulse Animation"
                     checked: backend.crossPulse
-                    onCheckedChanged: backend.crossPulse = checked
+                    onToggled: backend.crossPulse = checked
                     contentItem: Text { text: parent.text; color: "white"; leftPadding: parent.indicator.width + 10; verticalAlignment: Text.AlignVCenter }
                 }
             }
@@ -169,13 +169,13 @@ Item {
                 CheckBox {
                     text: "Debug Overlay (Ctrl+9)"
                     checked: backend.debugMode
-                    onCheckedChanged: backend.debugMode = checked
+                    onToggled: backend.debugMode = checked
                     contentItem: Text { text: parent.text; color: "white"; leftPadding: parent.indicator.width + 10 }
                 }
                 CheckBox {
                     text: "Force Diving State"
                     checked: backend.forceDiving
-                    onCheckedChanged: backend.forceDiving = checked
+                    onToggled: backend.forceDiving = checked
                     contentItem: Text { text: parent.text; color: "white"; leftPadding: parent.indicator.width + 10 }
                 }
 
