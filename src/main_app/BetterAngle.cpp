@@ -104,7 +104,10 @@ void CaptureDesktop() {
 LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_INPUT) {
         int dx = GetRawInputDeltaX(lParam);
-        g_logic.Update(dx);
+        // Only update angle accumulation (the decimal) if Fortnite is focused or debug mode is ON
+        if (IsFortniteFocused() || g_debugMode) {
+            g_logic.Update(dx);
+        }
         return 0;
     }
     return DefWindowProc(hWnd, message, wParam, lParam);

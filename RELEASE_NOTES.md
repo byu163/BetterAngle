@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.20.0: "Responsive Pro Command Center"
+v4.20.0: Major UI overhaul for the Control Panel. The window is now fully resizable and responsive—all tabs, buttons, and interaction hit-boxes dynamically auto-fit to any window size. Implemented a focus-locking mechanism where the angle accumulation only triggers when Fortnite is in the foreground. Finalized the "XHAIR" precision configuration tab and ensured all calibration data persists correctly to active profiles.
+
 ### BetterAngle Pro v4.19.0: "Native Precision Crosshair Port"
 v4.19.0: Fully ported the Java crosshair application natively into the BetterAngle C++ engine. Added a dedicated "XHAIR" configuration tab in the Control Panel using Direct2D. Support for dynamic line thickness, X/Y screen offsets, custom rendering angles, and the sine-wave opacity Pulse animation. The overlay rendering ties directly into the HUD via GDI+ without spawning a separate app or consuming background JVM resources.
 
