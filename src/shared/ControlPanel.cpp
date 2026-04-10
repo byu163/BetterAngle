@@ -152,6 +152,17 @@ void RenderImGuiFrame() {
                 ImGui::TextDisabled("No profiles available to adjust sensitivity.");
             }
 
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.1f, 0.1f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+            if (ImGui::Button("TERMINATE BetterAngle PRO", ImVec2(-1, 40))) {
+                PostQuitMessage(0);
+            }
+            ImGui::PopStyleColor(2);
+
             ImGui::EndTabItem();
         }
 
