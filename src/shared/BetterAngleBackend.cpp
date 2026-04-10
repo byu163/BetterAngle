@@ -22,6 +22,7 @@ BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
     connect(timer, &QTimer::timeout, this, [this]() {
         static bool lastChecking = false;
         static bool lastDownloading = false;
+        static bool lastComplete = false;
         if (g_hasCheckedForUpdates) {
             g_hasCheckedForUpdates = false;
             emit updateStatusChanged();
@@ -34,6 +35,11 @@ BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
             lastDownloading = g_isDownloadingUpdate;
             emit updateStatusChanged();
         }
+        if (g_downloadComplete != lastComplete) {
+            lastComplete = g_downloadComplete;
+            emit updateStatusChanged();
+        }
+
     });
     timer->start(100);
 }
@@ -129,6 +135,9 @@ QString BetterAngleBackend::versionStr() const { return QString::fromLatin1(VERS
 QString BetterAngleBackend::latestVersion() const { return QString::fromStdString(g_latestVersionOnline); }
 bool BetterAngleBackend::updateAvailable() const { return g_updateAvailable; }
 bool BetterAngleBackend::isDownloading() const { return g_isDownloadingUpdate; }
+bool BetterAngleBackend::downloadComplete() const { return g_downloadComplete; }
+QString BetterAngleBackend::updateHistory() const { return QString::fromStdString(g_updateHistory); }
+
 
 void BetterAngleBackend::syncWithFortnite() {
     double synced = FetchFortniteSensitivity();

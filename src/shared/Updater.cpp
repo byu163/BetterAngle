@@ -253,6 +253,11 @@ bool CheckForUpdates() {
 
     std::string local = APP_VERSION_STR;
     g_updateAvailable      = IsVersionHigher(highestTag, local);
+    
+    if (g_updateAvailable) {
+        g_updateHistory = local + " \u2192 " + highestTag;
+    }
+
     g_isCheckingForUpdates = false;
     g_hasCheckedForUpdates = true;
     return g_updateAvailable;
@@ -269,6 +274,7 @@ void UpdateApp() {
         std::wstring tmpPath = exeStr.substr(0, exeStr.find_last_of(L"\\/")) + L"\\update_tmp.exe";
         
         if (DownloadUpdate(L"", tmpPath)) {
+            g_downloadComplete = true;
             ApplyUpdateAndRestart();
         }
         g_isDownloadingUpdate = false;

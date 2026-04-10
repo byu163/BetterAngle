@@ -384,16 +384,23 @@ Item {
                     }
 
 
-                    // Pulse
-                    CheckBox {
-                        text: "Pulse Animation"
-                        checked: backend.crossPulse
-                        onToggled: backend.crossPulse = checked
-                        contentItem: Text { text: parent.text; color: "white"; leftPadding: parent.indicator.width + 10; verticalAlignment: Text.AlignVCenter }
-                    }
+                    // Pulse (removed from here)
 
                     // Fine Position  
-                    Text { text: "FINE POSITION"; color: "#666"; font.pixelSize: 11; font.bold: true }
+                    Row {
+                        width: parent.width
+                        Text { text: "FINE POSITION"; color: "#666"; font.pixelSize: 11; font.bold: true; verticalAlignment: Text.AlignVCenter; height: 32 }
+                        Item { Layout.fillWidth: true; height: 1 } // Spacer
+                        CheckBox {
+                            id: pulseChk
+                            text: "Pulse"
+                            checked: backend.crossPulse
+                            scale: 1.1
+                            onToggled: backend.crossPulse = checked
+                            contentItem: Text { text: parent.text; color: "white"; leftPadding: parent.indicator.width + 6; verticalAlignment: Text.AlignVCenter }
+                        }
+                    }
+
                     Row {
                         spacing: 6; width: parent.width
                         Text { text: "X: " + backend.crossOffsetX.toFixed(1); color: "white"; verticalAlignment: Text.AlignVCenter; width: 80 }
@@ -577,19 +584,40 @@ Item {
                 }
 
                 Button {
-                    text: backend.updateAvailable ? "DOWNLOAD UPDATE NOW" : "CHECK FOR UPDATES"
+                    text: {
+                        if (backend.isDownloading) return "DOWNLOADING..."
+                        if (backend.downloadComplete) return "RESTART TO APPLY"
+                        if (backend.updateAvailable) return "UPDATE NOW"
+                        return "CHECK FOR UPDATES"
+                    }
                     width: parent.width
-                    height: 40
+                    height: 44
+                    enabled: !backend.isDownloading
                     contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
-                    background: Rectangle { color: parent.hovered ? "#444" : "#222"; radius: 4 }
-                    onClicked: backend.updateAvailable ? backend.downloadUpdate() : backend.checkForUpdates()
+                    background: Rectangle { 
+                        color: backend.downloadComplete ? "#6a4cff" : (parent.hovered ? "#00cca3" : "#00a382")
+                        radius: 4 
+                    }
+                    onClicked: {
+                        if (backend.downloadComplete) {
+                            backend.terminateApp() 
+                        } else if (backend.updateAvailable) {
+                            backend.downloadUpdate()
+                        } else {
+                            backend.checkForUpdates()
+                        }
+                    }
                 }
 
                 Text {
-                    text: "Downloading update..."
-                    color: "#00ccff"
-                    visible: backend.isDownloading
+                    text: "Update History: " + backend.updateHistory
+                    color: "#888"
+                    font.pixelSize: 12
+                    visible: backend.updateHistory !== ""
+                    horizontalAlignment: Text.AlignHCenter
+                    width: parent.width
                 }
+
             }
         }
     }

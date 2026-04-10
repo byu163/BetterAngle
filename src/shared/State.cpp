@@ -13,6 +13,8 @@ bool g_hasCheckedForUpdates = false;
 float g_updateSpinAngle = 0.0f;
 bool g_updateAvailable = false;
 bool g_isDownloadingUpdate = false;
+bool g_downloadComplete    = false;
+std::string g_updateHistory = "";
 std::atomic<bool> g_fortniteFocusedCache(false);
 bool g_setupComplete = false;
 
@@ -201,7 +203,7 @@ void SaveSettings() {
 }
 
 bool g_showCrosshair = false;
-float g_crossThickness = 1.0f;
+float g_crossThickness = 2.0f;
 COLORREF g_crossColor = RGB(255, 0, 0);
 float g_crossOffsetX = 0.0f;
 float g_crossOffsetY = 0.0f;

@@ -28,6 +28,8 @@ class BetterAngleBackend : public QObject {
     Q_PROPERTY(QString latestVersion READ latestVersion NOTIFY updateStatusChanged)
     Q_PROPERTY(bool updateAvailable READ updateAvailable NOTIFY updateStatusChanged)
     Q_PROPERTY(bool isDownloading READ isDownloading NOTIFY updateStatusChanged)
+    Q_PROPERTY(bool downloadComplete READ downloadComplete NOTIFY updateStatusChanged)
+    Q_PROPERTY(QString updateHistory READ updateHistory NOTIFY updateStatusChanged)
 
 public:
     explicit BetterAngleBackend(QObject *parent = nullptr);
@@ -80,6 +82,8 @@ public:
     QString latestVersion() const;
     bool updateAvailable() const;
     bool isDownloading() const;
+    bool downloadComplete() const;
+    QString updateHistory() const;
 
     Q_INVOKABLE void syncWithFortnite();
     Q_INVOKABLE void terminateApp();

@@ -9,53 +9,56 @@
 double FetchFortniteSensitivity() {
     // Build path via ExpandEnvironmentStrings (%LOCALAPPDATA%)
     wchar_t expPath[MAX_PATH] = {};
-    std::wstring pPath;
+    std::wstring basePath;
 
-    if (ExpandEnvironmentStringsW(
-            L"%LOCALAPPDATA%\\FortniteGame\\Saved\\Config\\WindowsClient\\GameUserSettings.ini",
-            expPath, MAX_PATH) && expPath[0] != L'%') {
-        pPath = expPath;
+    if (ExpandEnvironmentStringsW(L"%LOCALAPPDATA%\\FortniteGame\\Saved\\Config", expPath, MAX_PATH) && expPath[0] != L'%') {
+        basePath = expPath;
     } else {
         // Fallback: SHGetFolderPath
         wchar_t appdata[MAX_PATH] = {};
         if (!SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata)))
             return -1.0;
-        pPath = std::wstring(appdata) +
-                L"\\FortniteGame\\Saved\\Config\\WindowsClient\\GameUserSettings.ini";
+        basePath = std::wstring(appdata) + L"\\FortniteGame\\Saved\\Config";
     }
 
-    std::ifstream ifs(pPath, std::ios::binary);
-    if (!ifs.is_open()) return -1.0;
+    // Folders to search in priority order
+    const std::wstring subfolders[] = { L"\\WindowsClient\\", L"\\WindowsNoEditor\\" };
+    
+    for (const auto& sub : subfolders) {
+        std::wstring pPath = basePath + sub + L"GameUserSettings.ini";
+        std::ifstream ifs(pPath, std::ios::binary);
+        if (!ifs.is_open()) continue;
 
-    ifs.seekg(0, std::ios::end);
-    std::streamsize size = ifs.tellg();
-    ifs.seekg(0, std::ios::beg);
-    if (size <= 0 || size > 10 * 1024 * 1024) return -1.0; // sanity: max 10 MB
+        ifs.seekg(0, std::ios::end);
+        std::streamsize size = ifs.tellg();
+        ifs.seekg(0, std::ios::beg);
+        if (size <= 0 || size > 10 * 1024 * 1024) continue; // sanity: max 10 MB
 
-    std::string buffer(static_cast<size_t>(size), '\0');
-    if (!ifs.read(&buffer[0], size)) return -1.0;
+        std::string buffer(static_cast<size_t>(size), '\0');
+        if (!ifs.read(&buffer[0], size)) continue;
 
-    // Strip null bytes — handles UTF-16 LE INI files
-    buffer.erase(std::remove(buffer.begin(), buffer.end(), '\0'), buffer.end());
+        // Strip null bytes — handles UTF-16 LE INI files
+        buffer.erase(std::remove(buffer.begin(), buffer.end(), '\0'), buffer.end());
 
-    // Search for sensitivity keys in priority order
-    const char* keys[] = { "MouseSensitivityX=", "MouseSensitivity=" };
-    for (const char* key : keys) {
-        size_t pos = buffer.find(key);
-        if (pos != std::string::npos) {
-            size_t valStart = pos + strlen(key);
-            size_t valEnd   = buffer.find_first_of("\r\n", valStart);
-            if (valEnd == std::string::npos) valEnd = buffer.size();
+        // Search for sensitivity keys in priority order
+        const char* keys[] = { "MouseSensitivityX=", "MouseSensitivity=" };
+        for (const char* key : keys) {
+            size_t pos = buffer.find(key);
+            if (pos != std::string::npos) {
+                size_t valStart = pos + strlen(key);
+                size_t valEnd   = buffer.find_first_of("\r\n", valStart);
+                if (valEnd == std::string::npos) valEnd = buffer.size();
 
-            std::string valStr = buffer.substr(valStart, valEnd - valStart);
-            // Trim trailing spaces/CR/LF
-            while (!valStr.empty() && (valStr.back() == ' ' || valStr.back() == '\r' || valStr.back() == '\n'))
-                valStr.pop_back();
+                std::string valStr = buffer.substr(valStart, valEnd - valStart);
+                // Trim trailing spaces/CR/LF
+                while (!valStr.empty() && (valStr.back() == ' ' || valStr.back() == '\r' || valStr.back() == '\n' || valStr.back() == '\t'))
+                    valStr.pop_back();
 
-            try {
-                double val = std::stod(valStr);
-                if (val > 0.0) return val;
-            } catch (...) {}
+                try {
+                    double val = std::stod(valStr);
+                    if (val > 0.0) return val;
+                } catch (...) {}
+            }
         }
     }
     return -1.0;
