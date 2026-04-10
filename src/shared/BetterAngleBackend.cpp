@@ -105,7 +105,7 @@ float BetterAngleBackend::freefallThreshold() const { return g_freefallThreshold
 void BetterAngleBackend::setFreefallThreshold(float v) { g_freefallThreshold = v; emit debugChanged(); }
 
 QString BetterAngleBackend::versionStr() const { return QString::fromLatin1(VERSION_STR); }
-QString BetterAngleBackend::latestVersion() const { return QString::fromStdWString(g_latestVersionOnline); }
+QString BetterAngleBackend::latestVersion() const { return QString::fromStdString(g_latestVersionOnline); }
 bool BetterAngleBackend::updateAvailable() const { return g_updateAvailable; }
 bool BetterAngleBackend::isDownloading() const { return g_isDownloadingUpdate; }
 
