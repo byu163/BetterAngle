@@ -300,9 +300,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
 
     // Phase 1: Startup Sequence (Splash)
-    ShowSplashLoader(hInstance);
-
     LoadSettings();
+    
+    // Phase 1: Startup Guard (v4.20.44: Complete Lockdown)
+    if (!g_setupComplete) {
+        ShowFirstTimeSetup(hInstance);
+        LoadSettings(); // Reload after setup setup to sync sense
+    }
+
     g_allProfiles = GetProfiles(GetAppStoragePath());
     if (g_allProfiles.empty()) {
         Profile p;
@@ -359,12 +364,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // Phase 2: Create Control Panel (Interactive)
     g_hPanel = CreateControlPanel(hInstance);
     
-    // Phase 2.5: Ensure Setup is Complete (v4.20.35 Optimized Guard)
-    if (!g_allProfiles.empty()) g_setupComplete = true; 
-    
-    if (!g_setupComplete) {
-        ShowFirstTimeSetup(hInstance);
-    }
+    // Phase 2.5: Setup already handled at top
     
     // Phase 3: Create HUD Window (Transparent Overlay)
     WNDCLASS wc = { 0 };

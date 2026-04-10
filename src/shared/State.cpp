@@ -128,8 +128,11 @@ void LoadSettings() {
   std::wstring sp = GetAppStoragePath() + L"settings.json";
   std::ifstream ifs(sp.c_str());
   if (ifs.is_open()) {
-    std::string content((std::istreambuf_iterator<char>(ifs)),
-                        std::istreambuf_iterator<char>());
+    std::string content;
+    ifs.seekg(0, std::ios::end);
+    content.reserve((size_t)ifs.tellg());
+    ifs.seekg(0, std::ios::beg);
+    content.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
     auto eFloat = [&](std::string k, float def) -> float {
       size_t p = content.find("\"" + k + "\":");
       if (p == std::string::npos)
