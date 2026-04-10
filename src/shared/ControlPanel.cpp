@@ -566,7 +566,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             // Top two control buttons
             DrawD2DButton(g_pRenderTarget,
                 D2D1::RectF(L.margin, bY0, L.margin + L.contentW * 0.45f, bY0 + bH),
-                L"🎨  CHOOSE COLOR", D2D1::ColorF(0.12f, 0.15f, 0.22f), 12.0f * baseScale);
+                L"CHOOSE COLOR", D2D1::ColorF(0.12f, 0.15f, 0.22f), 12.0f * baseScale);
             DrawD2DButton(g_pRenderTarget,
                 D2D1::RectF(L.W - L.margin - L.contentW * 0.45f, bY0, L.W - L.margin, bY0 + bH),
                 g_crossPulse ? L"PULSE  [ ON ]" : L"PULSE  [ OFF ]",
