@@ -88,9 +88,9 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
                 REAL dash[] = { 6.0f, 4.0f };
                 dashPen.SetDashPattern(dash, 2);
                 graphics.DrawRectangle(&dashPen,
-                    g_selectionRect.left, g_selectionRect.top,
-                    g_selectionRect.right  - g_selectionRect.left,
-                    g_selectionRect.bottom - g_selectionRect.top);
+                    (int)g_selectionRect.left, (int)g_selectionRect.top,
+                    (int)(g_selectionRect.right - g_selectionRect.left),
+                    (int)(g_selectionRect.bottom - g_selectionRect.top));
             }
 
         } else if (g_currentSelection == SELECTING_COLOR) {
@@ -201,12 +201,14 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     int matchPct = int(detectionRatio * 100.0f);
     std::wstring matchStr = L"Match  " + std::to_wstring(matchPct) + L"%";
     Color matchLabelCol(200, 160, 170, 185);
+    SolidBrush matchLabelB(matchLabelCol);
     graphics.DrawString(matchStr.c_str(), -1, &subFont,
-                        PointF(float(rx + 14), float(ry + rh - 54)), &SolidBrush(matchLabelCol));
+                        PointF(float(rx + 14), float(ry + rh - 54)), &matchLabelB);
 
     // Match progress bar
     int barX = rx + 14, barY = ry + rh - 38, barW = rw - 28, barH = 8;
-    graphics.FillRectangle(&SolidBrush(Color(60, 255, 255, 255)), barX, barY, barW, barH);
+    SolidBrush barBgB(Color(60, 255, 255, 255));
+    graphics.FillRectangle(&barBgB, barX, barY, barW, barH);
     float clampedRatio = detectionRatio > 1.0f ? 1.0f : detectionRatio;
     int fillW = int(clampedRatio * barW);
     if (fillW > 0) {
@@ -216,13 +218,16 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
                                     Color(200, r, g, 40), Color(200, r / 2, g, 80));
         graphics.FillRectangle(&barFill, barX, barY, fillW, barH);
     }
-    graphics.DrawRectangle(&Pen(Color(40, 255, 255, 255), 1.0f), barX, barY, barW, barH);
+    Pen barPen(Color(40, 255, 255, 255), 1.0f);
+    graphics.DrawRectangle(&barPen, barX, barY, barW, barH);
 
     // Target colour swatch (top-right corner)
     int swatchX = rx + rw - 28, swatchY = ry + 8;
     Color swatch(255, GetBValue(g_targetColor), GetGValue(g_targetColor), GetRValue(g_targetColor));
-    graphics.FillEllipse(&SolidBrush(swatch), swatchX, swatchY, 16, 16);
-    graphics.DrawEllipse(&Pen(Color(100, 220, 220, 220), 1.0f), swatchX, swatchY, 16, 16);
+    SolidBrush swatchB(swatch);
+    graphics.FillEllipse(&swatchB, swatchX, swatchY, 16, 16);
+    Pen swatchP(Color(100, 220, 220, 220), 1.0f);
+    graphics.DrawEllipse(&swatchP, swatchX, swatchY, 16, 16);
 
     // Drag hint (plain ASCII — no special characters to avoid rendering as squares)
     Font tinyFont(&ff, 9, FontStyleRegular, UnitPixel);
@@ -249,9 +254,11 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
         LinearGradientBrush dbgBg(Point(dx, dy), Point(dx, dy + dh),
                                   Color(225, 8, 10, 14), Color(225, 3, 4, 6));
         graphics.FillPath(&dbgBg, &dbgPath);
-        graphics.DrawPath(&Pen(Color(100, 0, 190, 255), 1.0f), &dbgPath);
+        Pen dbgP(Color(100, 0, 190, 255), 1.0f);
+        graphics.DrawPath(&dbgP, &dbgPath);
 
-        graphics.FillRectangle(&SolidBrush(Color(60, 0, 160, 255)), dx, dy, dw, 22);
+        SolidBrush headerBgB(Color(60, 0, 160, 255));
+        graphics.FillRectangle(&headerBgB, dx, dy, dw, 22);
 
         Font dbgTitle(&ff, 11, FontStyleBold,    UnitPixel);
         Font dbgKey  (&ff, 10, FontStyleBold,    UnitPixel);
@@ -272,9 +279,10 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
             float y = float(dy + 28 + row * ROW_H);
             graphics.DrawString(key, -1, &dbgKey, PointF(float(dx + 8),  y), &colKey);
             graphics.DrawString(val.c_str(), -1, &dbgVal, PointF(float(dx + 175), y), valBrush);
-            if (row > 0)
-                graphics.DrawLine(&Pen(Color(20, 255, 255, 255), 1.0f),
-                                  dx + 4, int(y) - 1, dx + dw - 4, int(y) - 1);
+            if (row > 0) {
+                Pen lnP(Color(20, 255, 255, 255), 1.0f);
+                graphics.DrawLine(&lnP, dx + 4, int(y) - 1, dx + dw - 4, int(y) - 1);
+            }
             row++;
         };
 
