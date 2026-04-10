@@ -211,7 +211,7 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 
 void StartModalSetupLoop(HWND hwnd) {
     MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0)) {
+    while (GetMessage(&msg, NULL, 0, 0) > 0) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
         if (!IsWindow(hwnd)) break;
@@ -254,6 +254,7 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = FirstTimeSetupProc;
     wc.hInstance = hInstance;
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wc.lpszClassName = L"FTSWindowClass";
     RegisterClass(&wc);
