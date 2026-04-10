@@ -69,7 +69,6 @@ void DetectorThread() {
                 g_logic.SetDivingState(false);
                 g_detectionRatio = 0.0f;
                 g_fortniteFocusedCache = false;
-                g_currentAngle = 0.0f; // Reset angle immediately when alt-tabbed
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
