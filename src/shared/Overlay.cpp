@@ -107,7 +107,10 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
             HBITMAP hbmZoom = CreateCompatibleBitmap(hdcMem, mw * 3, mh * 3);
             SelectObject(hdcZoom, hbmZoom);
             StretchBlt(hdcZoom, 0, 0, mw * 3, mh * 3, hdcScr, mx, my, mw, mh, SRCCOPY);
-            BitBlt(hdcMem, cur.x - hdcMem == NULL ? 0 : 0, cur.y, mw * 3, mh * 3, hdcZoom, 0, 0, SRCCOPY);
+            // Position magnifier 20px to the right of cursor, clipped to screen
+            int zx = (cur.x + 20 + mw * 3 < sw) ? (cur.x + 20) : (cur.x - mw * 3 - 20);
+            int zy = (cur.y + mh * 3 < sh) ? cur.y : (sh - mh * 3);
+            BitBlt(hdcMem, zx, zy, mw * 3, mh * 3, hdcZoom, 0, 0, SRCCOPY);
             DeleteObject(hbmZoom); DeleteDC(hdcZoom); ReleaseDC(NULL, hdcScr);
         }
 
