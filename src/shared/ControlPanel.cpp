@@ -194,6 +194,11 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         }
                     }
                 }
+                
+                if (x >= 40 && x <= 380 && y >= 440 && y <= 480) {
+                    void StartThresholdWizard(HINSTANCE hInstance);
+                    StartThresholdWizard((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
+                }
             }
 
             if (g_currentTab == 3) {
@@ -216,10 +221,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         g_allProfiles[g_selectedProfileIdx].Save(GetAppStoragePath() + g_allProfiles[g_selectedProfileIdx].name + L".json");
                     }
                 }
-                else if (x >= 40 && x <= 380 && y >= 450 && y <= 480) {
-                    void StartThresholdWizard(HINSTANCE hInstance);
-                    StartThresholdWizard((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
-                }
+
             }
 
             if (g_currentTab == 1) {
@@ -306,6 +308,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
                 std::wstring act = L"Active: " + g_currentProfile.name;
                 g_pRenderTarget->DrawText(act.c_str(), act.length(), pVerFormat, D2D1::RectF(40, 495, 380, 515), pBlue);
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 440, 380, 480), L"MASTER CALIBRATION WIZARD", D2D1::ColorF(0.8f, 0.4f, 0.0f));
 
             } else if (g_currentTab == 1) {
                 g_pRenderTarget->DrawText(L"SOFTWARE DASHBOARD", 18, pHeaderFormat, D2D1::RectF(40, 140, 380, 170), pWhite);
@@ -392,8 +395,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 swprintf_s(diagText, L"Diag: Angle=%.1f, Match=%.0f%%", g_currentAngle, g_detectionRatio * 100.0f);
                 g_pRenderTarget->DrawText(diagText, (UINT32)wcslen(diagText), pVerFormat, D2D1::RectF(40, 390, 380, 410), pGrey);
 
-                g_pRenderTarget->DrawText(L"AUTO THRESHOLD CALIBRATOR", 16, pHeaderFormat, D2D1::RectF(40, 420, 380, 440), pWhite);
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 450, 380, 480), L"LAUNCH HUD WIZARD", D2D1::ColorF(0.7f, 0.5f, 0.0f));
+
             }
 
             DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 520, 380, 560), L"QUIT SUITE", D2D1::ColorF(0.7f, 0.1f, 0.15f));
