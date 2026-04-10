@@ -47,15 +47,19 @@ void AngleLogic::Update(int dx) {
     if (!g_debugMode) {
         if (!g_fortniteFocusedCache || g_isCursorVisible) return;
     }
-    m_accumDx += dx;
+    m_accumDx.fetch_add(dx, std::memory_order_relaxed);
 }
 
 double AngleLogic::GetAngle() const {
-    double normalScale = 0.05555 * m_sensX;
-    double scale = m_isDiving ? (normalScale * 1.0916) : normalScale;
+    double currentSens = m_sensX.load(std::memory_order_relaxed);
+    double normalScale = 0.05555 * currentSens;
+    double scale = m_isDiving.load(std::memory_order_relaxed) ? (normalScale * 1.0916) : normalScale;
     
-    if (scale == 0.0) scale = 0.0031415; // Bullet-proof fallback
-    double angle = Norm360(m_baseAngle + (m_accumDx - m_baseDx) * scale);
+    if (scale == 0.0) scale = 0.0031415; 
+    
+    long long accum = m_accumDx.load(std::memory_order_relaxed);
+    long long base  = m_baseDx.load(std::memory_order_relaxed);
+    double angle = Norm360(m_baseAngle.load(std::memory_order_relaxed) + (accum - base) * scale);
     
     g_currentAngle = (float)angle;
     
@@ -68,23 +72,23 @@ void AngleLogic::SetZero() {
 }
 
 void AngleLogic::LoadProfile(double sensX) {
-    if (m_sensX == sensX) return;
+    if (m_sensX.load() == sensX) return;
     
     // Prevent the angle jump when swapping Sensitivity mid-air
-    m_baseAngle = GetAngle();
-    m_baseDx = m_accumDx;
+    m_baseAngle.store(GetAngle());
+    m_baseDx.store(m_accumDx.load());
     
-    m_sensX = sensX;
+    m_sensX.store(sensX);
 }
 
 void AngleLogic::SetDivingState(bool diving) {
-    if (m_isDiving == diving) return;
+    if (m_isDiving.load() == diving) return;
     
     // Keep angle stationary during state transition
-    m_baseAngle = GetAngle();
-    m_baseDx = m_accumDx;
+    m_baseAngle.store(GetAngle());
+    m_baseDx.store(m_accumDx.load());
     
-    m_isDiving = diving;
+    m_isDiving.store(diving);
 }
 
 double AngleLogic::Norm360(double a) const {

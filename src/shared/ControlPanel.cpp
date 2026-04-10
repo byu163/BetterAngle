@@ -17,6 +17,7 @@ extern std::vector<Profile> g_allProfiles;
 extern int g_selectedProfileIdx;
 extern Profile g_currentProfile;
 extern HWND g_hHUD;
+extern AngleLogic g_logic;
 
 // Forward declare message handler from imgui_impl_win32.cpp
 // Forward declare from Logic.cpp
@@ -68,6 +69,11 @@ void CleanupDeviceD3D()
 }
 
 int g_listeningKey = -1;
+
+// 360 Calibration State
+static bool      g_calibrating = false;
+static long long g_calStartDx  = 0;
+static float     g_calDetectedSens = 0;
 
 std::wstring GetKeyName(UINT mod, UINT vk) {
     if (vk == 0) return L"Unbound";
@@ -156,6 +162,36 @@ void RenderImGuiFrame() {
                     double synced = FetchFortniteSensitivity();
                     p.sensitivityX = synced;
                     p.Save(GetAppStoragePath() + p.name + L".json");
+                }
+                
+                ImGui::Spacing();
+                ImGui::SeparatorText("360° CALIBRATION ASSISTANT");
+                ImGui::TextWrapped("If the angle is drifting, use this to fix it perfectly.");
+                
+                if (!g_calibrating) {
+                    if (ImGui::Button("START 360° CALIBRATION", ImVec2(-1, 40))) {
+                        g_calibrating = true;
+                        g_calStartDx = g_logic.GetAccumDx();
+                    }
+                } else {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0.8f, 0, 1));
+                    ImGui::Text("CALIBRATION IN PROGRESS...");
+                    ImGui::PopStyleColor();
+                    ImGui::Text("1. Focus Fortnite.\n2. Turn exactly 360 degrees.\n3. Click FINISH below.");
+                    
+                    if (ImGui::Button("FINISH CALIBRATION", ImVec2(-1, 40))) {
+                        long long endDx = g_logic.GetAccumDx();
+                        long long delta = std::abs(endDx - g_calStartDx);
+                        if (delta > 100) {
+                            // Scale = 360 / DeltaPixels
+                            // sensX = Scale / 0.05555
+                            double actualScale = 360.0 / (double)delta;
+                            p.sensitivityX = actualScale / 0.05555;
+                            p.Save(GetAppStoragePath() + p.name + L".json");
+                        }
+                        g_calibrating = false;
+                    }
+                    if (ImGui::Button("Cancel", ImVec2(100, 0))) g_calibrating = false;
                 }
             } else {
                 ImGui::TextDisabled("No profiles available to adjust sensitivity.");
