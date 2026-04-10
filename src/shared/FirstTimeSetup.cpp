@@ -60,6 +60,13 @@ void FinishSetup() {
     }
     g_setupComplete = true; 
     SaveSettings();
+    
+    // Final verification save to ensure it's on disk before returning to WinMain
+    LoadSettings(); 
+    if (!g_setupComplete) {
+        g_setupComplete = true;
+        SaveSettings();
+    }
 }
 
 // ── Paint ────────────────────────────────────────────────────────────────

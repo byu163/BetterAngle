@@ -608,6 +608,15 @@ Item {
                 }
 
                 Text {
+                    text: backend.updateStatus
+                    color: backend.downloadComplete ? "#6a4cff" : (backend.updateAvailable ? "#00cca3" : "white")
+                    font.bold: true
+                    horizontalAlignment: Text.AlignHCenter
+                    width: parent.width
+                    visible: backend.updateStatus !== ""
+                }
+
+                Text {
                     text: "Update History: " + backend.updateHistory
                     color: "#888"
                     font.pixelSize: 12

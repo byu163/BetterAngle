@@ -138,18 +138,33 @@ bool BetterAngleBackend::isDownloading() const { return g_isDownloadingUpdate; }
 bool BetterAngleBackend::downloadComplete() const { return g_downloadComplete; }
 QString BetterAngleBackend::updateHistory() const { return QString::fromStdString(g_updateHistory); }
 
+QString BetterAngleBackend::updateStatus() const {
+    if (g_isDownloadingUpdate) return "Downloading update...";
+    if (g_downloadComplete) return "Download complete! Restart to apply.";
+    if (g_isCheckingForUpdates) return "Checking for updates...";
+    if (g_hasCheckedForUpdates) {
+        if (g_updateAvailable) return "New update available!";
+        return "Application is up to date.";
+    }
+    return "";
+}
 
 void BetterAngleBackend::syncWithFortnite() {
     double synced = FetchFortniteSensitivity();
     if (synced > 0.0) {
         setSensX(synced);
         setSensY(synced);
-        m_syncResult = QString("SYNC OK! sens=%1").arg(synced);
+        m_syncResult = QString("SYNC OK! Value: %1").arg(synced);
     } else {
-        m_syncResult = "CONFIG NOT FOUND! Check: %LOCALAPPDATA%\\FortniteGame\\";
+        // More detailed diagnostic info for the user
+        wchar_t appdata[MAX_PATH] = {};
+        SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata);
+        QString path = QString::fromWCharArray(appdata) + "\\FortniteGame\\Saved\\Config";
+        m_syncResult = QString("ERROR: No config in %1 (Checked Client & NoEditor)").arg(path);
     }
     emit syncResultChanged();
 }
+
 
 void BetterAngleBackend::terminateApp() {
     // Save everything before quitting so last position/preferences are preserved

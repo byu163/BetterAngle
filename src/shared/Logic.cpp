@@ -14,11 +14,19 @@ double FetchFortniteSensitivity() {
     if (ExpandEnvironmentStringsW(L"%LOCALAPPDATA%\\FortniteGame\\Saved\\Config", expPath, MAX_PATH) && expPath[0] != L'%') {
         basePath = expPath;
     } else {
-        // Fallback: SHGetFolderPath
+        // Fallback 1: SHGetFolderPath
         wchar_t appdata[MAX_PATH] = {};
-        if (!SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata)))
-            return -1.0;
-        basePath = std::wstring(appdata) + L"\\FortniteGame\\Saved\\Config";
+        if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata))) {
+            basePath = std::wstring(appdata) + L"\\FortniteGame\\Saved\\Config";
+        } else {
+            // Fallback 2: Direct path construction from USERPROFILE
+            wchar_t userProfile[MAX_PATH] = {};
+            if (ExpandEnvironmentStringsW(L"%USERPROFILE%\\AppData\\Local\\FortniteGame\\Saved\\Config", userProfile, MAX_PATH)) {
+                basePath = userProfile;
+            } else {
+                return -1.0;
+            }
+        }
     }
 
     // Folders to search in priority order
