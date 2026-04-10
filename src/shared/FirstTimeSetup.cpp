@@ -252,6 +252,7 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
     }
 
     WNDCLASS wc = { 0 };
+    wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = FirstTimeSetupProc;
     wc.hInstance = hInstance;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -267,6 +268,8 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
 
     ShowWindow(hWnd, SW_SHOW);
     UpdateWindow(hWnd);
+    SetForegroundWindow(hWnd);
+    SetFocus(hWnd);
 
     StartModalSetupLoop(hWnd);
 }

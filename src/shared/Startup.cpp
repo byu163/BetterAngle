@@ -63,7 +63,15 @@ void ShowSplashLoader(HINSTANCE hInst) {
     g.Clear(Color(255, 15, 18, 22));
     g.DrawString(L"BetterAngle Pro Edition", -1, &f, PointF(80, 60), &white);
     g.DrawString(L"Checking for Updates...", -1, &f2, PointF(120, 100), &green);
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    DWORD start = GetTickCount();
+    while (GetTickCount() - start < 2000) {
+        MSG msg;
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 
     ReleaseDC(hSplash, hdc);
     DestroyWindow(hSplash);
