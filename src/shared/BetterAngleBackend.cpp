@@ -26,10 +26,12 @@ BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
     static bool lastChecking = false;
     static bool lastDownloading = false;
     static bool lastComplete = false;
-    if (g_hasCheckedForUpdates) {
-      g_hasCheckedForUpdates = false;
+    static bool lastChecked = false;
+    if (g_hasCheckedForUpdates != lastChecked) {
+      lastChecked = g_hasCheckedForUpdates;
       emit updateStatusChanged();
     }
+
     if (g_isCheckingForUpdates != lastChecking) {
       lastChecking = g_isCheckingForUpdates;
       emit updateStatusChanged();
@@ -231,8 +233,11 @@ void BetterAngleBackend::terminateApp() {
 }
 
 void BetterAngleBackend::checkForUpdates() {
+  g_hasCheckedForUpdates = false; // Reset state for new check
+  emit updateStatusChanged();
   std::thread([]() { CheckForUpdates(); }).detach();
 }
+
 
 void BetterAngleBackend::downloadUpdate() { UpdateApp(); }
 

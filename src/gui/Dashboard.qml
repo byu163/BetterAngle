@@ -609,7 +609,13 @@ Item {
 
                 Text {
                     text: backend.updateStatus
-                    color: backend.downloadComplete ? "#6a4cff" : (backend.updateAvailable ? "#00cca3" : "white")
+                    color: {
+                        if (backend.downloadComplete) return "#6a4cff"
+                        if (backend.updateAvailable) return "#00cca3"
+                        if (backend.isDownloading) return "#00ccff"
+                        if (backend.isCheckingForUpdates) return "#aaa"
+                        return "white"
+                    }
                     font.bold: true
                     horizontalAlignment: Text.AlignHCenter
                     width: parent.width
