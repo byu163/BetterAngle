@@ -16,9 +16,7 @@ std::wstring GetAppStoragePath();
 #define APP_WQUOTE(x) L#x
 #define APP_WSTR(x) APP_WQUOTE(x)
 
-#ifndef APP_VERSION
-#define APP_VERSION 4.20.14
-#endif
+#define APP_VERSION 4.20.15
 
 #define VERSION_STR  APP_STR(APP_VERSION)
 #define VERSION_WSTR APP_WSTR(APP_VERSION)

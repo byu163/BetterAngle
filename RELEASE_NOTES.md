@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.20.15
+- Hotfix: Repaired GitHub Actions MSVC quotation bug causing compilation failures via robust `TOSTRING` macro implementation.
+
 ### BetterAngle Pro v4.20.13
 - Streamlined configuration architecture: completely purged DPI logic and `divingScaleMultiplier` from memory parsing.
 - Refactored Angle calculations to use `0.00555 * sensX` exactly.
