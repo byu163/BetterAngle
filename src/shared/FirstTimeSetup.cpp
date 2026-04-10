@@ -17,6 +17,7 @@ static int g_setupState    = 2;
 static std::wstring g_setupSensX = L"";
 static std::wstring g_setupSensY = L"";
 static bool g_extractedConfig    = false;
+static bool g_isEditingManual    = false; 
 static int  g_focusedInput       = 1;
 
 extern std::vector<Profile> g_allProfiles;
@@ -105,34 +106,56 @@ static void PaintSetup(HWND hWnd) {
     graphics.FillRectangle(&bp1, pilX, 22, 70, 3);
     graphics.FillRectangle(&bp2, pilX + 78, 22, 70, 3);
 
-    graphics.DrawString(L"PRO CALIBRATION WIZARD", -1, &fSub, RectF(0, 36, (float)W, 18), &fmtC, &bAccent);
-    graphics.DrawString(L"In-Game Sensitivity",   -1, &fTit, RectF(0, 64, (float)W, 34), &fmtC, &bWhite);
-
-    const wchar_t* sub = g_extractedConfig ? L"Game settings found! Automatic sync complete." : L"Manually set your mouse sensitivity below.";
-    graphics.DrawString(sub, -1, &fBod, RectF(0, 108, (float)W, 20), &fmtC, g_extractedConfig ? &bCyan : &bDim);
-
-    // Input fields
-    int fw = (W - 90) / 2, fxA = 40, fxB = fxA + fw + 10, fy = 166, fh = 44;
-
-    auto field = [&](float fx, int foc, const wchar_t* lab, const std::wstring& val) {
-        graphics.DrawString(lab, -1, &fSub, RectF(fx, (float)fy-20, (float)fw, 18), &fmtL, &bDim);
-        SolidBrush inBg(Color(255, 20, 22, 28));
-        graphics.FillRectangle(&inBg, fx, (float)fy, (float)fw, (float)fh);
-        Pen border(g_focusedInput == foc ? Color(255, 59, 130, 246) : Color(255, 45, 50, 60), 1.5f);
-        graphics.DrawRectangle(&border, fx, (float)fy, (float)fw, (float)fh);
+    if (g_extractedConfig && !g_isEditingManual) {
+        // --- STAGE 1: CONFIRMATION ---
+        graphics.DrawString(L"CONFIRM SENSITIVITY", -1, &fSub, RectF(0, 36, (float)W, 18), &fmtC, &bAccent);
+        graphics.DrawString(L"Is this correct?",      -1, &fTit, RectF(0, 64, (float)W, 34), &fmtC, &bWhite);
         
-        std::wstring d = val.empty() ? L"0.00" : val + (g_focusedInput==foc ? L"_" : L"");
-        SolidBrush tx(val.empty() ? Color(255, 50, 55, 75) : Color(255, 255, 255, 255));
-        graphics.DrawString(d.c_str(), -1, &fInp, RectF(fx+12, (float)fy, (float)fw-24, (float)fh), &fmtL, &tx);
-    };
-    field((float)fxA, 1, L"SENSITIVITY X", g_setupSensX);
-    field((float)fxB, 2, L"SENSITIVITY Y", g_setupSensY);
+        std::wstring msg = L"We found your Fortnite settings: " + g_setupSensX + L" x " + g_setupSensY;
+        graphics.DrawString(msg.c_str(), -1, &fBod, RectF(0, 108, (float)W, 20), &fmtC, &bCyan);
 
-    // Button
-    int bx = (W-200)/2, by = H-74, bw = 200, bh = 42;
-    LinearGradientBrush bB(Point(bx, by), Point(bx, by+bh), Color(255, 60, 140, 250), Color(255, 30, 90, 200));
-    graphics.FillRectangle(&bB, bx, by, bw, bh);
-    graphics.DrawString(L"LOCK IN CONFIG  \x2713", -1, &fBod, RectF((float)bx, (float)by, (float)bw, (float)bh), &fmtC, &bWhite);
+        // Big Cyan Checkmark
+        Font fCheck(&ff, 60, FontStyleBold, UnitPixel);
+        graphics.DrawString(L"\x2713", -1, &fCheck, RectF(0, 130, (float)W, 80), &fmtC, &bCyan);
+
+        // Buttons
+        int bx = (W-210)/2, by = H-84, bw = 210, bh = 42;
+        LinearGradientBrush bB(Point(bx, by), Point(bx, by+bh), Color(255, 60, 140, 250), Color(255, 30, 90, 200));
+        graphics.FillRectangle(&bB, bx, by, bw, bh);
+        graphics.DrawString(L"YES, LOCK IT IN", -1, &fBod, RectF((float)bx, (float)by, (float)bw, (float)bh), &fmtC, &bWhite);
+
+        graphics.DrawString(L"NO, LET ME EDIT", -1, &fSub, RectF(0, (float)H-38, (float)W, 20), &fmtC, &bDim);
+    } else {
+        // --- STAGE 2: MANUAL EDITING ---
+        graphics.DrawString(L"PRO CALIBRATION WIZARD", -1, &fSub, RectF(0, 36, (float)W, 18), &fmtC, &bAccent);
+        graphics.DrawString(L"In-Game Sensitivity",   -1, &fTit, RectF(0, 64, (float)W, 34), &fmtC, &bWhite);
+
+        const wchar_t* sub = g_extractedConfig ? L"Edit your auto-detected sensitivity below." : L"Manually set your mouse sensitivity below.";
+        graphics.DrawString(sub, -1, &fBod, RectF(0, 108, (float)W, 20), &fmtC, g_extractedConfig ? &bCyan : &bDim);
+
+        // Input fields
+        int fw = (W - 90) / 2, fxA = 40, fxB = fxA + fw + 10, fy = 166, fh = 44;
+
+        auto field = [&](float fx, int foc, const wchar_t* lab, const std::wstring& val) {
+            graphics.DrawString(lab, -1, &fSub, RectF(fx, (float)fy-20, (float)fw, 18), &fmtL, &bDim);
+            SolidBrush inBg(Color(255, 20, 22, 28));
+            graphics.FillRectangle(&inBg, fx, (float)fy, (float)fw, (float)fh);
+            Pen border(g_focusedInput == foc ? Color(255, 59, 130, 246) : Color(255, 45, 50, 60), 1.5f);
+            graphics.DrawRectangle(&border, fx, (float)fy, (float)fw, (float)fh);
+            
+            std::wstring d = val.empty() ? L"0.00" : val + (g_focusedInput==foc ? L"_" : L"");
+            SolidBrush tx(val.empty() ? Color(255, 50, 55, 75) : Color(255, 255, 255, 255));
+            graphics.DrawString(d.c_str(), -1, &fInp, RectF(fx+12, (float)fy, (float)fw-24, (float)fh), &fmtL, &tx);
+        };
+        field((float)fxA, 1, L"SENSITIVITY X", g_setupSensX);
+        field((float)fxB, 2, L"SENSITIVITY Y", g_setupSensY);
+
+        // Button
+        int bx = (W-200)/2, by = H-74, bw = 200, bh = 42;
+        LinearGradientBrush bB(Point(bx, by), Point(bx, by+bh), Color(255, 30, 90, 200), Color(255, 60, 140, 250));
+        graphics.FillRectangle(&bB, bx, by, bw, bh);
+        graphics.DrawString(L"SAVE CONFIG  \x2713", -1, &fBod, RectF((float)bx, (float)by, (float)bw, (float)bh), &fmtC, &bWhite);
+    }
 
     graphics.DrawString(L"PRO SUITE ACTIVE", -1, &fSub, RectF(20, (float)H-28, 150, 20), &fmtL, &bAccent);
     graphics.DrawString(L"DRAG HEADER TO MOVE", -1, &fSub, RectF((float)W-170, (float)H-28, 150, 20), &fmtR, &bDim);
@@ -189,7 +212,18 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
         RECT rc; GetClientRect(hWnd, &rc);
         int W = rc.right, H = rc.bottom;
 
-        {
+        if (g_extractedConfig && !g_isEditingManual) {
+            // Confirm stage buttons
+            int bx = (W-210)/2, by = H-84, bw = 210, bh = 42;
+            if (mx>=bx && mx<=bx+bw && my>=by && my<=by+bh) {
+                FinishSetup(); DestroyWindow(hWnd);
+            }
+            // "NO, LET ME EDIT" link area
+            if (my >= H-40 && my <= H-10) {
+                g_isEditingManual = true;
+            }
+        } else {
+            // Manual stage buttons
             int fw = (W-90)/2, fxA = 40, fxB = fxA+fw+10, fy = 166, fh = 44;
             if (my >= fy && my <= fy+fh) {
                 if      (mx>=fxA && mx<=fxA+fw) g_focusedInput=1;
@@ -224,12 +258,13 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
         if (ifs.good()) {
             std::string line;
             while (std::getline(ifs, line)) {
-                if (line.find("MouseSensitivityX=") != std::string::npos) {
+                // Priority keys: MouseX/Y (Legacy) or MouseSensitivityX/Y (Modern)
+                if (line.find("MouseX=") != std::string::npos || line.find("MouseSensitivityX=") != std::string::npos) {
                     std::string val = line.substr(line.find("=") + 1);
-                    g_setupSensX = std::wstring(val.begin(), val.end());
-                } else if (line.find("MouseSensitivityY=") != std::string::npos) {
+                    if (g_setupSensX.empty()) g_setupSensX = std::wstring(val.begin(), val.end());
+                } else if (line.find("MouseY=") != std::string::npos || line.find("MouseSensitivityY=") != std::string::npos) {
                     std::string val = line.substr(line.find("=") + 1);
-                    g_setupSensY = std::wstring(val.begin(), val.end());
+                    if (g_setupSensY.empty()) g_setupSensY = std::wstring(val.begin(), val.end());
                 }
             }
             if (!g_setupSensX.empty() || !g_setupSensY.empty()) g_extractedConfig = true;
