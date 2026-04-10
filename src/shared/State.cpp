@@ -19,7 +19,7 @@ Profile g_currentProfile;
 std::vector<Profile> g_allProfiles;
 int g_selectedProfileIdx = 0;
 
-Keybinds g_keybinds;
+// Global g_keybinds removed (v4.20.37)
 std::wstring g_lastLoadedProfileName = L"";
 float g_glideThreshold = 0.05f;
 float g_freefallThreshold = 0.20f;
@@ -79,16 +79,7 @@ void LoadSettings() {
       return def;
     }
   };
-  g_keybinds.toggleMod = eInt("toggleMod", MOD_CONTROL);
-  g_keybinds.toggleKey = eInt("toggleKey", 'U');
-  g_keybinds.roiMod = eInt("roiMod", MOD_CONTROL);
-  g_keybinds.roiKey = eInt("roiKey", 'R');
-  g_keybinds.crossMod = eInt("crossMod", 0);
-  g_keybinds.crossKey = eInt("crossKey", VK_F10);
-  g_keybinds.zeroMod = eInt("zeroMod", MOD_CONTROL);
-  g_keybinds.zeroKey = eInt("zeroKey", 'G');
-  g_keybinds.debugMod = eInt("debugMod", MOD_CONTROL);
-  g_keybinds.debugKey = eInt("debugKey", '9');
+  // Global Keybinds loading removed (v4.20.37)
 
   g_glideThreshold = eFloat("glideThreshold", 0.05f);
   g_freefallThreshold = eFloat("freefallThreshold", 0.20f);
@@ -116,16 +107,7 @@ void SaveSettings() {
   std::wstring sp = GetAppStoragePath() + L"settings.json";
   std::ofstream ofs(sp.c_str());
   ofs << "{\n";
-  ofs << "  \"toggleMod\": " << g_keybinds.toggleMod << ",\n";
-  ofs << "  \"toggleKey\": " << g_keybinds.toggleKey << ",\n";
-  ofs << "  \"roiMod\": " << g_keybinds.roiMod << ",\n";
-  ofs << "  \"roiKey\": " << g_keybinds.roiKey << ",\n";
-  ofs << "  \"crossMod\": " << g_keybinds.crossMod << ",\n";
-  ofs << "  \"crossKey\": " << g_keybinds.crossKey << ",\n";
-  ofs << "  \"zeroMod\": " << g_keybinds.zeroMod << ",\n";
-  ofs << "  \"zeroKey\": " << g_keybinds.zeroKey << ",\n";
-  ofs << "  \"debugMod\": " << g_keybinds.debugMod << ",\n";
-  ofs << "  \"debugKey\": " << g_keybinds.debugKey << ",\n";
+  // Global Keybinds saving removed (v4.20.37)
   ofs << "  \"glideThreshold\": " << g_glideThreshold << ",\n";
   ofs << "  \"freefallThreshold\": " << g_freefallThreshold << ",\n";
   ofs << "  \"hudX\": " << g_hudX << ",\n";

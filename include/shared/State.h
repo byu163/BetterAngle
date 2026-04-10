@@ -20,7 +20,7 @@ extern std::atomic<bool> g_fortniteFocusedCache;
 #ifndef V_MAJ
 #define V_MAJ 4
 #define V_MIN 20
-#define V_PAT 38
+#define V_PAT 39
 #endif
 extern bool g_setupComplete;
 
@@ -48,23 +48,9 @@ extern bool g_updateAvailable;
 extern float g_freefallThreshold;
 extern float g_glideThreshold;
 
-struct Keybinds {
-  UINT toggleMod = MOD_CONTROL;
-  UINT toggleKey = 'U';
-  UINT roiMod = MOD_CONTROL;
-  UINT roiKey = 'R';
-  UINT crossMod = 0;
-  UINT crossKey = VK_F10;
-  UINT zeroMod = MOD_CONTROL;
-  UINT zeroKey = 'G';
-  UINT debugMod = MOD_CONTROL;
-  UINT debugKey = '9';
-};
-extern Keybinds g_keybinds;
-
+// Keybinds struct moved to Profile.h (v4.20.37)
 void LoadSettings();
 void SaveSettings();
-
 extern bool g_showCrosshair;
 extern float g_crossThickness;
 extern COLORREF g_crossColor;

@@ -18,6 +18,13 @@ struct Keybinds {
   UINT debugKey = '9';
 };
 
+struct CrosshairPreset {
+  std::wstring name;
+  float offsetX;
+  float offsetY;
+  float angle;
+};
+
 struct Profile {
   std::wstring name;
   double sensitivityX;

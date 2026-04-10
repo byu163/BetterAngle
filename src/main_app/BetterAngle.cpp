@@ -119,11 +119,14 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     switch (message) {
         case WM_CREATE:
             SetLayeredWindowAttributes(hWnd, RGB(0, 0, 0), 0, LWA_COLORKEY);
-            RegisterHotKey(hWnd, 1, g_keybinds.toggleMod, g_keybinds.toggleKey);
-            RegisterHotKey(hWnd, 2, g_keybinds.roiMod, g_keybinds.roiKey);
-            RegisterHotKey(hWnd, 3, g_keybinds.crossMod, g_keybinds.crossKey);
-            RegisterHotKey(hWnd, 4, g_keybinds.zeroMod, g_keybinds.zeroKey);
-            RegisterHotKey(hWnd, 5, g_keybinds.debugMod, g_keybinds.debugKey);
+            if (!g_allProfiles.empty()) {
+                Profile& p = g_allProfiles[g_selectedProfileIdx];
+                RegisterHotKey(hWnd, 1, p.keybinds.toggleMod, p.keybinds.toggleKey);
+                RegisterHotKey(hWnd, 2, p.keybinds.roiMod,    p.keybinds.roiKey);
+                RegisterHotKey(hWnd, 3, p.keybinds.crossMod,  p.keybinds.crossKey);
+                RegisterHotKey(hWnd, 4, p.keybinds.zeroMod,   p.keybinds.zeroKey);
+                RegisterHotKey(hWnd, 5, p.keybinds.debugMod,  p.keybinds.debugKey);
+            }
             return 0;
 
         case WM_HOTKEY:
