@@ -6,7 +6,7 @@
 #include <vector>
 
 bool CheckForUpdates();
-void StartUpdate();
+void UpdateApp();
 bool DownloadUpdate(const std::wstring& url, const std::wstring& dest);
 void ApplyUpdateAndRestart();
 

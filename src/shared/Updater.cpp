@@ -240,6 +240,19 @@ bool CheckForUpdates() {
     return g_updateAvailable;
 }
 
+void UpdateApp() {
+    std::thread([]() {
+        wchar_t exePath[MAX_PATH];
+        GetModuleFileNameW(NULL, exePath, MAX_PATH);
+        std::wstring exeStr = exePath;
+        std::wstring tmpPath = exeStr.substr(0, exeStr.find_last_of(L"\\/")) + L"\\update_tmp.exe";
+        
+        if (DownloadUpdate(L"", tmpPath)) {
+            ApplyUpdateAndRestart();
+        }
+    }).detach();
+}
+
 // dest is a FULL absolute path (caller must supply it via GetModuleFileName).
 bool DownloadUpdate(const std::wstring& /*urlHint*/, const std::wstring& dest) {
     // Always use the canonical /releases/latest/download/ URL.

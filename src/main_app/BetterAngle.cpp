@@ -20,6 +20,7 @@
 #include "shared/Tray.h"
 #include "shared/Startup.h"
 #include "shared/ControlPanel.h"
+#include "shared/FirstTimeSetup.h"
 
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "gdiplus.lib")
