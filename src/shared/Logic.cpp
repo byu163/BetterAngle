@@ -33,8 +33,9 @@ void AngleLogic::Update(int dx) {
 }
 
 double AngleLogic::GetAngle() const {
-    if (m_scalePerDx == 0.0) return 0.0;
-    double angle = Norm360(m_baseAngle + (m_accumDx - m_baseDx) * m_scalePerDx);
+    double scale = m_scalePerDx;
+    if (scale == 0.0) scale = 0.0031415; // Bullet-proof fallback
+    double angle = Norm360(m_baseAngle + (m_accumDx - m_baseDx) * scale);
     
     // Heuristic Check (v4.9.15)
     g_currentAngle = (float)angle;

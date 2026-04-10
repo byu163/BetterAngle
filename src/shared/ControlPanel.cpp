@@ -277,7 +277,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 DrawD2DButton(g_pRenderTarget, D2D1::RectF(220, 380, 380, 420), L"+ INCREASE", D2D1::ColorF(0.2f, 0.2f, 0.2f));
 
                 wchar_t diagText[128];
-                swprintf_s(diagText, L"Diag: Angle=%.1f, Match=%.0f%%", g_currentAngle, g_detectionRatio * 100.0f);
+                swprintf_s(diagText, L"Diag: Angle=%.1f, dx_sum=%lld, Match=%.0f%%", g_currentAngle, g_logic.GetAccumDx(), g_detectionRatio * 100.0f);
                 g_pRenderTarget->DrawText(diagText, (UINT32)wcslen(diagText), pVerFormat, D2D1::RectF(40, 460, 380, 480), pGrey);
             }
 

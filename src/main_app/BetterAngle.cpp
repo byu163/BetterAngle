@@ -236,11 +236,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ShowSplashLoader(hInstance);
 
     // Initial Load (Syncing was handled or represented in Splash)
+    CreateDirectoryW(L"profiles", NULL);
     g_allProfiles = GetProfiles(L"profiles");
-    if (!g_allProfiles.empty()) {
-        g_currentProfile = g_allProfiles[0];
-        g_logic.SetScale(g_currentProfile.scale_normal);
+    if (g_allProfiles.empty()) {
+        Profile defaultP;
+        defaultP.name = L"Fallback_Default";
+        defaultP.scale_normal = 0.0031415;
+        defaultP.scale_diving = 0.0052358;
+        defaultP.roi_x = 700;
+        defaultP.roi_y = 800;
+        defaultP.roi_w = 500;
+        defaultP.roi_h = 60;
+        defaultP.target_color = RGB(150, 150, 150);
+        defaultP.tolerance = 25;
+        defaultP.Save(L"profiles/Fallback_Default.json");
+        g_allProfiles.push_back(defaultP);
     }
+    
+    g_currentProfile = g_allProfiles[0];
+    g_logic.SetScale(g_currentProfile.scale_normal);
 
     // Message Window for Raw Input (Bypasses Layered Window UI Bugs)
     WNDCLASS wcMsg = { 0 };

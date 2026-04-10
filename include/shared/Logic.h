@@ -9,6 +9,7 @@ public:
     void Update(int dx);
     double GetAngle() const;
     double GetScale() const { return m_scalePerDx; }
+    long long GetAccumDx() const { return m_accumDx; }
     void SetZero();
     void SetScale(double scale);
 

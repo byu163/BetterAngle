@@ -32,7 +32,16 @@ int GetRawInputDeltaX(LPARAM lparam) {
     int dx = 0;
 
     if (raw->header.dwType == RIM_TYPEMOUSE) {
-        dx = raw->data.mouse.lLastX;
+        if (raw->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) {
+            static int lastAbsX = -1;
+            int absX = raw->data.mouse.lLastX;
+            if (lastAbsX != -1 && absX != 0) {
+                dx = absX - lastAbsX;
+            }
+            if (absX != 0) lastAbsX = absX;
+        } else {
+            dx = raw->data.mouse.lLastX;
+        }
     }
 
     delete[] lpb;
