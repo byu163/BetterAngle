@@ -145,6 +145,8 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     break;
                 case 3:
                     g_showCrosshair = !g_showCrosshair;
+                    SaveSettings();
+                    if (g_hHUD) { InvalidateRect(g_hHUD, NULL, FALSE); UpdateWindow(g_hHUD); }
                     break;
         case 4:
             g_currentAngle = 0.0f;
@@ -278,6 +280,11 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             DrawOverlay(hWnd, g_logic.GetAngle(), g_detectionRatio, g_showCrosshair);
             return 0;
 
+        case WM_SYSCOMMAND:
+            // Block F10 from opening the system menu (interferes with Fn+F10 keybind)
+            if ((wParam & 0xFFF0) == SC_KEYMENU) return 0;
+            break;
+
         case WM_DESTROY:
             g_running = false;
             PostQuitMessage(0);
@@ -286,6 +293,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }
+    return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
