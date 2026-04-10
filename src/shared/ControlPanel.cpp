@@ -19,6 +19,8 @@ extern Profile g_currentProfile;
 extern HWND g_hHUD;
 
 // Forward declare message handler from imgui_impl_win32.cpp
+// Forward declare from Logic.cpp
+extern double FetchFortniteSensitivity();
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 static ID3D11Device*            g_pd3dDevice = nullptr;
@@ -134,18 +136,25 @@ void RenderImGuiFrame() {
 
             if (!g_allProfiles.empty()) {
                 Profile& p = g_allProfiles[g_selectedProfileIdx];
-                float sX = (float)p.sensitivityX;
-                float sY = (float)p.sensitivityY;
+                double sX = p.sensitivityX;
+                double sY = p.sensitivityY;
 
-                ImGui::SetNextItemWidth(150);
-                if (ImGui::DragFloat("Sensitivity X", &sX, 0.001f, 0.001f, 5.0f, "%.4f")) {
-                    p.sensitivityX = (double)sX;
+                ImGui::SetNextItemWidth(120);
+                if (ImGui::InputDouble("Sensitivity X", &sX, 0.0, 0.0, "%.4f")) {
+                    p.sensitivityX = (std::max)(0.0001, sX);
                     p.Save(GetAppStoragePath() + p.name + L".json");
                 }
                 ImGui::SameLine();
-                ImGui::SetNextItemWidth(150);
-                if (ImGui::DragFloat("Sensitivity Y", &sY, 0.001f, 0.001f, 5.0f, "%.4f")) {
-                    p.sensitivityY = (double)sY;
+                ImGui::SetNextItemWidth(120);
+                if (ImGui::InputDouble("Sensitivity Y", &sY, 0.0, 0.0, "%.4f")) {
+                    p.sensitivityY = (std::max)(0.0001, sY);
+                    p.Save(GetAppStoragePath() + p.name + L".json");
+                }
+                
+                ImGui::Spacing();
+                if (ImGui::Button("SYNC SENSITIVITY WITH FORTNITE", ImVec2(-1, 35))) {
+                    double synced = FetchFortniteSensitivity();
+                    p.sensitivityX = synced;
                     p.Save(GetAppStoragePath() + p.name + L".json");
                 }
             } else {
@@ -368,17 +377,17 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM 
             style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
             style.Colors[ImGuiCol_Header]                = ImVec4(0.15f, 0.17f, 0.22f, 1.00f);
             style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(0.20f, 0.23f, 0.28f, 1.00f);
-            style.Colors[ImGuiCol_HeaderActive]          = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+            style.Colors[ImGuiCol_HeaderActive]          = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
             style.Colors[ImGuiCol_Tab]                   = ImVec4(0.11f, 0.12f, 0.16f, 1.00f);
-            style.Colors[ImGuiCol_TabHovered]            = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
-            style.Colors[ImGuiCol_TabActive]             = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+            style.Colors[ImGuiCol_TabHovered]            = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+            style.Colors[ImGuiCol_TabActive]             = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
             style.Colors[ImGuiCol_TabUnfocused]          = ImVec4(0.11f, 0.12f, 0.16f, 1.00f);
-            style.Colors[ImGuiCol_TabUnfocusedActive]    = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+            style.Colors[ImGuiCol_TabUnfocusedActive]    = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
             
             // Explicit Separator Colors (No blue lines)
-            style.Colors[ImGuiCol_Separator]             = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-            style.Colors[ImGuiCol_SeparatorHovered]      = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
-            style.Colors[ImGuiCol_SeparatorActive]       = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+            style.Colors[ImGuiCol_Separator]             = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+            style.Colors[ImGuiCol_SeparatorHovered]      = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+            style.Colors[ImGuiCol_SeparatorActive]       = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
 
             ImGui_ImplWin32_Init(hWnd);
             ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
