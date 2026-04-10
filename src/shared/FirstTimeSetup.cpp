@@ -252,24 +252,37 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
     g_setupState = 2; g_setupSensX = L""; g_setupSensY = L"";
     g_focusedInput = 1; g_extractedConfig = false;
 
-    // Fast GameUserSettings.ini extraction
+    // Fast GameUserSettings.ini extraction (Robust v4.20.34)
     wchar_t appdata[MAX_PATH];
     if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata))) {
-        std::wstring p = std::wstring(appdata) + L"\\FortniteGame\\Saved\\Config\\WindowsClient\\GameUserSettings.ini";
-        std::ifstream ifs(p.c_str());
-        if (ifs.good()) {
-            std::string line;
-            while (std::getline(ifs, line)) {
-                // Priority keys: MouseX/Y (Legacy) or MouseSensitivityX/Y (Modern)
-                if (line.find("MouseX=") != std::string::npos || line.find("MouseSensitivityX=") != std::string::npos) {
-                    std::string val = line.substr(line.find("=") + 1);
-                    if (g_setupSensX.empty()) g_setupSensX = std::wstring(val.begin(), val.end());
-                } else if (line.find("MouseY=") != std::string::npos || line.find("MouseSensitivityY=") != std::string::npos) {
-                    std::string val = line.substr(line.find("=") + 1);
-                    if (g_setupSensY.empty()) g_setupSensY = std::wstring(val.begin(), val.end());
+        std::wstring folders[] = { L"\\WindowsClient\\", L"\\WindowsNoEditor\\" };
+        std::wstring basePath = std::wstring(appdata) + L"\\FortniteGame\\Saved\\Config";
+        
+        for (const auto& f : folders) {
+            std::wstring pPath = basePath + f + L"GameUserSettings.ini";
+            std::ifstream ifs(pPath.c_str());
+            if (ifs.good()) {
+                std::string line;
+                while (std::getline(ifs, line)) {
+                    if (line.find("MouseSensitivityX=") != std::string::npos || line.find("MouseX=") != std::string::npos) {
+                        size_t eq = line.find("=");
+                        if (eq != std::string::npos) {
+                            std::string val = line.substr(eq + 1);
+                            if (g_setupSensX.empty()) g_setupSensX = std::wstring(val.begin(), val.end());
+                        }
+                    } else if (line.find("MouseSensitivityY=") != std::string::npos || line.find("MouseY=") != std::string::npos) {
+                        size_t eq = line.find("=");
+                        if (eq != std::string::npos) {
+                            std::string val = line.substr(eq + 1);
+                            if (g_setupSensY.empty()) g_setupSensY = std::wstring(val.begin(), val.end());
+                        }
+                    }
+                }
+                if (!g_setupSensX.empty() || !g_setupSensY.empty()) {
+                    g_extractedConfig = true;
+                    break;
                 }
             }
-            if (!g_setupSensX.empty() || !g_setupSensY.empty()) g_extractedConfig = true;
         }
     }
 

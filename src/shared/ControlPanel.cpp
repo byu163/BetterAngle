@@ -162,10 +162,22 @@ void RenderImGuiFrame() {
                 }
                 
                 ImGui::Spacing();
+                static std::string syncResult = "";
+                static ImVec4 syncColor = ImVec4(1,1,1,1);
                 if (ImGui::Button("SYNC SENSITIVITY WITH FORTNITE", ImVec2(-1, 35))) {
                     double synced = FetchFortniteSensitivity();
-                    p.sensitivityX = synced;
-                    p.Save(GetAppStoragePath() + p.name + L".json");
+                    if (synced != 0.05) { // 0.05 is our default fallback
+                        p.sensitivityX = synced;
+                        p.Save(GetAppStoragePath() + p.name + L".json");
+                        syncResult = "SYNC SUCCESSFUL!";
+                        syncColor = ImVec4(0.2f, 0.8f, 0.5f, 1.0f);
+                    } else {
+                        syncResult = "CONFIG NOT FOUND!";
+                        syncColor = ImVec4(0.8f, 0.2f, 0.2f, 1.0f);
+                    }
+                }
+                if (!syncResult.empty()) {
+                    ImGui::TextColored(syncColor, "%s", syncResult.c_str());
                 }
                 
                 ImGui::Spacing();

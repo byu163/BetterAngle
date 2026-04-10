@@ -10,17 +10,30 @@ double FetchFortniteSensitivity() {
     double fetchedSens = 0.05;
     wchar_t appdata[MAX_PATH];
     if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata))) {
-        std::wstring pPath = std::wstring(appdata) + L"\\FortniteGame\\Saved\\Config\\WindowsClient\\GameUserSettings.ini";
-        std::ifstream ifs(pPath.c_str());
-        if (ifs.good()) {
-            std::string line;
-            while (std::getline(ifs, line)) {
-                if (line.find("MouseSensitivityX=") != std::string::npos) {
-                    try {
-                        fetchedSens = std::stod(line.substr(line.find("=") + 1));
-                    } catch (...) { }
-                    break;
+        std::wstring folders[] = { L"\\WindowsClient\\", L"\\WindowsNoEditor\\" };
+        std::wstring basePath = std::wstring(appdata) + L"\\FortniteGame\\Saved\\Config";
+        
+        for (const auto& f : folders) {
+            std::wstring pPath = basePath + f + L"GameUserSettings.ini";
+            std::ifstream ifs(pPath.c_str());
+            if (ifs.good()) {
+                std::string line;
+                bool found = false;
+                while (std::getline(ifs, line)) {
+                    // Search for both modern and legacy sensitivity keys
+                    if (line.find("MouseSensitivityX=") != std::string::npos || 
+                        line.find("MouseX=") != std::string::npos) {
+                        size_t eq = line.find("=");
+                        if (eq != std::string::npos) {
+                            try {
+                                fetchedSens = std::stod(line.substr(eq + 1));
+                                found = true;
+                                break;
+                            } catch (...) {}
+                        }
+                    }
                 }
+                if (found) break; 
             }
         }
     }
