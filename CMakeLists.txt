@@ -25,6 +25,7 @@ set(SRC_FILES
     src/main_app/BetterAngle.cpp
     src/main_app/ThresholdWizard.cpp
     src/shared/ControlPanel.cpp
+    include/shared/BetterAngleBackend.h
     src/shared/BetterAngleBackend.cpp
     src/shared/Detector.cpp
     src/shared/FirstTimeSetup.cpp
