@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.10.2: "Hotfix: Secondary Executable Linker Isolation"
+v4.10.2: Resolved a GitHub Actions build abort (`LNK2019`) triggered when the CI system blindly compiled the global `ControlPanel.cpp` UI layer into the lightweight `BetterAngleConfig.exe` footprint. The secondary executable now strict-links only its necessary core logic components (`Input.cpp`, `Profile.cpp`), permanently isolating it from the main software namespace wrapper.
+
 ### BetterAngle Pro v4.10.1: "Hotfix: Compiler Scope Isolation"
 v4.10.1: Native hotfix applied to patch undeclared `g_currentProfile` scoping limits for the MSVC strict compiler inside `ControlPanel.cpp`, and isolated a `wchar_t` string conversion loop that was tripping C4244 strict errors on Github Actions. Build environment stabilized.
 
