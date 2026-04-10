@@ -18,7 +18,7 @@ std::wstring GetAppStoragePath();
 
 // Define the "raw" version if not passed by compiler flags
 #ifndef APP_VERSION
-#define APP_VERSION 4.18.0
+#define APP_VERSION 4.19.0
 #endif
 
 // This creates the actual strings "4.9.36" and L"4.9.36"
@@ -57,6 +57,13 @@ void LoadSettings();
 void SaveSettings();
 extern bool g_updateAvailable;
 extern bool g_showCrosshair;
+extern float g_crossThickness;
+extern COLORREF g_crossColor;
+extern float g_crossOffsetX;
+extern float g_crossOffsetY;
+extern float g_crossAngle;
+extern bool g_crossPulse;
+
 extern COLORREF g_targetColor;
 extern COLORREF g_pickedColor;
 extern float g_latestVersion;

@@ -109,6 +109,13 @@ void SaveSettings() {
   ofs << "}\n";
 }
 bool g_showCrosshair = false;
+float g_crossThickness = 1.0f;
+COLORREF g_crossColor = RGB(255, 0, 0);
+float g_crossOffsetX = 0.0f;
+float g_crossOffsetY = 0.0f;
+float g_crossAngle = 0.0f;
+bool g_crossPulse = false;
+
 COLORREF g_targetColor = RGB(255, 255, 255);
 COLORREF g_pickedColor = RGB(255, 255, 255);
 float g_latestVersion = 4.920f; // v4.9.20 format fallback

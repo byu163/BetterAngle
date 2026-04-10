@@ -108,9 +108,27 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
 
     // 2. Draw Precision Crosshair (F10)
     if (showCrosshair) {
-        Gdiplus::Pen crossPen(Gdiplus::Color(255, 255, 0, 0), 1);
-        graphics.DrawLine(&crossPen, 0, sh / 2, sw, sh / 2);
-        graphics.DrawLine(&crossPen, sw / 2, 0, sw / 2, sh);
+        float cx = sw / 2.0f + g_crossOffsetX;
+        float cy = sh / 2.0f + g_crossOffsetY;
+        
+        float a = 255.0f;
+        if (g_crossPulse) {
+            float pulseT = GetTickCount64() * 0.005f;
+            float opacity = 0.5f + 0.5f * sinf(pulseT);
+            if (opacity < 0.05f) opacity = 0.05f;
+            a = opacity * 255.0f;
+        }
+        
+        Gdiplus::Color crossC((BYTE)a, GetRValue(g_crossColor), GetGValue(g_crossColor), GetBValue(g_crossColor));
+        Gdiplus::Pen crossPen(crossC, g_crossThickness);
+        
+        float r = g_crossAngle * (3.1415926535f / 180.0f);
+        float sinR = sinf(r);
+        float cosR = cosf(r);
+        float l = (sw > sh ? sw : sh) * 3.0f;
+        
+        graphics.DrawLine(&crossPen, cx - sinR * l, cy + cosR * l, cx + sinR * l, cy - cosR * l);
+        graphics.DrawLine(&crossPen, cx - cosR * l, cy - sinR * l, cx + cosR * l, cy + sinR * l);
     }
 
     // 4. Draw Clean Glass HUD

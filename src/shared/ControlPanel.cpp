@@ -148,10 +148,11 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
             // Tab Navigation (Y: 90-120)
             if (y >= 90 && y <= 120) {
-                if (x >= 40 && x <= 115) { g_currentTab = 0; g_listeningKey = -1; }
-                else if (x >= 125 && x <= 200) { g_currentTab = 1; g_listeningKey = -1; }
-                else if (x >= 210 && x <= 295) { g_currentTab = 2; g_listeningKey = -1; }
-                else if (x >= 305 && x <= 380) { g_currentTab = 3; g_listeningKey = -1; }
+                if (x >= 40 && x <= 105) { g_currentTab = 0; g_listeningKey = -1; }
+                else if (x >= 110 && x <= 175) { g_currentTab = 1; g_listeningKey = -1; }
+                else if (x >= 180 && x <= 245) { g_currentTab = 2; g_listeningKey = -1; }
+                else if (x >= 250 && x <= 310) { g_currentTab = 3; g_listeningKey = -1; }
+                else if (x >= 315 && x <= 380) { g_currentTab = 4; g_listeningKey = -1; }
             }
 
             if (g_currentTab == 0 && g_listeningKey == -1) {
@@ -195,6 +196,36 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                     }
                 }
 
+            }
+
+            if (g_currentTab == 4) {
+                if (x >= 40 && x <= 200 && y >= 160 && y <= 190) { // Color Picker
+                    CHOOSECOLOR cc;
+                    static COLORREF acrCustClr[16];
+                    ZeroMemory(&cc, sizeof(cc));
+                    cc.lStructSize = sizeof(cc);
+                    cc.hwndOwner = hWnd;
+                    cc.lpCustColors = (LPDWORD)acrCustClr;
+                    cc.rgbResult = g_crossColor;
+                    cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+                    if (ChooseColor(&cc)) {
+                        g_crossColor = cc.rgbResult;
+                    }
+                }
+                else if (x >= 220 && x <= 380 && y >= 160 && y <= 190) { // Pulse Toggle
+                    g_crossPulse = !g_crossPulse;
+                }
+                else if (x >= 200 && x <= 250 && y >= 200 && y <= 230) g_crossThickness = max(1.0f, g_crossThickness - 1.0f);
+                else if (x >= 260 && x <= 310 && y >= 200 && y <= 230) g_crossThickness += 1.0f;
+                // Offset X
+                else if (x >= 200 && x <= 250 && y >= 240 && y <= 270) g_crossOffsetX -= 1.0f;
+                else if (x >= 260 && x <= 310 && y >= 240 && y <= 270) g_crossOffsetX += 1.0f;
+                // Offset Y
+                else if (x >= 200 && x <= 250 && y >= 280 && y <= 310) g_crossOffsetY -= 1.0f;
+                else if (x >= 260 && x <= 310 && y >= 280 && y <= 310) g_crossOffsetY += 1.0f;
+                // Angle
+                else if (x >= 200 && x <= 250 && y >= 320 && y <= 350) g_crossAngle -= 5.0f;
+                else if (x >= 260 && x <= 310 && y >= 320 && y <= 350) g_crossAngle += 5.0f;
             }
 
             if (g_currentTab == 1) {
@@ -243,11 +274,12 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
             g_pRenderTarget->DrawText(L"Pro Command Center", 18, pTitleFormat, D2D1::RectF(40, 40, 380, 80), pWhite);
 
-            // Draw 4 Tabs
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 90, 115, 120), L"GENERAL", g_currentTab == 0 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(125, 90, 200, 120), L"UPDATES", g_currentTab == 1 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(210, 90, 295, 120), L"COLORS", g_currentTab == 2 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(305, 90, 380, 120), L"DEBUG", g_currentTab == 3 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            // Draw 5 Tabs
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 90, 105, 120), L"GEN", g_currentTab == 0 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(110, 90, 175, 120), L"UPDT", g_currentTab == 1 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(180, 90, 245, 120), L"COLR", g_currentTab == 2 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(250, 90, 310, 120), L"DBUG", g_currentTab == 3 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(315, 90, 380, 120), L"XHAIR", g_currentTab == 4 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
 
             if (g_currentTab == 0) {
                 g_pRenderTarget->DrawText(L"HOTKEYS (Click to Rebind)", 25, pHeaderFormat, D2D1::RectF(40, 130, 380, 150), pWhite);
@@ -357,6 +389,25 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 g_pRenderTarget->DrawText(diagText, (UINT32)wcslen(diagText), pVerFormat, D2D1::RectF(40, 390, 380, 410), pGrey);
 
 
+            } else if (g_currentTab == 4) {
+                g_pRenderTarget->DrawText(L"PRECISION CROSSHAIR CONFIG", 26, pHeaderFormat, D2D1::RectF(40, 130, 380, 160), pWhite);
+
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 160, 200, 190), L"CHOOSE COLOR", D2D1::ColorF(0.15f, 0.17f, 0.2f));
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(220, 160, 380, 190), g_crossPulse ? L"PULSE: ON" : L"PULSE: OFF", g_crossPulse ? D2D1::ColorF(0.5f, 0.1f, 0.5f) : D2D1::ColorF(0.15f, 0.17f, 0.2f));
+                
+                auto drawSetting = [&](std::wstring label, std::wstring val, float y) {
+                    g_pRenderTarget->DrawText(label.c_str(), label.length(), pVerFormat, D2D1::RectF(40, y, 160, y+30), pWhite);
+                    g_pRenderTarget->DrawText(val.c_str(), val.length(), pVerFormat, D2D1::RectF(160, y, 190, y+30), pBlue);
+                    DrawD2DButton(g_pRenderTarget, D2D1::RectF(200, y, 250, y+30), L"-", D2D1::ColorF(0.15f, 0.17f, 0.2f));
+                    DrawD2DButton(g_pRenderTarget, D2D1::RectF(260, y, 310, y+30), L"+", D2D1::ColorF(0.15f, 0.17f, 0.2f));
+                };
+
+                drawSetting(L"Thickness:", std::to_wstring((int)g_crossThickness), 200);
+                drawSetting(L"Offset X:", std::to_wstring((int)g_crossOffsetX), 240);
+                drawSetting(L"Offset Y:", std::to_wstring((int)g_crossOffsetY), 280);
+                drawSetting(L"Rotation:", std::to_wstring((int)g_crossAngle), 320);
+                
+                g_pRenderTarget->DrawText(L"Press F10 in-game to toggle Crosshair", 37, pVerFormat, D2D1::RectF(40, 380, 380, 400), pGrey);
             }
 
             DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 520, 380, 560), L"QUIT SUITE", D2D1::ColorF(0.7f, 0.1f, 0.15f));

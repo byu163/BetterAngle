@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.19.0: "Native Precision Crosshair Port"
+v4.19.0: Fully ported the Java crosshair application natively into the BetterAngle C++ engine. Added a dedicated "XHAIR" configuration tab in the Control Panel using Direct2D. Support for dynamic line thickness, X/Y screen offsets, custom rendering angles, and the sine-wave opacity Pulse animation. The overlay rendering ties directly into the HUD via GDI+ without spawning a separate app or consuming background JVM resources.
+
 ### BetterAngle Pro v4.18.0: "Pure GDI Setup + Smart HUD Repaint"
 v4.18.0: Eliminated GDI+ from the setup wizard entirely — now uses pure Win32 GDI (FillRect, DrawText). Zero GPU usage during setup. HUD overlay timer now uses state-diff logic: only repaints when the angle, diving state, or cursor visibility actually changes. Timer interval raised from 25ms to 50ms. Combined result: ~80% reduction in CPU and GPU overhead during normal use.
 

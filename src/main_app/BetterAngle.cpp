@@ -230,8 +230,11 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             CURSORINFO ci = { sizeof(CURSORINFO) };
             if (GetCursorInfo(&ci)) g_isCursorVisible = (ci.flags & CURSOR_SHOWING);
             float ang = g_logic.GetAngle();
+            
+            bool pulseActive = (g_showCrosshair && g_crossPulse);
+            
             if (ang != lastAngle || g_isDiving != lastDiving || g_isCursorVisible != lastCursor
-                || g_currentSelection != NONE) {
+                || g_currentSelection != NONE || pulseActive) {
                 lastAngle  = ang;
                 lastDiving = g_isDiving;
                 lastCursor = g_isCursorVisible;
@@ -330,7 +333,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     );
     ShowWindow(g_hHUD, SW_SHOW);
     UpdateWindow(g_hHUD);
-    SetTimer(g_hHUD, 1, 50, NULL);
+    SetTimer(g_hHUD, 1, 30, NULL);
 
     std::thread detThread(DetectorThread);
 
