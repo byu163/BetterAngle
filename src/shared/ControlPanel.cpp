@@ -102,7 +102,7 @@ HWND CreateControlPanel(HINSTANCE hInst) {
         L"BetterAngle Pro | Global Command Center",
         WS_OVERLAPPEDWINDOW,          // ← this gives drag-resize handles
         CW_USEDEFAULT, CW_USEDEFAULT,
-        560, 600,
+        580, 620,
         NULL, NULL, hInst, NULL
     );
     ShowWindow(hPanel, SW_SHOW);
@@ -449,7 +449,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
         // ── Title bar ────────────────────────────────────────────────────────
         g_pRenderTarget->DrawText(
-            L"BetterAngle Pro  ·  Command Center", 35,
+            L"BetterAngle Pro | Command Center", 33,
             pTitle,
             D2D1::RectF(L.margin, 0.03f * L.H, L.W - L.margin, 0.13f * L.H),
             pWhite
@@ -475,7 +475,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
         // ─────────────────────────────────────────────────────────────────────
         if (g_currentTab == 0) {
             // ─ GENERAL ──────────────────────────────────────────────────────
-            g_pRenderTarget->DrawText(L"HOTKEYS — Click to rebind", 25, pHeader,
+            g_pRenderTarget->DrawText(L"HOTKEYS - Click to rebind", 25, pHeader,
                 D2D1::RectF(L.margin, cY, L.W - L.margin, cY + 0.04f * L.H), pWhite);
 
             float bindX1 = L.margin;
@@ -587,14 +587,14 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             g_pRenderTarget->DrawText(L"COLOUR TOLERANCE", 16, pHeader,
                 D2D1::RectF(L.margin, 0.55f*L.H, L.W-L.margin, 0.60f*L.H), pWhite);
             DrawD2DButton(g_pRenderTarget,
-                D2D1::RectF(L.margin,                          0.60f*L.H, L.margin+L.contentW*0.45f, 0.67f*L.H),
-                L"–  DECREASE", D2D1::ColorF(0.18f,0.18f,0.22f), 12.0f*baseScale);
+                D2D1::RectF(L.margin,                          0.60f * L.H, L.margin + L.contentW * 0.45f, 0.67f * L.H),
+                L"-  DECREASE", D2D1::ColorF(0.18f, 0.18f, 0.22f), 12.0f * baseScale);
             DrawD2DButton(g_pRenderTarget,
                 D2D1::RectF(L.W-L.margin-L.contentW*0.45f, 0.60f*L.H, L.W-L.margin, 0.67f*L.H),
                 L"+  INCREASE", D2D1::ColorF(0.18f,0.18f,0.22f), 12.0f*baseScale);
 
             wchar_t diag[128];
-            swprintf_s(diag, L"Diag  ·  Angle = %.2f°   Match = %.0f%%", g_currentAngle, g_detectionRatio * 100.0f);
+            swprintf_s(diag, L"Diag | Angle = %.2f [deg] | Match = %.0f%%", g_currentAngle, g_detectionRatio * 100.0f);
             g_pRenderTarget->DrawText(diag, (UINT32)wcslen(diag), pBody,
                 D2D1::RectF(L.margin, 0.70f*L.H, L.W-L.margin, 0.76f*L.H), pGrey);
 
@@ -618,16 +618,16 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             // ─ / + setting rows ─────────────────────────────────────────────
             // Layout: [Label 38%] [  –btn 12%  ] [  +btn 12%  ] [Value 38%]
             float btnW  = L.contentW * 0.12f;
-            float minX  = L.margin + L.contentW * 0.40f;
-            float plusX = L.margin + L.contentW * 0.56f;
-            float valX  = L.margin + L.contentW * 0.70f;
+            float minX  = L.margin + L.contentW * 0.42f;
+            float plusX = L.margin + L.contentW * 0.58f;
+            float valX  = L.margin + L.contentW * 0.74f;
 
             struct SettingRow { const wchar_t* label; float value; };
             SettingRow settings[4] = {
                 { L"Thickness:",  g_crossThickness },
                 { L"Offset X:",   g_crossOffsetX   },
                 { L"Offset Y:",   g_crossOffsetY   },
-                { L"Rotation °:", g_crossAngle     },
+                { L"Rotation:",   g_crossAngle     },
             };
             float rows[4] = {
                 cY + 0.14f * L.H,
