@@ -1,3 +1,5 @@
+// ControlPanel.cpp - BetterAngle Pro v4.20.4
+// Full responsive layout, pixel-perfect hit-testing, resizable window.
 #include "shared/State.h"
 #include "shared/Overlay.h"
 #include "shared/ControlPanel.h"
@@ -19,13 +21,13 @@ extern Profile g_currentProfile;
 
 using namespace D2D1;
 
-ID2D1Factory* g_pD2DFactory = NULL;
-IDWriteFactory* g_pDWriteFactory = NULL;
-ID2D1HwndRenderTarget* g_pRenderTarget = NULL;
+ID2D1Factory*          g_pD2DFactory   = NULL;
+IDWriteFactory*        g_pDWriteFactory = NULL;
+ID2D1HwndRenderTarget* g_pRenderTarget  = NULL;
 
-// UI State
-// extern declared in State.h
-
+// ─────────────────────────────────────────────────────────────────────────────
+// D2D init / resize
+// ─────────────────────────────────────────────────────────────────────────────
 void InitD2D(HWND hWnd) {
     if (!g_pD2DFactory) {
         D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &g_pD2DFactory);
@@ -33,54 +35,74 @@ void InitD2D(HWND hWnd) {
     }
     RECT rc; GetClientRect(hWnd, &rc);
     D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
-    if (g_pRenderTarget) g_pRenderTarget->Release();
-    g_pD2DFactory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(hWnd, size), &g_pRenderTarget);
+    if (g_pRenderTarget) {
+        // Attempt resize first — avoids destroying/recreating the target every frame
+        HRESULT hr = g_pRenderTarget->Resize(size);
+        if (SUCCEEDED(hr)) return;
+        g_pRenderTarget->Release();
+        g_pRenderTarget = NULL;
+    }
+    g_pD2DFactory->CreateHwndRenderTarget(
+        D2D1::RenderTargetProperties(),
+        D2D1::HwndRenderTargetProperties(hWnd, size),
+        &g_pRenderTarget
+    );
 }
 
-void DrawD2DButton(ID2D1HwndRenderTarget* rt, D2D1_RECT_F rect, const wchar_t* text, D2D1_COLOR_F color) {
-    ID2D1SolidColorBrush* pBrush = NULL;
-    rt->CreateSolidColorBrush(color, &pBrush);
-
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared button helper
+// ─────────────────────────────────────────────────────────────────────────────
+void DrawD2DButton(ID2D1HwndRenderTarget* rt, D2D1_RECT_F rect, const wchar_t* text, D2D1_COLOR_F color, float fontSize = 13.0f) {
+    ID2D1SolidColorBrush* pBrush  = NULL;
     ID2D1SolidColorBrush* pStroke = NULL;
-    rt->CreateSolidColorBrush(D2D1::ColorF(color.r * 1.5f, color.g * 1.5f, color.b * 1.5f), &pStroke);
+    ID2D1SolidColorBrush* pWhite  = NULL;
+
+    rt->CreateSolidColorBrush(color, &pBrush);
+    rt->CreateSolidColorBrush(D2D1::ColorF(min(1.0f, color.r * 1.6f), min(1.0f, color.g * 1.6f), min(1.0f, color.b * 1.6f)), &pStroke);
+    rt->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &pWhite);
 
     rt->FillRoundedRectangle(D2D1::RoundedRect(rect, 6.0f, 6.0f), pBrush);
     rt->DrawRoundedRectangle(D2D1::RoundedRect(rect, 6.0f, 6.0f), pStroke, 1.0f);
 
-    ID2D1SolidColorBrush* pWhite = NULL;
-    rt->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &pWhite);
+    IDWriteTextFormat* pFmt = NULL;
+    g_pDWriteFactory->CreateTextFormat(
+        L"Segoe UI Variable Display", NULL,
+        DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
+        fontSize, L"en-us", &pFmt
+    );
+    if (pFmt) {
+        pFmt->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+        pFmt->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        rt->DrawText(text, (UINT32)wcslen(text), pFmt, rect, pWhite);
+        pFmt->Release();
+    }
 
-    IDWriteTextFormat* pTextFormat = NULL;
-    g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 13.0f, L"en-us", &pTextFormat);
-    pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-    pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-
-    rt->DrawText(text, (UINT32)wcslen(text), pTextFormat, rect, pWhite);
-
-    pTextFormat->Release();
-    pWhite->Release();
+    if (pWhite)  pWhite->Release();
     if (pStroke) pStroke->Release();
-    pBrush->Release();
+    if (pBrush)  pBrush->Release();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Window creation — WS_OVERLAPPEDWINDOW gives full resize/drag support
+// ─────────────────────────────────────────────────────────────────────────────
 HWND CreateControlPanel(HINSTANCE hInst) {
-    WNDCLASS wc = { 0 };
-    wc.lpfnWndProc = ControlPanelWndProc;
-    wc.hInstance = hInst;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    WNDCLASS wc = {};
+    wc.lpfnWndProc   = ControlPanelWndProc;
+    wc.hInstance     = hInst;
+    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     wc.lpszClassName = L"BetterAngleControlPanel";
     RegisterClass(&wc);
 
-    int w = 540, h = 580;
     HWND hPanel = CreateWindowEx(
         WS_EX_TOPMOST | WS_EX_APPWINDOW,
-        L"BetterAngleControlPanel", L"BetterAngle Pro | Global Command Center",
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, w, h,
+        L"BetterAngleControlPanel",
+        L"BetterAngle Pro | Global Command Center",
+        WS_OVERLAPPEDWINDOW,          // ← this gives drag-resize handles
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        560, 600,
         NULL, NULL, hInst, NULL
     );
-
     ShowWindow(hPanel, SW_SHOW);
     UpdateWindow(hPanel);
     return hPanel;
@@ -90,12 +112,12 @@ int g_listeningKey = -1;
 
 std::wstring GetKeyName(UINT mod, UINT vk) {
     if (vk == 0) return L"Unbound";
-    std::wstring n = L"";
-    if (mod & MOD_CONTROL) n += L"Ctrl + ";
-    if (mod & MOD_SHIFT) n += L"Shift + ";
-    if (mod & MOD_ALT) n += L"Alt + ";
-    
-    if (vk >= 'A' && vk <= 'Z') n += (wchar_t)vk;
+    std::wstring n;
+    if (mod & MOD_CONTROL) n += L"Ctrl+";
+    if (mod & MOD_SHIFT)   n += L"Shift+";
+    if (mod & MOD_ALT)     n += L"Alt+";
+
+    if (vk >= 'A' && vk <= 'Z')     n += (wchar_t)vk;
     else if (vk >= '0' && vk <= '9') n += (wchar_t)vk;
     else if (vk >= VK_F1 && vk <= VK_F12) n += L"F" + std::to_wstring(vk - VK_F1 + 1);
     else n += L"Key(" + std::to_wstring(vk) + L")";
@@ -104,278 +126,535 @@ std::wstring GetKeyName(UINT mod, UINT vk) {
 
 extern HWND g_hHUD;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Layout helpers — returns consistent rects for both PAINT and HITTEST
+// ─────────────────────────────────────────────────────────────────────────────
+struct Layout {
+    float W, H;
+    float margin;
+    float contentW;
+    float tY1, tY2;        // Tab row
+    float tabW;
+    // 5 tab rects
+    float tabX[5], tabX2[5];
+    float cY;              // Content area top
+    float footerY1, footerY2;
+
+    Layout(float w, float h) : W(w), H(h) {
+        margin   = 0.07f * W;
+        contentW = W - margin * 2.0f;
+        tY1      = 0.155f * H;
+        tY2      = 0.225f * H;
+
+        // Evenly distribute 5 tabs across contentW with 8px gaps
+        float gap   = 8.0f;
+        float totalGap = gap * 4.0f;
+        tabW = (contentW - totalGap) / 5.0f;
+
+        for (int i = 0; i < 5; i++) {
+            tabX[i]  = margin + i * (tabW + gap);
+            tabX2[i] = tabX[i] + tabW;
+        }
+
+        cY       = 0.26f * H;
+        footerY1 = 0.88f * H;
+        footerY2 = 0.96f * H;
+    }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main WndProc
+// ─────────────────────────────────────────────────────────────────────────────
 LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
-        case WM_CREATE:
-            InitD2D(hWnd);
-            SetTimer(hWnd, 1, 16, NULL); // 60FPS Refresh Rate
-            return 0;
-        case WM_SIZE:
-            InitD2D(hWnd);
-            return 0;
-        case WM_KEYDOWN:
-            if (g_listeningKey != -1) {
-                if (wParam == VK_CONTROL || wParam == VK_SHIFT || wParam == VK_MENU) return 0;
-                
-                UINT mod = 0;
-                if (GetAsyncKeyState(VK_CONTROL) & 0x8000) mod |= MOD_CONTROL;
-                if (GetAsyncKeyState(VK_SHIFT) & 0x8000) mod |= MOD_SHIFT;
-                if (GetAsyncKeyState(VK_MENU) & 0x8000) mod |= MOD_ALT;
-                
-                if (g_listeningKey == 1) { g_keybinds.toggleMod = mod; g_keybinds.toggleKey = wParam; }
-                if (g_listeningKey == 2) { g_keybinds.roiMod = mod; g_keybinds.roiKey = wParam; }
-                if (g_listeningKey == 3) { g_keybinds.crossMod = mod; g_keybinds.crossKey = wParam; }
-                if (g_listeningKey == 4) { g_keybinds.zeroMod = mod; g_keybinds.zeroKey = wParam; }
-                if (g_listeningKey == 5) { g_keybinds.debugMod = mod; g_keybinds.debugKey = wParam; }
-                
-                g_listeningKey = -1;
-                SaveSettings();
-                
-                if (g_hHUD) {
-                    UnregisterHotKey(g_hHUD, 1); UnregisterHotKey(g_hHUD, 2);
-                    UnregisterHotKey(g_hHUD, 3); UnregisterHotKey(g_hHUD, 4);
-                    UnregisterHotKey(g_hHUD, 5);
-                    RegisterHotKey(g_hHUD, 1, g_keybinds.toggleMod, g_keybinds.toggleKey);
-                    RegisterHotKey(g_hHUD, 2, g_keybinds.roiMod, g_keybinds.roiKey);
-                    RegisterHotKey(g_hHUD, 3, g_keybinds.crossMod, g_keybinds.crossKey);
-                    RegisterHotKey(g_hHUD, 4, g_keybinds.zeroMod, g_keybinds.zeroKey);
-                    RegisterHotKey(g_hHUD, 5, g_keybinds.debugMod, g_keybinds.debugKey);
+
+    case WM_CREATE:
+        InitD2D(hWnd);
+        SetTimer(hWnd, 1, 16, NULL);
+        return 0;
+
+    case WM_SIZE:
+        InitD2D(hWnd);       // Resize the D2D render target to match new client size
+        InvalidateRect(hWnd, NULL, FALSE);
+        return 0;
+
+    case WM_GETMINMAXINFO: {
+        // Enforce a sensible minimum so UI never completely collapses
+        MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+        mmi->ptMinTrackSize.x = 420;
+        mmi->ptMinTrackSize.y = 440;
+        return 0;
+    }
+
+    case WM_KEYDOWN:
+        if (g_listeningKey != -1) {
+            if (wParam == VK_CONTROL || wParam == VK_SHIFT || wParam == VK_MENU) return 0;
+            UINT mod = 0;
+            if (GetAsyncKeyState(VK_CONTROL) & 0x8000) mod |= MOD_CONTROL;
+            if (GetAsyncKeyState(VK_SHIFT)   & 0x8000) mod |= MOD_SHIFT;
+            if (GetAsyncKeyState(VK_MENU)    & 0x8000) mod |= MOD_ALT;
+
+            switch (g_listeningKey) {
+                case 1: g_keybinds.toggleMod = mod; g_keybinds.toggleKey = (UINT)wParam; break;
+                case 2: g_keybinds.roiMod    = mod; g_keybinds.roiKey    = (UINT)wParam; break;
+                case 3: g_keybinds.crossMod  = mod; g_keybinds.crossKey  = (UINT)wParam; break;
+                case 4: g_keybinds.zeroMod   = mod; g_keybinds.zeroKey   = (UINT)wParam; break;
+                case 5: g_keybinds.debugMod  = mod; g_keybinds.debugKey  = (UINT)wParam; break;
+            }
+            g_listeningKey = -1;
+            SaveSettings();
+            if (g_hHUD) {
+                for (int i = 1; i <= 5; i++) UnregisterHotKey(g_hHUD, i);
+                RegisterHotKey(g_hHUD, 1, g_keybinds.toggleMod, g_keybinds.toggleKey);
+                RegisterHotKey(g_hHUD, 2, g_keybinds.roiMod,    g_keybinds.roiKey);
+                RegisterHotKey(g_hHUD, 3, g_keybinds.crossMod,  g_keybinds.crossKey);
+                RegisterHotKey(g_hHUD, 4, g_keybinds.zeroMod,   g_keybinds.zeroKey);
+                RegisterHotKey(g_hHUD, 5, g_keybinds.debugMod,  g_keybinds.debugKey);
+            }
+        }
+        return 0;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // HIT TESTING — coordinates match Layout exactly
+    // ─────────────────────────────────────────────────────────────────────────
+    case WM_LBUTTONDOWN: {
+        RECT rc; GetClientRect(hWnd, &rc);
+        float fx = (float)LOWORD(lParam);
+        float fy = (float)HIWORD(lParam);
+        Layout L((float)(rc.right - rc.left), (float)(rc.bottom - rc.top));
+
+        // ── Tab bar ──────────────────────────────────────────────────────────
+        if (fy >= L.tY1 && fy <= L.tY2) {
+            for (int i = 0; i < 5; i++) {
+                if (fx >= L.tabX[i] && fx <= L.tabX2[i]) {
+                    g_currentTab   = i;
+                    g_listeningKey = -1;
+                    InvalidateRect(hWnd, NULL, FALSE);
                 }
             }
             return 0;
-        case WM_LBUTTONDOWN: {
-            int x = LOWORD(lParam), y = HIWORD(lParam);
-            RECT rc; GetClientRect(hWnd, &rc);
-            float W = (float)(rc.right - rc.left);
-            float H = (float)(rc.bottom - rc.top);
-            float margin = 0.07f * W;
-            float contentW = W - (margin * 2.0f);
+        }
 
-            // Tab Navigation (Y: 15% to 22% of H)
-            float tY1 = 0.15f * H, tY2 = 0.22f * H;
-            if (y >= tY1 && y <= tY2) {
-                float tabW = (contentW - 40.0f) / 5.0f;
-                if (x >= margin && x <= margin + tabW) { g_currentTab = 0; g_listeningKey = -1; }
-                else if (x >= margin + tabW + 10 && x <= margin + 2 * tabW + 10) { g_currentTab = 1; g_listeningKey = -1; }
-                else if (x >= margin + 2 * tabW + 20 && x <= margin + 3 * tabW + 20) { g_currentTab = 2; g_listeningKey = -1; }
-                else if (x >= margin + 3 * tabW + 30 && x <= margin + 4 * tabW + 30) { g_currentTab = 3; g_listeningKey = -1; }
-                else if (x >= margin + 4 * tabW + 40 && x <= W - margin) { g_currentTab = 4; g_listeningKey = -1; }
+        // ── Quit footer ──────────────────────────────────────────────────────
+        if (fx >= L.margin && fx <= L.W - L.margin && fy >= L.footerY1 && fy <= L.footerY2) {
+            PostQuitMessage(0);
+            return 0;
+        }
+
+        float cY = L.cY;
+
+        // ── TAB 0 — GENERAL ───────────────────────────────────────────────
+        if (g_currentTab == 0 && g_listeningKey == -1) {
+            // Keybind click areas (right 40% of width)
+            float bindX = L.margin + (L.contentW * 0.6f);
+            float rowH  = 0.04f * L.H;
+            float rowGap = 0.005f * L.H;
+            struct { int id; float y; } binds[5] = {
+                {1, cY + 0.05f * L.H},
+                {2, cY + 0.10f * L.H},
+                {3, cY + 0.15f * L.H},
+                {4, cY + 0.20f * L.H},
+                {5, cY + 0.25f * L.H},
+            };
+            for (auto& b : binds) {
+                if (fx >= bindX && fx <= L.W - L.margin && fy >= b.y && fy <= b.y + rowH + rowGap)
+                    g_listeningKey = b.id;
             }
+            // Recalibrate button
+            if (fx >= L.margin && fx <= L.W - L.margin && fy >= 0.65f * L.H && fy <= 0.73f * L.H) {
+                void ShowFirstTimeSetup(HINSTANCE);
+                ShowFirstTimeSetup((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
+            }
+            // Calibration Wizard
+            if (fx >= L.margin && fx <= L.W - L.margin && fy >= 0.75f * L.H && fy <= 0.83f * L.H) {
+                void StartThresholdWizard(HINSTANCE);
+                StartThresholdWizard((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
+            }
+        }
 
-            float cY = 0.25f * H; // Content Start
-            if (g_currentTab == 0 && g_listeningKey == -1) {
-                if (x >= margin + (contentW * 0.6f) && x <= W - margin) {
-                    if (y >= cY + 0.05f * H && y <= cY + 0.08f * H) g_listeningKey = 1;
-                    else if (y >= cY + 0.09f * H && y <= cY + 0.12f * H) g_listeningKey = 2;
-                    else if (y >= cY + 0.13f * H && y <= cY + 0.16f * H) g_listeningKey = 3;
-                    else if (y >= cY + 0.17f * H && y <= cY + 0.20f * H) g_listeningKey = 4;
-                    else if (y >= cY + 0.21f * H && y <= cY + 0.24f * H) g_listeningKey = 5;
-                }
-                
-                if (x >= margin && x <= W - margin && y >= 0.65f * H && y <= 0.72f * H) {
-                    void ShowFirstTimeSetup(HINSTANCE hInstance);
-                    ShowFirstTimeSetup((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
-                }
-                if (x >= margin && x <= W - margin && y >= 0.74f * H && y <= 0.81f * H) {
-                    void StartThresholdWizard(HINSTANCE hInstance);
-                    StartThresholdWizard((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
+        // ── TAB 1 — UPDATES ───────────────────────────────────────────────
+        else if (g_currentTab == 1) {
+            if (fx >= L.margin && fx <= L.W - L.margin && fy >= 0.45f * L.H && fy <= 0.56f * L.H) {
+                if (g_updateAvailable) {
+                    g_updateAvailable = false;
+                    std::thread([]() {
+                        if (DownloadUpdate(L"AUTO", L"update_tmp.exe"))
+                            ApplyUpdateAndRestart();
+                    }).detach();
+                } else {
+                    g_isCheckingForUpdates = true;
+                    std::thread(CheckForUpdates).detach();
                 }
             }
+        }
 
-            if (g_currentTab == 3) {
-                if (x >= margin && x <= W - margin && y >= cY + 0.05f * H && y <= cY + 0.10f * H) g_debugMode = !g_debugMode;
-                else if (x >= margin && x <= W - margin && y >= cY + 0.12f * H && y <= cY + 0.17f * H) g_forceDiving = !g_forceDiving;
-                else if (x >= margin && x <= W - margin && y >= cY + 0.19f * H && y <= cY + 0.24f * H) g_forceDetection = !g_forceDetection;
-                else if (x >= margin && x <= W - margin && y >= cY + 0.26f * H && y <= cY + 0.31f * H) {
-                    g_currentAngle = 0.0f;
-                    g_logic.SetZero();
-                }
-                else if (x >= margin && x <= margin + (contentW * 0.45f) && y >= 0.60f * H && y <= 0.65f * H) {
+        // ── TAB 3 — DEBUG ─────────────────────────────────────────────────
+        else if (g_currentTab == 3) {
+            float bH = 0.06f * L.H;
+            if (fy >= cY + 0.05f * L.H && fy <= cY + 0.05f * L.H + bH)           g_debugMode        = !g_debugMode;
+            else if (fy >= cY + 0.13f * L.H && fy <= cY + 0.13f * L.H + bH)       g_forceDiving      = !g_forceDiving;
+            else if (fy >= cY + 0.21f * L.H && fy <= cY + 0.21f * L.H + bH)       g_forceDetection   = !g_forceDetection;
+            else if (fy >= cY + 0.29f * L.H && fy <= cY + 0.29f * L.H + bH) {     g_currentAngle = 0.0f; g_logic.SetZero(); }
+            // Tolerance buttons
+            else if (fy >= 0.60f * L.H && fy <= 0.67f * L.H) {
+                if (fx >= L.margin && fx <= L.margin + L.contentW * 0.45f) {
                     if (!g_allProfiles.empty()) {
                         g_allProfiles[g_selectedProfileIdx].tolerance = max(0, g_allProfiles[g_selectedProfileIdx].tolerance - 2);
                         g_allProfiles[g_selectedProfileIdx].Save(GetAppStoragePath() + g_allProfiles[g_selectedProfileIdx].name + L".json");
                     }
-                }
-                else if (x >= margin + (contentW * 0.55f) && x <= W - margin && y >= 0.60f * H && y <= 0.65f * H) {
+                } else if (fx >= L.W - L.margin - L.contentW * 0.45f && fx <= L.W - L.margin) {
                     if (!g_allProfiles.empty()) {
                         g_allProfiles[g_selectedProfileIdx].tolerance += 2;
                         g_allProfiles[g_selectedProfileIdx].Save(GetAppStoragePath() + g_allProfiles[g_selectedProfileIdx].name + L".json");
                     }
                 }
             }
+        }
 
-            if (g_currentTab == 4) {
-                if (x >= margin && x <= margin + (contentW * 0.45f) && y >= cY + 0.05f * H && y <= cY + 0.10f * H) { // Color Picker
-                    CHOOSECOLOR cc;
-                    static COLORREF acrCustClr[16];
-                    ZeroMemory(&cc, sizeof(cc));
+        // ── TAB 4 — CROSSHAIR ─────────────────────────────────────────────
+        else if (g_currentTab == 4) {
+            float rowH = 0.06f * L.H;
+            // Color picker (left button)
+            if (fy >= cY + 0.06f * L.H && fy <= cY + 0.06f * L.H + rowH) {
+                if (fx >= L.margin && fx <= L.margin + L.contentW * 0.45f) {
+                    CHOOSECOLOR cc = {};
+                    static COLORREF acrCustClr[16] = {};
                     cc.lStructSize = sizeof(cc);
-                    cc.hwndOwner = hWnd;
+                    cc.hwndOwner   = hWnd;
                     cc.lpCustColors = (LPDWORD)acrCustClr;
-                    cc.rgbResult = g_crossColor;
-                    cc.Flags = CC_FULLOPEN | CC_RGBINIT;
-                    if (ChooseColor(&cc)) {
-                        g_crossColor = cc.rgbResult;
-                    }
+                    cc.rgbResult   = g_crossColor;
+                    cc.Flags       = CC_FULLOPEN | CC_RGBINIT;
+                    if (ChooseColor(&cc)) g_crossColor = cc.rgbResult;
+                    SaveSettings();
                 }
-                else if (x >= margin + (contentW * 0.55f) && x <= W - margin && y >= cY + 0.05f * H && y <= cY + 0.10f * H) { // Pulse Toggle
+                // Pulse toggle (right button)
+                else if (fx >= L.W - L.margin - L.contentW * 0.45f && fx <= L.W - L.margin) {
                     g_crossPulse = !g_crossPulse;
+                    SaveSettings();
                 }
-                else if (x >= margin + 160 && x <= margin + 210 && y >= cY + 0.12f * H && y <= cY + 0.17f * H) g_crossThickness = max(1.0f, g_crossThickness - 1.0f);
-                else if (x >= margin + 220 && x <= margin + 270 && y >= cY + 0.12f * H && y <= cY + 0.17f * H) g_crossThickness += 1.0f;
-                
-                else if (x >= margin + 160 && x <= margin + 210 && y >= cY + 0.19f * H && y <= cY + 0.24f * H) g_crossOffsetX -= 1.0f;
-                else if (x >= margin + 220 && x <= margin + 270 && y >= cY + 0.19f * H && y <= cY + 0.24f * H) g_crossOffsetX += 1.0f;
-                
-                else if (x >= margin + 160 && x <= margin + 210 && y >= cY + 0.26f * H && y <= cY + 0.31f * H) g_crossOffsetY -= 1.0f;
-                else if (x >= margin + 220 && x <= margin + 270 && y >= cY + 0.26f * H && y <= cY + 0.31f * H) g_crossOffsetY += 1.0f;
-                
-                else if (x >= margin + 160 && x <= margin + 210 && y >= cY + 0.33f * H && y <= cY + 0.38f * H) g_crossAngle -= 5.0f;
-                else if (x >= margin + 220 && x <= margin + 270 && y >= cY + 0.33f * H && y <= cY + 0.38f * H) g_crossAngle += 5.0f;
             }
 
-            if (g_currentTab == 1) {
-                if (x >= margin && x <= W - margin && y >= 0.55f * H && y <= 0.65f * H) {
-                    if (g_updateAvailable) {
-                        g_updateAvailable = false;
-                        std::thread([]() {
-                            if (DownloadUpdate(L"AUTO", L"update_tmp.exe")) {
-                                ApplyUpdateAndRestart();
-                            }
-                        }).detach();
-                    } else {
-                        g_isCheckingForUpdates = true;
-                        std::thread(CheckForUpdates).detach();
+            // ─ / + buttons for each setting row ─────────────────────────
+            // Rows: Thickness 0.14, OffsetX 0.22, OffsetY 0.30, Rotation 0.38
+            float rows[4] = {
+                cY + 0.14f * L.H,
+                cY + 0.22f * L.H,
+                cY + 0.30f * L.H,
+                cY + 0.38f * L.H
+            };
+            // Button rects (percentage-based, matches drawSetting below)
+            float btnW  = L.contentW * 0.12f;
+            float minX  = L.margin + L.contentW * 0.40f;
+            float plusX = L.margin + L.contentW * 0.56f;
+
+            for (int i = 0; i < 4; i++) {
+                if (fy >= rows[i] && fy <= rows[i] + rowH) {
+                    if (fx >= minX && fx <= minX + btnW) {
+                        switch(i) {
+                            case 0: g_crossThickness = max(1.0f, g_crossThickness - 1.0f); break;
+                            case 1: g_crossOffsetX -= 1.0f; break;
+                            case 2: g_crossOffsetY -= 1.0f; break;
+                            case 3: g_crossAngle -= 5.0f; break;
+                        }
+                        SaveSettings();
+                    } else if (fx >= plusX && fx <= plusX + btnW) {
+                        switch(i) {
+                            case 0: g_crossThickness += 1.0f; break;
+                            case 1: g_crossOffsetX += 1.0f; break;
+                            case 2: g_crossOffsetY += 1.0f; break;
+                            case 3: g_crossAngle += 5.0f; break;
+                        }
+                        SaveSettings();
                     }
                 }
             }
-
-            if (x >= margin && x <= W - margin && y >= 0.88f * H && y <= 0.96f * H) {
-                PostQuitMessage(0);
-            }
-            return 0;
         }
-        case WM_PAINT: {
-            if (!g_pRenderTarget) return 0;
-            g_pRenderTarget->BeginDraw();
-            g_pRenderTarget->Clear(D2D1::ColorF(0.02f, 0.03f, 0.04f));
 
-            D2D1_SIZE_F rtSize = g_pRenderTarget->GetSize();
-            float W = rtSize.width;
-            float H = rtSize.height;
-            float margin = 0.07f * W;
-            float contentW = W - (margin * 2.0f);
-            float baseScale = min(W / 540.0f, H / 580.0f);
-            if (baseScale < 0.6f) baseScale = 0.6f;
+        InvalidateRect(hWnd, NULL, FALSE);
+        return 0;
+    }
 
-            ID2D1SolidColorBrush* pWhite = NULL;
-            g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &pWhite);
-            ID2D1SolidColorBrush* pGrey = NULL;
-            g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.6f, 0.6f, 0.6f), &pGrey);
-            ID2D1SolidColorBrush* pBlue = NULL;
-            g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.3f, 0.7f, 1.0f), &pBlue);
+    // ─────────────────────────────────────────────────────────────────────────
+    // PAINTING — must exactly mirror hit-test layout above
+    // ─────────────────────────────────────────────────────────────────────────
+    case WM_PAINT: {
+        if (!g_pRenderTarget) return 0;
 
-            IDWriteTextFormat* pTitleFormat = NULL;
-            g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 24.0f * baseScale, L"en-us", &pTitleFormat);
-            IDWriteTextFormat* pHeaderFormat = NULL;
-            g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 16.0f * baseScale, L"en-us", &pHeaderFormat);
-            IDWriteTextFormat* pVerFormat = NULL;
-            g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 13.0f * baseScale, L"en-us", &pVerFormat);
+        HRESULT hr = g_pRenderTarget->BeginDraw();
+        if (FAILED(hr)) { ValidateRect(hWnd, NULL); return 0; }
 
-            g_pRenderTarget->DrawText(L"Pro Command Center", 18, pTitleFormat, D2D1::RectF(margin, 0.07f * H, W - margin, 0.14f * H), pWhite);
+        g_pRenderTarget->Clear(D2D1::ColorF(0.02f, 0.03f, 0.05f));
 
-            // Draw 5 Tabs
-            float tY1 = 0.15f * H, tY2 = 0.22f * H;
-            float tabW = (contentW - 40.0f) / 5.0f;
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, tY1, margin + tabW, tY2), L"GENERAL", g_currentTab == 0 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin + tabW + 10, tY1, margin + 2 * tabW + 10, tY2), L"UPDATES", g_currentTab == 1 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin + 2 * tabW + 20, tY1, margin + 3 * tabW + 20, tY2), L"COLORS", g_currentTab == 2 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin + 3 * tabW + 30, tY1, margin + 4 * tabW + 30, tY2), L"DEBUG", g_currentTab == 3 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin + 4 * tabW + 40, tY1, W - margin, tY2), L"CROSSHAIR", g_currentTab == 4 ? D2D1::ColorF(0.2f, 0.25f, 0.3f) : D2D1::ColorF(0.1f, 0.12f, 0.15f));
+        D2D1_SIZE_F sz = g_pRenderTarget->GetSize();
+        Layout L(sz.width, sz.height);
 
-            float cY = 0.25f * H; // Content Start
-            if (g_currentTab == 0) {
-                g_pRenderTarget->DrawText(L"HOTKEYS (Click to Rebind)", 25, pHeaderFormat, D2D1::RectF(margin, cY, W - margin, cY + 0.04f * H), pWhite);
+        // Base scale for fonts
+        float baseScale = min(L.W / 560.0f, L.H / 600.0f);
+        if (baseScale < 0.65f) baseScale = 0.65f;
 
-                auto drawBind = [&](int id, std::wstring name, UINT mod, UINT vk, float y) {
-                    g_pRenderTarget->DrawText(name.c_str(), name.length(), pVerFormat, D2D1::RectF(margin, y, margin + (contentW * 0.6f), y + 0.035f * H), pGrey);
-                    std::wstring bindText = (g_listeningKey == id) ? L"[ Press Key... ]" : (L"[ " + GetKeyName(mod, vk) + L" ]");
-                    g_pRenderTarget->DrawText(bindText.c_str(), bindText.length(), pVerFormat, D2D1::RectF(margin + (contentW * 0.62f), y, W - margin, y + 0.035f * H), (g_listeningKey == id) ? pBlue : pWhite);
-                };
-                drawBind(1, L"Toggle Dashboard:", g_keybinds.toggleMod, g_keybinds.toggleKey, cY + 0.05f * H);
-                drawBind(2, L"Visual ROI Selector:", g_keybinds.roiMod, g_keybinds.roiKey, cY + 0.09f * H);
-                drawBind(3, L"Precision Crosshair:", g_keybinds.crossMod, g_keybinds.crossKey, cY + 0.13f * H);
-                drawBind(4, L"Zero Angle Reset:", g_keybinds.zeroMod, g_keybinds.zeroKey, cY + 0.17f * H);
-                drawBind(5, L"Secret Debug Tab:", g_keybinds.debugMod, g_keybinds.debugKey, cY + 0.21f * H);
+        // ── Brushes ──────────────────────────────────────────────────────────
+        ID2D1SolidColorBrush *pWhite = NULL, *pGrey = NULL, *pBlue = NULL, *pDark = NULL;
+        g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f), &pWhite);
+        g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.55f, 0.55f, 0.55f), &pGrey);
+        g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.3f, 0.7f, 1.0f), &pBlue);
+        g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.08f, 0.10f, 0.13f), &pDark);
 
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, 0.65f * H, W - margin, 0.72f * H), L"RECALIBRATE BASE SETTINGS", D2D1::ColorF(0.6f, 0.2f, 0.2f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, 0.74f * H, W - margin, 0.81f * H), L"MASTER CALIBRATION WIZARD", D2D1::ColorF(0.8f, 0.4f, 0.0f));
+        // ── Text formats ─────────────────────────────────────────────────────
+        IDWriteTextFormat *pTitle = NULL, *pHeader = NULL, *pBody = NULL;
+        g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD,    DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 22.0f * baseScale, L"en-us", &pTitle);
+        g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_BOLD,    DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 14.0f * baseScale, L"en-us", &pHeader);
+        g_pDWriteFactory->CreateTextFormat(L"Segoe UI Variable Display", NULL, DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 12.0f * baseScale, L"en-us", &pBody);
 
-            } else if (g_currentTab == 1) {
-                g_pRenderTarget->DrawText(L"SOFTWARE DASHBOARD", 18, pHeaderFormat, D2D1::RectF(margin, cY, W - margin, cY + 0.05f * H), pWhite);
-                std::wstring curVer = L"Current Version: v" VERSION_WSTR;
-                g_pRenderTarget->DrawText(curVer.c_str(), (UINT32)curVer.length(), pVerFormat, D2D1::RectF(margin, cY + 0.1f * H, W - margin, cY + 0.14f * H), pGrey);
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, 0.45f * H, W - margin, 0.55f * H), L"CHECK FOR UPDATES", D2D1::ColorF(0.15f, 0.17f, 0.2f));
+        // ── Title bar ────────────────────────────────────────────────────────
+        g_pRenderTarget->DrawText(
+            L"BetterAngle Pro  ·  Command Center", 35,
+            pTitle,
+            D2D1::RectF(L.margin, 0.03f * L.H, L.W - L.margin, 0.13f * L.H),
+            pWhite
+        );
 
-            } else if (g_currentTab == 2) {
-                g_pRenderTarget->DrawText(L"ALGORITHM COLOR CONFIG", 22, pHeaderFormat, D2D1::RectF(margin, cY, W - margin, cY + 0.05f * H), pWhite);
-                D2D1_RECT_F swatchRect = D2D1::RectF(margin, 0.45f * H, W - margin, 0.55f * H);
-                ID2D1SolidColorBrush* pSwatchBrush = NULL;
-                g_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(GetRValue(g_targetColor)/255.0f, GetGValue(g_targetColor)/255.0f, GetBValue(g_targetColor)/255.0f), &pSwatchBrush);
-                g_pRenderTarget->FillRoundedRectangle(D2D1::RoundedRect(swatchRect, 6.0f, 6.0f), pSwatchBrush);
-                if (pSwatchBrush) pSwatchBrush->Release();
+        // ── Tab buttons ──────────────────────────────────────────────────────
+        const wchar_t* tabLabels[5] = { L"GENERAL", L"UPDATES", L"COLORS", L"DEBUG", L"CROSSHAIR" };
+        for (int i = 0; i < 5; i++) {
+            bool active = (g_currentTab == i);
+            D2D1_COLOR_F col = active
+                ? D2D1::ColorF(0.18f, 0.45f, 0.72f)
+                : D2D1::ColorF(0.08f, 0.10f, 0.14f);
+            DrawD2DButton(g_pRenderTarget,
+                D2D1::RectF(L.tabX[i], L.tY1, L.tabX2[i], L.tY2),
+                tabLabels[i], col, 11.0f * baseScale
+            );
+        }
 
-            } else if (g_currentTab == 3) {
-                g_pRenderTarget->DrawText(L"DEBUG & SIMULATION", 18, pHeaderFormat, D2D1::RectF(margin, cY, W - margin, cY + 0.04f * H), pWhite);
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, cY + 0.05f * H, W - margin, cY + 0.10f * H), g_debugMode ? L"Simulation [ ON ]" : L"Simulation [ OFF ]", g_debugMode ? D2D1::ColorF(0.0f, 0.6f, 0.2f) : D2D1::ColorF(0.3f, 0.3f, 0.3f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, cY + 0.12f * H, W - margin, cY + 0.17f * H), g_forceDiving ? L"Force Diving [ ON ]" : L"Force Diving [ OFF ]", g_forceDiving ? D2D1::ColorF(0.0f, 0.6f, 0.2f) : D2D1::ColorF(0.3f, 0.3f, 0.3f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, cY + 0.19f * H, W - margin, cY + 0.24f * H), g_forceDetection ? L"Force Match [ ON ]" : L"Force Match [ OFF ]", g_forceDetection ? D2D1::ColorF(0.0f, 0.6f, 0.2f) : D2D1::ColorF(0.3f, 0.3f, 0.3f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, 0.60f * H, margin + (contentW * 0.45f), 0.65f * H), L"- TOLERANCE", D2D1::ColorF(0.2f, 0.2f, 0.2f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(W - margin - (contentW * 0.45f), 0.60f * H, W - margin, 0.65f * H), L"+ TOLERANCE", D2D1::ColorF(0.2f, 0.2f, 0.2f));
+        float cY = L.cY;
 
-            } else if (g_currentTab == 4) {
-                g_pRenderTarget->DrawText(L"PRECISION CROSSHAIR CONFIG", 26, pHeaderFormat, D2D1::RectF(margin, cY, W - margin, cY + 0.04f * H), pWhite);
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, cY + 0.05f * H, margin + (contentW * 0.45f), cY + 0.10f * H), L"CHOOSE COLOR", D2D1::ColorF(0.15f, 0.17f, 0.2f));
-                DrawD2DButton(g_pRenderTarget, D2D1::RectF(W - margin - (contentW * 0.45f), cY + 0.05f * H, W - margin, cY + 0.10f * H), g_crossPulse ? L"PULSE: ON" : L"PULSE: OFF", g_crossPulse ? D2D1::ColorF(0.5f, 0.1f, 0.5f) : D2D1::ColorF(0.15f, 0.17f, 0.2f));
-                
-                auto drawSetting = [&](std::wstring label, std::wstring val, float y) {
-                    g_pRenderTarget->DrawText(label.c_str(), label.length(), pVerFormat, D2D1::RectF(margin, y, margin + 160 * baseScale, y + 0.05f * H), pWhite);
-                    DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin + 170 * baseScale, y, margin + 220 * baseScale, y + 0.05f * H), L"-", D2D1::ColorF(0.15f, 0.17f, 0.2f));
-                    DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin + 230 * baseScale, y, margin + 280 * baseScale, y + 0.05f * H), L"+", D2D1::ColorF(0.15f, 0.17f, 0.2f));
-                    g_pRenderTarget->DrawText(val.c_str(), val.length(), pVerFormat, D2D1::RectF(margin + 290 * baseScale, y, W - margin, y + 0.05f * H), pBlue);
-                };
-                drawSetting(L"Thickness:", std::to_wstring((int)g_crossThickness), cY + 0.12f * H);
-                drawSetting(L"Offset X:", std::to_wstring((int)g_crossOffsetX), cY + 0.19f * H);
-                drawSetting(L"Offset Y:", std::to_wstring((int)g_crossOffsetY), cY + 0.26f * H);
-                drawSetting(L"Rotation:", std::to_wstring((int)g_crossAngle), cY + 0.33f * H);
+        // ─────────────────────────────────────────────────────────────────────
+        // Tab content
+        // ─────────────────────────────────────────────────────────────────────
+        if (g_currentTab == 0) {
+            // ─ GENERAL ──────────────────────────────────────────────────────
+            g_pRenderTarget->DrawText(L"HOTKEYS — Click to rebind", 25, pHeader,
+                D2D1::RectF(L.margin, cY, L.W - L.margin, cY + 0.04f * L.H), pWhite);
+
+            float bindX1 = L.margin;
+            float bindX2 = L.margin + L.contentW * 0.6f;
+            float bindX3 = L.margin + L.contentW * 0.62f;
+            float rowH   = 0.04f * L.H;
+
+            struct BindRow { int id; const wchar_t* label; UINT mod; UINT vk; };
+            BindRow rows[5] = {
+                {1, L"Toggle Dashboard:",   g_keybinds.toggleMod, g_keybinds.toggleKey},
+                {2, L"Visual ROI Selector:", g_keybinds.roiMod,   g_keybinds.roiKey},
+                {3, L"Precision Crosshair:", g_keybinds.crossMod, g_keybinds.crossKey},
+                {4, L"Zero Angle Reset:",   g_keybinds.zeroMod,  g_keybinds.zeroKey},
+                {5, L"Secret Debug Tab:",   g_keybinds.debugMod, g_keybinds.debugKey},
+            };
+            for (int i = 0; i < 5; i++) {
+                float y = cY + (0.05f + i * 0.05f) * L.H;
+                g_pRenderTarget->DrawText(rows[i].label, (UINT32)wcslen(rows[i].label), pBody,
+                    D2D1::RectF(bindX1, y, bindX2, y + rowH), pGrey);
+                std::wstring bindText = (g_listeningKey == rows[i].id)
+                    ? L"[ Press Key... ]"
+                    : (L"[ " + GetKeyName(rows[i].mod, rows[i].vk) + L" ]");
+                g_pRenderTarget->DrawText(bindText.c_str(), (UINT32)bindText.length(), pBody,
+                    D2D1::RectF(bindX3, y, L.W - L.margin, y + rowH),
+                    (g_listeningKey == rows[i].id) ? pBlue : pWhite);
             }
 
-            DrawD2DButton(g_pRenderTarget, D2D1::RectF(margin, 0.88f * H, W - margin, 0.96f * H), L"QUIT SUITE", D2D1::ColorF(0.7f, 0.1f, 0.15f));
+            DrawD2DButton(g_pRenderTarget,
+                D2D1::RectF(L.margin, 0.65f * L.H, L.W - L.margin, 0.73f * L.H),
+                L"RECALIBRATE BASE SETTINGS", D2D1::ColorF(0.55f, 0.15f, 0.15f), 12.0f * baseScale);
+            DrawD2DButton(g_pRenderTarget,
+                D2D1::RectF(L.margin, 0.75f * L.H, L.W - L.margin, 0.83f * L.H),
+                L"MASTER CALIBRATION WIZARD", D2D1::ColorF(0.75f, 0.35f, 0.0f), 12.0f * baseScale);
 
-            pVerFormat->Release();
-            pHeaderFormat->Release();
-            pTitleFormat->Release();
-            pBlue->Release();
-            pGrey->Release();
-            pWhite->Release();
-            g_pRenderTarget->EndDraw();
-            ValidateRect(hWnd, NULL);
-            return 0;
-        }
-        case WM_TIMER:
+        } else if (g_currentTab == 1) {
+            // ─ UPDATES ──────────────────────────────────────────────────────
+            g_pRenderTarget->DrawText(L"SOFTWARE DASHBOARD", 18, pHeader,
+                D2D1::RectF(L.margin, cY, L.W - L.margin, cY + 0.05f * L.H), pWhite);
+
+            std::wstring curVerStr  = L"Installed:  v" VERSION_WSTR;
+            std::wstring latestStr  = std::wstring(g_latestVersionOnline.begin(), g_latestVersionOnline.end());
+            std::wstring latestLine = latestStr.empty() ? L"Latest:     (not checked)" : L"Latest:     " + latestStr;
+
+            g_pRenderTarget->DrawText(curVerStr.c_str(),  (UINT32)curVerStr.length(), pBody,
+                D2D1::RectF(L.margin, cY + 0.08f * L.H, L.W - L.margin, cY + 0.13f * L.H), pGrey);
+            g_pRenderTarget->DrawText(latestLine.c_str(), (UINT32)latestLine.length(), pBody,
+                D2D1::RectF(L.margin, cY + 0.14f * L.H, L.W - L.margin, cY + 0.19f * L.H), pGrey);
+
             if (g_isCheckingForUpdates) {
-                g_updateSpinAngle += 10.0f;
-                if (g_updateSpinAngle >= 360.0f) g_updateSpinAngle = 0.0f;
+                g_pRenderTarget->DrawText(L"Checking for updates...", 22, pBody,
+                    D2D1::RectF(L.margin, cY + 0.22f * L.H, L.W - L.margin, cY + 0.27f * L.H), pBlue);
+            } else if (g_updateAvailable) {
+                g_pRenderTarget->DrawText(L"Update available! Click below to install.", 40, pBody,
+                    D2D1::RectF(L.margin, cY + 0.22f * L.H, L.W - L.margin, cY + 0.27f * L.H), pBlue);
             }
-            InvalidateRect(hWnd, NULL, FALSE);
-            return 0;
-        case WM_CLOSE:
-            ShowWindow(hWnd, SW_MINIMIZE);
-            return 0;
-        case WM_DESTROY:
-            if (g_pRenderTarget) g_pRenderTarget->Release();
-            return 0;
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
+
+            DrawD2DButton(g_pRenderTarget,
+                D2D1::RectF(L.margin, 0.45f * L.H, L.W - L.margin, 0.56f * L.H),
+                g_updateAvailable ? L"INSTALL UPDATE NOW" : L"CHECK / DOWNLOAD LATEST",
+                g_updateAvailable ? D2D1::ColorF(0.0f, 0.5f, 0.85f) : D2D1::ColorF(0.12f, 0.15f, 0.20f),
+                13.0f * baseScale);
+
+        } else if (g_currentTab == 2) {
+            // ─ COLORS ───────────────────────────────────────────────────────
+            g_pRenderTarget->DrawText(L"ALGORITHM COLOR CONFIG", 22, pHeader,
+                D2D1::RectF(L.margin, cY, L.W - L.margin, cY + 0.05f * L.H), pWhite);
+
+            g_pRenderTarget->DrawText(L"Current Target Color:", 21, pBody,
+                D2D1::RectF(L.margin, cY + 0.09f * L.H, L.W - L.margin, cY + 0.14f * L.H), pGrey);
+
+            D2D1_RECT_F swatch = D2D1::RectF(L.margin, cY + 0.15f * L.H, L.W - L.margin, cY + 0.32f * L.H);
+            ID2D1SolidColorBrush* pSwatch = NULL;
+            g_pRenderTarget->CreateSolidColorBrush(
+                D2D1::ColorF(GetRValue(g_targetColor)/255.0f,
+                             GetGValue(g_targetColor)/255.0f,
+                             GetBValue(g_targetColor)/255.0f), &pSwatch);
+            g_pRenderTarget->FillRoundedRectangle(D2D1::RoundedRect(swatch, 8.0f, 8.0f), pSwatch);
+            g_pRenderTarget->DrawRoundedRectangle(D2D1::RoundedRect(swatch, 8.0f, 8.0f), pGrey, 1.0f);
+            if (pSwatch) pSwatch->Release();
+
+            wchar_t rgb[48];
+            swprintf_s(rgb, L"RGB(%d, %d, %d)", GetRValue(g_targetColor), GetGValue(g_targetColor), GetBValue(g_targetColor));
+            g_pRenderTarget->DrawText(rgb, (UINT32)wcslen(rgb), pHeader,
+                D2D1::RectF(L.margin, cY + 0.34f * L.H, L.W - L.margin, cY + 0.41f * L.H), pWhite);
+
+            g_pRenderTarget->DrawText(
+                L"Press Ctrl+R in-game to open the ROI selector,\nthen click the pixel you want to track.",
+                87, pBody,
+                D2D1::RectF(L.margin, cY + 0.44f * L.H, L.W - L.margin, cY + 0.55f * L.H), pGrey);
+
+        } else if (g_currentTab == 3) {
+            // ─ DEBUG ────────────────────────────────────────────────────────
+            g_pRenderTarget->DrawText(L"DEBUG & SIMULATION", 18, pHeader,
+                D2D1::RectF(L.margin, cY, L.W - L.margin, cY + 0.04f * L.H), pWhite);
+
+            float bH = 0.06f * L.H;
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(L.margin, cY+0.05f*L.H, L.W-L.margin, cY+0.05f*L.H+bH),
+                g_debugMode      ? L"SIMULATION [ ON ]"  : L"SIMULATION [ OFF ]",
+                g_debugMode      ? D2D1::ColorF(0.0f,0.55f,0.2f) : D2D1::ColorF(0.22f,0.22f,0.22f), 12.0f*baseScale);
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(L.margin, cY+0.13f*L.H, L.W-L.margin, cY+0.13f*L.H+bH),
+                g_forceDiving    ? L"FORCE DIVING [ ON ]": L"FORCE DIVING [ OFF ]",
+                g_forceDiving    ? D2D1::ColorF(0.0f,0.55f,0.2f) : D2D1::ColorF(0.22f,0.22f,0.22f), 12.0f*baseScale);
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(L.margin, cY+0.21f*L.H, L.W-L.margin, cY+0.21f*L.H+bH),
+                g_forceDetection ? L"FORCE MATCH [ ON ]" : L"FORCE MATCH [ OFF ]",
+                g_forceDetection ? D2D1::ColorF(0.0f,0.55f,0.2f) : D2D1::ColorF(0.22f,0.22f,0.22f), 12.0f*baseScale);
+            DrawD2DButton(g_pRenderTarget, D2D1::RectF(L.margin, cY+0.29f*L.H, L.W-L.margin, cY+0.29f*L.H+bH),
+                L"RESET ANGLE TO ZERO", D2D1::ColorF(0.75f,0.35f,0.0f), 12.0f*baseScale);
+
+            g_pRenderTarget->DrawText(L"COLOUR TOLERANCE", 16, pHeader,
+                D2D1::RectF(L.margin, 0.55f*L.H, L.W-L.margin, 0.60f*L.H), pWhite);
+            DrawD2DButton(g_pRenderTarget,
+                D2D1::RectF(L.margin,                          0.60f*L.H, L.margin+L.contentW*0.45f, 0.67f*L.H),
+                L"–  DECREASE", D2D1::ColorF(0.18f,0.18f,0.22f), 12.0f*baseScale);
+            DrawD2DButton(g_pRenderTarget,
+                D2D1::RectF(L.W-L.margin-L.contentW*0.45f, 0.60f*L.H, L.W-L.margin, 0.67f*L.H),
+                L"+  INCREASE", D2D1::ColorF(0.18f,0.18f,0.22f), 12.0f*baseScale);
+
+            wchar_t diag[128];
+            swprintf_s(diag, L"Diag  ·  Angle = %.2f°   Match = %.0f%%", g_currentAngle, g_detectionRatio * 100.0f);
+            g_pRenderTarget->DrawText(diag, (UINT32)wcslen(diag), pBody,
+                D2D1::RectF(L.margin, 0.70f*L.H, L.W-L.margin, 0.76f*L.H), pGrey);
+
+        } else if (g_currentTab == 4) {
+            // ─ CROSSHAIR ────────────────────────────────────────────────────
+            g_pRenderTarget->DrawText(L"PRECISION CROSSHAIR CONFIG", 26, pHeader,
+                D2D1::RectF(L.margin, cY, L.W - L.margin, cY + 0.05f * L.H), pWhite);
+
+            float bH  = 0.06f * L.H;
+            float bY0 = cY + 0.06f * L.H;
+            // Top two control buttons
+            DrawD2DButton(g_pRenderTarget,
+                D2D1::RectF(L.margin, bY0, L.margin + L.contentW * 0.45f, bY0 + bH),
+                L"🎨  CHOOSE COLOR", D2D1::ColorF(0.12f, 0.15f, 0.22f), 12.0f * baseScale);
+            DrawD2DButton(g_pRenderTarget,
+                D2D1::RectF(L.W - L.margin - L.contentW * 0.45f, bY0, L.W - L.margin, bY0 + bH),
+                g_crossPulse ? L"PULSE  [ ON ]" : L"PULSE  [ OFF ]",
+                g_crossPulse  ? D2D1::ColorF(0.45f, 0.1f, 0.55f) : D2D1::ColorF(0.15f, 0.15f, 0.20f),
+                12.0f * baseScale);
+
+            // ─ / + setting rows ─────────────────────────────────────────────
+            // Layout: [Label 38%] [  –btn 12%  ] [  +btn 12%  ] [Value 38%]
+            float btnW  = L.contentW * 0.12f;
+            float minX  = L.margin + L.contentW * 0.40f;
+            float plusX = L.margin + L.contentW * 0.56f;
+            float valX  = L.margin + L.contentW * 0.70f;
+
+            struct SettingRow { const wchar_t* label; float value; };
+            SettingRow settings[4] = {
+                { L"Thickness:",  g_crossThickness },
+                { L"Offset X:",   g_crossOffsetX   },
+                { L"Offset Y:",   g_crossOffsetY   },
+                { L"Rotation °:", g_crossAngle     },
+            };
+            float rows[4] = {
+                cY + 0.14f * L.H,
+                cY + 0.22f * L.H,
+                cY + 0.30f * L.H,
+                cY + 0.38f * L.H
+            };
+            for (int i = 0; i < 4; i++) {
+                float ry = rows[i];
+                // Label
+                g_pRenderTarget->DrawText(settings[i].label, (UINT32)wcslen(settings[i].label), pBody,
+                    D2D1::RectF(L.margin, ry + 0.01f * L.H, minX, ry + bH), pGrey);
+                // – button
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(minX, ry, minX + btnW, ry + bH),
+                    L"–", D2D1::ColorF(0.15f, 0.15f, 0.20f), 14.0f * baseScale);
+                // + button
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(plusX, ry, plusX + btnW, ry + bH),
+                    L"+", D2D1::ColorF(0.15f, 0.15f, 0.20f), 14.0f * baseScale);
+                // Value
+                std::wstring val = std::to_wstring((int)settings[i].value);
+                g_pRenderTarget->DrawText(val.c_str(), (UINT32)val.length(), pHeader,
+                    D2D1::RectF(valX, ry + 0.005f * L.H, L.W - L.margin, ry + bH), pBlue);
+            }
+
+            g_pRenderTarget->DrawText(L"Press F10 in-game to toggle the crosshair overlay.", 50, pBody,
+                D2D1::RectF(L.margin, cY + 0.48f * L.H, L.W - L.margin, cY + 0.54f * L.H), pGrey);
+        }
+
+        // ── Footer Quit button ────────────────────────────────────────────────
+        DrawD2DButton(g_pRenderTarget,
+            D2D1::RectF(L.margin, L.footerY1, L.W - L.margin, L.footerY2),
+            L"QUIT SUITE", D2D1::ColorF(0.65f, 0.08f, 0.12f), 13.0f * baseScale);
+
+        // ── Release resources ─────────────────────────────────────────────────
+        if (pBody)   pBody->Release();
+        if (pHeader) pHeader->Release();
+        if (pTitle)  pTitle->Release();
+        if (pBlue)   pBlue->Release();
+        if (pGrey)   pGrey->Release();
+        if (pDark)   pDark->Release();
+        if (pWhite)  pWhite->Release();
+
+        hr = g_pRenderTarget->EndDraw();
+        if (hr == D2DERR_RECREATE_TARGET) {
+            g_pRenderTarget->Release();
+            g_pRenderTarget = NULL;
+            InitD2D(hWnd);
+        }
+        ValidateRect(hWnd, NULL);
+        return 0;
+    }
+
+    case WM_TIMER:
+        if (g_isCheckingForUpdates) {
+            g_updateSpinAngle += 10.0f;
+            if (g_updateSpinAngle >= 360.0f) g_updateSpinAngle = 0.0f;
+        }
+        InvalidateRect(hWnd, NULL, FALSE);
+        return 0;
+
+    case WM_CLOSE:
+        ShowWindow(hWnd, SW_MINIMIZE);
+        return 0;
+
+    case WM_DESTROY:
+        if (g_pRenderTarget) { g_pRenderTarget->Release(); g_pRenderTarget = NULL; }
+        return 0;
+
+    default:
+        return DefWindowProc(hWnd, message, wParam, lParam);
     }
 }

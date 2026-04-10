@@ -1,3 +1,11 @@
+### BetterAngle Pro v4.20.4
+- RUTHLESS REWRITE of ControlPanel.cpp.
+- Introduced Layout struct: both WM_PAINT and WM_LBUTTONDOWN now share exact same coordinate system. Buttons always clickable.
+- Fixed WM_SIZE to call Resize() on the D2D target instead of recreating it, enabling smooth window dragging.
+- Added WM_GETMINMAXINFO to enforce 420x440 minimum window size.
+- CROSSHAIR tab now fully functional: all 4 settings (Thickness, OffsetX, OffsetY, Rotation), Color Picker and Pulse toggle all wired up perfectly.
+- Tabs now use even percentage-based spacing, no more overflow at small window sizes.
+
 ### BetterAngle Pro v4.20.3
 - Refactored entire UI layout to use 100% percentage-based vertical and horizontal positioning.
 - Added Dynamic Font Scaling (text shrinks/grows with window size).
