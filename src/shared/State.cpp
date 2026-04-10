@@ -20,69 +20,81 @@ float g_promptThreshold = 0.05f;
 #include <string>
 
 void LoadSettings() {
-    std::ifstream ifs("profiles/settings.json");
-    if (!ifs.is_open()) return;
-    std::string content((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-    auto eFloat = [&](std::string k, float def) -> float {
-        size_t p = content.find("\"" + k + "\":");
-        if (p == std::string::npos) return def;
-        try { return std::stof(content.substr(p + k.length() + 2)); } catch(...) { return def; }
-    };
-    auto eInt = [&](std::string k, UINT def) -> UINT {
-        size_t p = content.find("\"" + k + "\":");
-        if (p == std::string::npos) return def;
-        try { return std::stoi(content.substr(p + k.length() + 2)); } catch(...) { return def; }
-    };
-    g_keybinds.toggleMod = eInt("toggleMod", MOD_CONTROL);
-    g_keybinds.toggleKey = eInt("toggleKey", 'U');
-    g_keybinds.roiMod = eInt("roiMod", MOD_CONTROL);
-    g_keybinds.roiKey = eInt("roiKey", 'R');
-    g_keybinds.crossMod = eInt("crossMod", 0);
-    g_keybinds.crossKey = eInt("crossKey", VK_F10);
-    g_keybinds.zeroMod = eInt("zeroMod", MOD_CONTROL);
-    g_keybinds.zeroKey = eInt("zeroKey", 'G');
-    g_keybinds.debugMod = eInt("debugMod", MOD_CONTROL);
-    g_keybinds.debugKey = eInt("debugKey", '9');
-    
-    g_promptThreshold = eFloat("promptThreshold", 0.05f);
-    
-    size_t pp = content.find("\"lastProfile\":\"");
-    if (pp != std::string::npos) {
-        size_t end = content.find("\"", pp + 15);
-        std::string n = content.substr(pp + 15, end - (pp + 15));
-        g_lastLoadedProfileName = std::wstring(n.begin(), n.end());
+  std::ifstream ifs("profiles/settings.json");
+  if (!ifs.is_open())
+    return;
+  std::string content((std::istreambuf_iterator<char>(ifs)),
+                      std::istreambuf_iterator<char>());
+  auto eFloat = [&](std::string k, float def) -> float {
+    size_t p = content.find("\"" + k + "\":");
+    if (p == std::string::npos)
+      return def;
+    try {
+      return std::stof(content.substr(p + k.length() + 2));
+    } catch (...) {
+      return def;
     }
+  };
+  auto eInt = [&](std::string k, UINT def) -> UINT {
+    size_t p = content.find("\"" + k + "\":");
+    if (p == std::string::npos)
+      return def;
+    try {
+      return std::stoi(content.substr(p + k.length() + 2));
+    } catch (...) {
+      return def;
+    }
+  };
+  g_keybinds.toggleMod = eInt("toggleMod", MOD_CONTROL);
+  g_keybinds.toggleKey = eInt("toggleKey", 'U');
+  g_keybinds.roiMod = eInt("roiMod", MOD_CONTROL);
+  g_keybinds.roiKey = eInt("roiKey", 'R');
+  g_keybinds.crossMod = eInt("crossMod", 0);
+  g_keybinds.crossKey = eInt("crossKey", VK_F10);
+  g_keybinds.zeroMod = eInt("zeroMod", MOD_CONTROL);
+  g_keybinds.zeroKey = eInt("zeroKey", 'G');
+  g_keybinds.debugMod = eInt("debugMod", MOD_CONTROL);
+  g_keybinds.debugKey = eInt("debugKey", '9');
+
+  g_promptThreshold = eFloat("promptThreshold", 0.05f);
+
+  size_t pp = content.find("\"lastProfile\":\"");
+  if (pp != std::string::npos) {
+    size_t end = content.find("\"", pp + 15);
+    std::string n = content.substr(pp + 15, end - (pp + 15));
+    g_lastLoadedProfileName = std::wstring(n.begin(), n.end());
+  }
 }
 
 void SaveSettings() {
-    std::ofstream ofs("profiles/settings.json");
-    ofs << "{\n";
-    ofs << "  \"toggleMod\": " << g_keybinds.toggleMod << ",\n";
-    ofs << "  \"toggleKey\": " << g_keybinds.toggleKey << ",\n";
-    ofs << "  \"roiMod\": " << g_keybinds.roiMod << ",\n";
-    ofs << "  \"roiKey\": " << g_keybinds.roiKey << ",\n";
-    ofs << "  \"crossMod\": " << g_keybinds.crossMod << ",\n";
-    ofs << "  \"crossKey\": " << g_keybinds.crossKey << ",\n";
-    ofs << "  \"zeroMod\": " << g_keybinds.zeroMod << ",\n";
-    ofs << "  \"zeroKey\": " << g_keybinds.zeroKey << ",\n";
-    ofs << "  \"debugMod\": " << g_keybinds.debugMod << ",\n";
-    ofs << "  \"debugKey\": " << g_keybinds.debugKey << ",\n";
-    ofs << "  \"promptThreshold\": " << g_promptThreshold << ",\n";
-    
-    std::string lp = "Fallback_Default";
-    lp = "";
-    for (wchar_t c : g_lastLoadedProfileName) lp += (char)c;
-    ofs << "  \"lastProfile\":\"" << lp << "\"\n";
-    ofs << "}\n";
+  std::ofstream ofs("profiles/settings.json");
+  ofs << "{\n";
+  ofs << "  \"toggleMod\": " << g_keybinds.toggleMod << ",\n";
+  ofs << "  \"toggleKey\": " << g_keybinds.toggleKey << ",\n";
+  ofs << "  \"roiMod\": " << g_keybinds.roiMod << ",\n";
+  ofs << "  \"roiKey\": " << g_keybinds.roiKey << ",\n";
+  ofs << "  \"crossMod\": " << g_keybinds.crossMod << ",\n";
+  ofs << "  \"crossKey\": " << g_keybinds.crossKey << ",\n";
+  ofs << "  \"zeroMod\": " << g_keybinds.zeroMod << ",\n";
+  ofs << "  \"zeroKey\": " << g_keybinds.zeroKey << ",\n";
+  ofs << "  \"debugMod\": " << g_keybinds.debugMod << ",\n";
+  ofs << "  \"debugKey\": " << g_keybinds.debugKey << ",\n";
+  ofs << "  \"promptThreshold\": " << g_promptThreshold << ",\n";
+
+  std::string lp = "Fallback_Default";
+  lp = "";
+  for (wchar_t c : g_lastLoadedProfileName)
+    lp += (char)c;
+  ofs << "  \"lastProfile\":\"" << lp << "\"\n";
+  ofs << "}\n";
 }
 bool g_showCrosshair = false;
 COLORREF g_pickedColor = RGB(255, 255, 255);
 COLORREF g_targetColor = RGB(255, 255, 255);
 float g_latestVersion = 4.920f; // v4.9.20 format fallback
 std::wstring g_latestName = L"Pending Scan";
-RECT g_selectionRect = { 0, 0, 0, 0 };
-POINT g_startPoint = { 0 };
-
+RECT g_selectionRect = {0, 0, 0, 0};
+POINT g_startPoint = {0};
 
 std::string g_status = "Connected (v" VERSION_STR " Pro)";
 std::string g_latestVersionOnline = "v" VERSION_STR;

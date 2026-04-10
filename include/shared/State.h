@@ -1,11 +1,12 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include <windows.h>
-#include <atomic>
-#include <vector>
-#include <string>
 #include "shared/Logic.h"
+#include <atomic>
+#include <string>
+#include <vector>
+#include <windows.h>
+
 
 // --- Inside State.h ---
 #define STRING_HELPER(x) #x
@@ -14,7 +15,7 @@
 
 // Define the "raw" version if not passed by compiler flags
 #ifndef APP_VERSION
-    #define APP_VERSION 4.10.7
+#define APP_VERSION 4.11.1
 #endif
 
 // This creates the actual strings "4.9.36" and L"4.9.36"
@@ -35,11 +36,16 @@ extern bool g_updateAvailable;
 extern float g_promptThreshold;
 
 struct Keybinds {
-    UINT toggleMod = MOD_CONTROL; UINT toggleKey = 'U';
-    UINT roiMod = MOD_CONTROL; UINT roiKey = 'R';
-    UINT crossMod = 0; UINT crossKey = VK_F10;
-    UINT zeroMod = MOD_CONTROL; UINT zeroKey = 'G';
-    UINT debugMod = MOD_CONTROL; UINT debugKey = '9';
+  UINT toggleMod = MOD_CONTROL;
+  UINT toggleKey = 'U';
+  UINT roiMod = MOD_CONTROL;
+  UINT roiKey = 'R';
+  UINT crossMod = 0;
+  UINT crossKey = VK_F10;
+  UINT zeroMod = MOD_CONTROL;
+  UINT zeroKey = 'G';
+  UINT debugMod = MOD_CONTROL;
+  UINT debugKey = '9';
 };
 extern Keybinds g_keybinds;
 extern std::wstring g_lastLoadedProfileName;

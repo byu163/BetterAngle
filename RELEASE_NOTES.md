@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.11.0: "Tri-State FOV Profiling & Auto-Threshold Wizards"
+v4.11.0: Overhauled the FOV Engine to decouple binary matching and scale linearly across three distinct context fields: *Normal*, *Gliding*, and *Skydiving*. Sensitivities are now driven by a dedicated triple-band configuration matrix. The global UI architecture has been mathematically tightened to block excessive screen overlap, and the Control Panel now features an internal Auto-Threshold Wizard that spawns a raw Win32 pipeline to dynamically snapshot `F10` pixel ratios for Gliding and Freefalling threshold captures, syncing them natively into standard memory. Additionally, the standalone Calibration executable has been retrofitted to calculate the third matrix.
+
 ### BetterAngle Pro v4.10.7: "Hotfix: JSON Registry Exception Crash"
 v4.10.7: Fixed a fatal initialization runtime exception (`std::invalid_argument`) triggered on startup when parsing standard config spaces. The data parser previously choked on trailing colons during memory loading (`settings.json`), causing an immediate UI crash immediately after the startup splash sequence. The JSON engine now securely wraps all metadata injection points in proper `try-catch` structures with correct spatial bounds, ensuring total startup stability regardless of config formatting.
 

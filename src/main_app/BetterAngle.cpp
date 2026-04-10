@@ -51,9 +51,12 @@ void DetectorThread() {
             if (g_forceDiving) {
                 g_isDiving = true;
                 g_logic.SetScale(p.scale_diving);
-            } else if (g_detectionRatio >= g_promptThreshold) {
+            } else if (g_detectionRatio >= g_freefallThreshold) {
                 g_isDiving = true;
                 g_logic.SetScale(p.scale_diving);
+            } else if (g_detectionRatio >= g_glideThreshold) {
+                g_isDiving = true;
+                g_logic.SetScale(p.scale_gliding);
             } else {
                 g_isDiving = false;
                 g_logic.SetScale(p.scale_normal);
