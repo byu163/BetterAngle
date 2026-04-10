@@ -3,6 +3,8 @@
 #include "shared/State.h"
 
 bool IsFortniteFocused() {
+    if (g_forceDetection) return true; // Safety fallback
+
     HWND hForeground = GetForegroundWindow();
     if (!hForeground) return false;
 
@@ -10,16 +12,7 @@ bool IsFortniteFocused() {
     GetClassNameW(hForeground, className, 256);
     std::wstring cls(className);
 
-    // Fortnite uses "UnrealWindow" or "Fortnite"
-    if (cls == L"UnrealWindow" || cls == L"Fortnite") {
-        return true;
-    }
-
-    wchar_t title[256];
-    GetWindowTextW(hForeground, title, 256);
-    std::wstring wTitle(title);
-
-    return (wTitle.find(L"Fortnite") != std::wstring::npos);
+    return (cls == L"UnrealWindow");
 }
 
 AngleLogic::AngleLogic(double dpi, double sens)

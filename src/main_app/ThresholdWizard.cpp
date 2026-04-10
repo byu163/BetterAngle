@@ -7,6 +7,7 @@
 
 extern float g_detectionRatio;
 extern std::vector<Profile> g_allProfiles;
+bool IsFortniteFocused();
 
 int g_wizStep = 0;
 HWND g_hWiz = NULL;
@@ -20,6 +21,7 @@ LRESULT CALLBACK ThresholdWizProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         return 0;
     }
     if (message == WM_INPUT) {
+        if (!IsFortniteFocused()) return 0; // Prevent alt-tab and pre-focus tracking corruption
         int dx = GetRawInputDeltaX(lParam);
         if (g_wizStep == 0) g_wizDxNormal += dx;
         else if (g_wizStep == 1) g_wizDxFreefall += dx;
