@@ -42,8 +42,21 @@ bool Profile::Load(const std::wstring &path) {
     return d;
   };
 
+  auto extractString = [&](const std::string &key) -> std::string {
+    size_t pos = content.find("\"" + key + "\": \"");
+    if (pos == std::string::npos) return "";
+    size_t end = content.find("\"", pos + 4 + key.length());
+    return content.substr(pos + 4 + key.length(), end - (pos + 4 + key.length()));
+  };
+
   scale_normal = extractDouble("scale_normal");
   scale_diving = extractDouble("scale_diving");
+  scale_gliding = extractDouble("scale_gliding");
+
+  fov = extractString("fov");
+  resolution = extractString("resolution");
+  render_scale = extractString("render_scale");
+
   roi_x = (int)extractDouble("roi_x");
   roi_y = (int)extractDouble("roi_y");
   roi_w = (int)extractDouble("roi_w");
@@ -69,6 +82,10 @@ bool Profile::Save(const std::wstring &path) {
   oss << "  \"name\": \"" << n << "\",\n";
   oss << "  \"scale_normal\": " << scale_normal << ",\n";
   oss << "  \"scale_diving\": " << scale_diving << ",\n";
+  oss << "  \"scale_gliding\": " << scale_gliding << ",\n";
+  oss << "  \"fov\": \"" << fov << "\",\n";
+  oss << "  \"resolution\": \"" << resolution << "\",\n";
+  oss << "  \"render_scale\": \"" << render_scale << "\",\n";
   oss << "  \"roi_x\": " << roi_x << ",\n";
   oss << "  \"roi_y\": " << roi_y << ",\n";
   oss << "  \"roi_w\": " << roi_w << ",\n";

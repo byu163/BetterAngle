@@ -165,8 +165,10 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                     else if (y >= 260 && y <= 280) g_listeningKey = 5;
                 }
                 
-                
-                
+                if (x >= 40 && x <= 380 && y >= 390 && y <= 430) {
+                    void ShowFirstTimeSetup(HINSTANCE hInstance);
+                    ShowFirstTimeSetup((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
+                }
                 if (x >= 40 && x <= 380 && y >= 440 && y <= 480) {
                     void StartThresholdWizard(HINSTANCE hInstance);
                     StartThresholdWizard((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE));
@@ -266,6 +268,8 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 drawBind(5, L"Secret Debug Tab:", g_keybinds.debugMod, g_keybinds.debugKey, 260);
 
 
+
+                DrawD2DButton(g_pRenderTarget, D2D1::RectF(40, 390, 380, 430), L"RECALIBRATE BASE SETTINGS", D2D1::ColorF(0.6f, 0.2f, 0.2f));
 
                 std::wstring act = L"Active: " + g_currentProfile.name;
                 g_pRenderTarget->DrawText(act.c_str(), act.length(), pVerFormat, D2D1::RectF(40, 495, 380, 515), pBlue);

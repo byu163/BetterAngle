@@ -17,6 +17,7 @@
 #include "shared/Tray.h"
 #include "shared/Startup.h"
 #include "shared/ControlPanel.h"
+#include "shared/FirstTimeSetup.h"
 
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "gdiplus.lib")
@@ -244,18 +245,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     LoadSettings();
     g_allProfiles = GetProfiles(GetAppStoragePath());
     if (g_allProfiles.empty()) {
-        Profile defaultP;
-        defaultP.name = L"Fallback_Default";
-        defaultP.scale_normal = 0.0031415;
-        defaultP.scale_diving = 0.0052358;
-        defaultP.roi_x = 700;
-        defaultP.roi_y = 800;
-        defaultP.roi_w = 500;
-        defaultP.roi_h = 60;
-        defaultP.target_color = RGB(150, 150, 150);
-        defaultP.tolerance = 25;
-        defaultP.Save(GetAppStoragePath() + L"Fallback_Default.json");
-        g_allProfiles.push_back(defaultP);
+        ShowFirstTimeSetup(hInstance);
     }
     
     g_selectedProfileIdx = 0;
