@@ -62,19 +62,26 @@ LRESULT CALLBACK ConfigWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
                     g_wizardMsg = L"STEP 2: Type your MOUSE DPI and press 'ENTER'.";
                 } else if (g_step == 2 && !g_dpiInput.empty()) {
                     g_step = 3;
-                    g_wizardMsg = L"STEP 3: Point your camera exactly at 0 degrees and press 'ENTER'.";
-                } else if (g_step == 3) {
+                    g_wizardMsg = L"STEP 3: Look 0\u00B0, turn exactly 120\u00B0 then press 'F10'.";
+                }
+            } else if (wParam == VK_F10) {
+                if (g_step == 3) {
                     g_step = 4;
-                    g_wizardMsg = L"STEP 4: Turn exactly 120 degrees and press 'ENTER'.";
+                    g_wizardMsg = L"STEP 4: Now SKYDIVE, turn 120\u00B0 then press 'F10'.";
                 } else if (g_step == 4) {
                     g_step = 5;
-                    double diff = (double)g_dxB - (double)g_dxA;
-                    g_result.scale_normal = 120.0 / diff;
-                    g_result.scale_diving = g_result.scale_normal * 1.5; 
+                    double diff_normal = std::abs((double)g_dxA);
+                    double diff_diving = std::abs((double)g_dxB);
+                    // Prevent div/zero
+                    if (diff_normal == 0) diff_normal = 1;
+                    if (diff_diving == 0) diff_diving = 1;
+                    
+                    g_result.scale_normal = 120.0 / diff_normal;
+                    g_result.scale_diving = 120.0 / diff_diving;
                     g_result.name = L"SENS:" + g_sensInput + L" DPI:" + g_dpiInput;
                     g_result.roi_x = 700; g_result.roi_y = 800; g_result.roi_w = 500; g_result.roi_h = 60;
                     g_result.target_color = RGB(150, 150, 150); g_result.tolerance = 25;
-                    g_wizardMsg = L"STEP 5: Calibration Complete! Press 'S' to Save.";
+                    g_wizardMsg = L"STEP 5: Done! F10 pushed. Press 'S' to Save.";
                 }
             } else if (wParam == 'S' && g_step == 5) {
                 CreateDirectoryW(L"profiles", NULL);
@@ -93,24 +100,24 @@ LRESULT CALLBACK ConfigWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
             graphics.Clear(Color(200, 30, 34, 40));
 
             FontFamily ff(L"Segoe UI");
-            Font f(&ff, 24, FontStyleBold, UnitPixel);
+            Font f(&ff, 18, FontStyleBold, UnitPixel);
             SolidBrush b(Color(255, 255, 255, 255));
-            graphics.DrawString(L"BETTERANGLE CONFIG TOOL (V3.5 PRO)", -1, &f, PointF(50, 50), &b);
+            graphics.DrawString(L"PRO CALIBRATION SUITE", -1, &f, PointF(20, 20), &b);
             
-            Font f2(&ff, 18, FontStyleRegular, UnitPixel);
-            graphics.DrawString(g_wizardMsg.c_str(), -1, &f2, PointF(50, 100), &b);
+            Font f2(&ff, 14, FontStyleRegular, UnitPixel);
+            graphics.DrawString(g_wizardMsg.c_str(), -1, &f2, PointF(20, 60), &b);
 
             if (g_step == 1) {
                 std::wstring txt = L"[" + g_sensInput + L"]";
-                graphics.DrawString(txt.c_str(), -1, &f2, PointF(50, 150), &b);
+                graphics.DrawString(txt.c_str(), -1, &f2, PointF(20, 90), &b);
             } else if (g_step == 2) {
                 std::wstring txt = L"[" + g_dpiInput + L"]";
-                graphics.DrawString(txt.c_str(), -1, &f2, PointF(50, 150), &b);
+                graphics.DrawString(txt.c_str(), -1, &f2, PointF(20, 90), &b);
             }
 
-            std::wstring statusLine = L"System Diagnostics: Scale Factor Pending | Raw Acc = " + std::to_wstring(g_dxA + g_dxB);
-            if (g_step == 5) statusLine = L"Resulting Normal Scale: " + std::to_wstring(g_result.scale_normal);
-            graphics.DrawString(statusLine.c_str(), -1, &f2, PointF(50, 250), &b);
+            std::wstring statusLine = L"Mouse Trace Buffer: " + std::to_wstring(g_dxA + g_dxB) + L" dx";
+            if (g_step == 5) statusLine = L"Scale Outputs -> N: " + std::to_wstring(g_result.scale_normal) + L"  D: " + std::to_wstring(g_result.scale_diving);
+            graphics.DrawString(statusLine.c_str(), -1, &f2, PointF(20, 150), &b);
 
             EndPaint(hWnd, &ps);
             return 0;
@@ -139,9 +146,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     HWND hwnd = CreateWindowEx(
         WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TOOLWINDOW,
-        L"BetterAngleConfig", L"BetterAngle Calibration Wizard",
+        L"BetterAngleConfig", L"Calibration Wizard",
         WS_POPUP,
-        100, 100, 800, 400,
+        100, 100, 600, 200,
         NULL, NULL, hInstance, NULL
     );
 
