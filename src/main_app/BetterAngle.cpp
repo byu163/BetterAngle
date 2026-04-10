@@ -110,11 +110,12 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             SetLayeredWindowAttributes(hWnd, RGB(0, 0, 0), 0, LWA_COLORKEY);
             if (!g_allProfiles.empty()) {
                 Profile& p = g_allProfiles[g_selectedProfileIdx];
-                RegisterHotKey(hWnd, 1, p.keybinds.toggleMod, p.keybinds.toggleKey);
-                RegisterHotKey(hWnd, 2, p.keybinds.roiMod,    p.keybinds.roiKey);
-                RegisterHotKey(hWnd, 3, p.keybinds.crossMod,  p.keybinds.crossKey);
-                RegisterHotKey(hWnd, 4, p.keybinds.zeroMod,   p.keybinds.zeroKey);
-                RegisterHotKey(hWnd, 5, p.keybinds.debugMod,  p.keybinds.debugKey);
+                // MOD_NOREPEAT prevents F10 system-key conflicts and double-fire
+                RegisterHotKey(hWnd, 1, p.keybinds.toggleMod | MOD_NOREPEAT, p.keybinds.toggleKey);
+                RegisterHotKey(hWnd, 2, p.keybinds.roiMod    | MOD_NOREPEAT, p.keybinds.roiKey);
+                RegisterHotKey(hWnd, 3, p.keybinds.crossMod  | MOD_NOREPEAT, p.keybinds.crossKey);
+                RegisterHotKey(hWnd, 4, p.keybinds.zeroMod   | MOD_NOREPEAT, p.keybinds.zeroKey);
+                RegisterHotKey(hWnd, 5, p.keybinds.debugMod  | MOD_NOREPEAT, p.keybinds.debugKey);
             }
             return 0;
 
@@ -367,18 +368,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     g_logic.LoadProfile(g_currentProfile.sensitivityX); // Now using the auto-fetched 800 DPI matched sens
 
-    // Phase 1.5: Finalize Global Hotkeys (v4.20.46)
-    {
-        Profile& p = g_currentProfile;
-        UnregisterHotKey(NULL, 1); UnregisterHotKey(NULL, 2);
-        UnregisterHotKey(NULL, 3); UnregisterHotKey(NULL, 4);
-        UnregisterHotKey(NULL, 5);
-        RegisterHotKey(NULL, 1, p.keybinds.toggleMod, p.keybinds.toggleKey);
-        RegisterHotKey(NULL, 2, p.keybinds.roiMod,    p.keybinds.roiKey);
-        RegisterHotKey(NULL, 3, p.keybinds.crossMod,  p.keybinds.crossKey);
-        RegisterHotKey(NULL, 4, p.keybinds.zeroMod,   p.keybinds.zeroKey);
-        RegisterHotKey(NULL, 5, p.keybinds.debugMod,  p.keybinds.debugKey);
-    }
+    // Hotkeys are registered exclusively in HUDWndProc WM_CREATE.
+    // NULL-window registration would steal WM_HOTKEY messages before HUD can handle them.
 
     // Message Window for Raw Input (Bypasses Layered Window UI Bugs)
     WNDCLASS wcMsg = { 0 };
