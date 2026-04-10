@@ -382,8 +382,7 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
     case WM_PAINT: {
         if (!g_pRenderTarget) return 0;
 
-        HRESULT hr = g_pRenderTarget->BeginDraw();
-        if (FAILED(hr)) { ValidateRect(hWnd, NULL); return 0; }
+        g_pRenderTarget->BeginDraw();
 
         g_pRenderTarget->Clear(D2D1::ColorF(0.02f, 0.03f, 0.05f));
 
