@@ -309,6 +309,18 @@ void RenderImGuiFrame() {
             PrecisionSlider("Offset X", &g_crossOffsetX, -500.0f, 500.0f, 0.5f);
             PrecisionSlider("Offset Y", &g_crossOffsetY, -500.0f, 500.0f, 0.5f);
 
+            ImGui::Spacing();
+            ImGui::TextDisabled("DIRECTIONAL NUDGE (1px)");
+            float nudgeW = 60.0f;
+            ImGui::SetCursorPosX(ImGui::GetWindowWidth()/2 - nudgeW/2);
+            if (ImGui::Button("UP", ImVec2(nudgeW, 30))) { g_crossOffsetY -= 1.0f; }
+            ImGui::SetCursorPosX(ImGui::GetWindowWidth()/2 - nudgeW - 5);
+            if (ImGui::Button("LEFT", ImVec2(nudgeW, 30))) { g_crossOffsetX -= 1.0f; }
+            ImGui::SameLine();
+            if (ImGui::Button("DOWN", ImVec2(nudgeW, 30))) { g_crossOffsetY += 1.0f; }
+            ImGui::SameLine();
+            if (ImGui::Button("RIGHT", ImVec2(nudgeW, 30))) { g_crossOffsetX += 1.0f; }
+            
             // Auto-save helper
             auto SyncAndSaveCurrentProfile = [&]() {
                 if (!g_allProfiles.empty()) {
@@ -446,7 +458,24 @@ void RenderImGuiFrame() {
 }
 
 LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    if (msg == WM_KEYDOWN && g_listeningKey != -1) {
+    if (msg == WM_KEYDOWN) {
+        // Keyboard Nudge Support for Crosshair (Tab Index 2)
+        if (g_currentTab == 2) {
+            float step = (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? 5.0f : 1.0f;
+            bool changed = false;
+            if (wParam == VK_LEFT)  { g_crossOffsetX -= step; changed = true; }
+            if (wParam == VK_RIGHT) { g_crossOffsetX += step; changed = true; }
+            if (wParam == VK_UP)    { g_crossOffsetY -= step; changed = true; }
+            if (wParam == VK_DOWN)  { g_crossOffsetY += step; changed = true; }
+            
+            if (changed) {
+                SaveSettings();
+                if (g_hHUD) { InvalidateRect(g_hHUD, NULL, FALSE); UpdateWindow(g_hHUD); }
+                return 0;
+            }
+        }
+
+        if (g_listeningKey != -1) {
         if (wParam == VK_CONTROL || wParam == VK_SHIFT || wParam == VK_MENU || wParam == VK_ESCAPE) {
             if (wParam == VK_ESCAPE) g_listeningKey = -1;
             return 0;
