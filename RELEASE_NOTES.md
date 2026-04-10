@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.10.7: "Hotfix: JSON Registry Exception Crash"
+v4.10.7: Fixed a fatal initialization runtime exception (`std::invalid_argument`) triggered on startup when parsing standard config spaces. The data parser previously choked on trailing colons during memory loading (`settings.json`), causing an immediate UI crash immediately after the startup splash sequence. The JSON engine now securely wraps all metadata injection points in proper `try-catch` structures with correct spatial bounds, ensuring total startup stability regardless of config formatting.
+
 ### BetterAngle Pro v4.10.6: "Ergonomic Calibration & Window Tuning"
 v4.10.6: Substantially overhauled the standalone `BetterAngleConfig.exe` sequence. The calibration UI window bounds were scaled down significantly to minimize screen obstruction during active tracking. Furthermore, the progression hotkey for completing the live 120-degree spin was dynamically unbound from `ENTER` and explicitly re-routed natively to `F10`, preventing players from taking their hands off their active gameplay stance while measuring FOV boundaries. Lastly, fixed a historical trace buffer offset error causing negative/inverted coordinate conversions.
 
