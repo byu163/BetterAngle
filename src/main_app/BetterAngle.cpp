@@ -37,28 +37,48 @@ Profile g_currentProfile;
 std::vector<Profile> g_allProfiles;
 int g_selectedProfileIdx = 0;
 
+// Only update sensitivity state when Fortnite is the foreground window
+static bool IsFortniteFocused() {
+    HWND fg = GetForegroundWindow();
+    if (!fg) return false;
+    wchar_t cls[256] = { 0 };
+    GetClassNameW(fg, cls, 256);
+    if (wcscmp(cls, L"UnrealWindow") != 0) return false;
+    wchar_t title[256] = { 0 };
+    GetWindowTextW(fg, title, 256);
+    return wcsstr(title, L"Fortnite") != nullptr;
+}
+
 // FOV Detector Thread
 void DetectorThread() {
     while (g_running) {
         if (!g_allProfiles.empty() && g_currentSelection == NONE) {
             Profile& p = g_allProfiles[g_selectedProfileIdx];
             g_logic.LoadProfile(p.dpi, p.sensitivityX, p.divingScaleMultiplier);
-            
-            RoiConfig cfg = { p.roi_x, p.roi_y, p.roi_w, p.roi_h, p.target_color, p.tolerance };
-            
-            g_detectionRatio = g_detector.Scan(cfg);
-            
-            if (g_forceDetection) g_detectionRatio = 1.0f; // SIMULATE MATCH
-            
-            if (g_forceDiving) {
-                g_isDiving = true;
-                g_logic.SetDivingState(true);
-            } else if (g_detectionRatio >= 0.01f) { // Sensitive Prompt Detection (1% match)
-                g_isDiving = true;
-                g_logic.SetDivingState(true);
+
+            bool fortFocused = IsFortniteFocused();
+
+            if (fortFocused || g_debugMode) {
+                // Only scan and change angle scale when Fortnite is in focus
+                RoiConfig cfg = { p.roi_x, p.roi_y, p.roi_w, p.roi_h, p.target_color, p.tolerance };
+                g_detectionRatio = g_detector.Scan(cfg);
+                if (g_forceDetection) g_detectionRatio = 1.0f;
+
+                if (g_forceDiving) {
+                    g_isDiving = true;
+                    g_logic.SetDivingState(true);
+                } else if (g_detectionRatio >= 0.01f) {
+                    g_isDiving = true;
+                    g_logic.SetDivingState(true);
+                } else {
+                    g_isDiving = false;
+                    g_logic.SetDivingState(false);
+                }
             } else {
+                // Fortnite not in focus — hold at normal scale, no changes
                 g_isDiving = false;
                 g_logic.SetDivingState(false);
+                g_detectionRatio = 0.0f;
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

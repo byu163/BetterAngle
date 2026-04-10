@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.17.0: "Bulletproof Setup UX & Fortnite-Only Scale Lock"
+v4.17.0: Complete bulletproof rewrite of the setup wizard. Fixes window disappearing on click-off (WM_ACTIVATE/WM_NCACTIVATE handlers). Double-buffered GDI+ rendering eliminates all flicker. Correct button hit-testing relative to window bounds. Added Fortnite-only sensitivity condition: the angle decimal (diving scale) only updates when the Fortnite window (`UnrealWindow` class with "Fortnite" title) is the active foreground window. Angle holds at normal scale when clicking BetterAngle Pro or any other app.
+
 ### BetterAngle Pro v4.16.0: "Clean Minimal Setup UI Overhaul"
 v4.16.0: Completely redesigned the first-time setup wizard with a modern, minimal aesthetic inspired by premium SaaS onboarding flows (Linear, Vercel). Features centered layouts, rounded input fields with accent borders, step progress indicators, Tab key field switching, drag-from-title-area support, and a branded bottom watermark. The "Next" button is gated until a DPI value is entered.
 
