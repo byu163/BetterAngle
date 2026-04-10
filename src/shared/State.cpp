@@ -109,14 +109,12 @@ void SaveSettings() {
   ofs << "}\n";
 }
 bool g_showCrosshair = false;
-COLORREF g_pickedColor = RGB(255, 255, 255);
 COLORREF g_targetColor = RGB(255, 255, 255);
 float g_latestVersion = 4.920f; // v4.9.20 format fallback
 std::wstring g_latestName = L"Pending Scan";
 RECT g_selectionRect = {0, 0, 0, 0};
 POINT g_startPoint = {0};
 
-std::string g_status = "Connected (v" VERSION_STR " Pro)";
 std::string g_latestVersionOnline = "v" VERSION_STR;
 float g_currentAngle = 0.0f;
 bool g_debugMode = false;

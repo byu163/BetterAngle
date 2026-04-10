@@ -8,7 +8,7 @@ using namespace Gdiplus;
 
 bool IsFortniteFocused();
 
-void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRatio, bool showCrosshair) {
+void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrosshair) {
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(hwnd, &ps);
     
@@ -177,7 +177,7 @@ void DrawOverlay(HWND hwnd, double angle, const char* status, float detectionRat
         std::wstring focusStr = L"Fortnite Focused: ";
         focusStr += IsFortniteFocused() ? L"YES" : L"NO";
         
-        std::wstring scaleStr = L"Active Scale: " + std::to_wstring(g_logic.GetScale());
+        std::wstring scaleStr = L"Active Scale: Computed in memory";
         std::wstring detStr = L"Raw Detection: " + std::to_wstring(detectionRatio);
         
         std::wstring cursorStr = L"Cursor Visible: ";

@@ -36,8 +36,7 @@ extern int g_currentTab;
 extern std::wstring g_latestName;
 extern bool g_isCheckingForUpdates;
 extern bool g_updateAvailable;
-extern float g_promptThreshold;
-
+extern bool g_updateAvailable;
 struct Keybinds {
   UINT toggleMod = MOD_CONTROL;
   UINT toggleKey = 'U';
@@ -57,14 +56,12 @@ void LoadSettings();
 void SaveSettings();
 extern bool g_updateAvailable;
 extern bool g_showCrosshair;
-extern COLORREF g_pickedColor;
 extern COLORREF g_targetColor;
 extern float g_latestVersion;
 extern float g_detectionRatio;
 extern float g_updateSpinAngle;
 extern RECT g_selectionRect;
 extern POINT g_startPoint;
-extern std::string g_status;
 extern std::string g_latestVersionOnline;
 extern float g_currentAngle;
 extern bool g_debugMode;

@@ -155,9 +155,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     POINT cur; GetCursorPos(&cur);
                     COLORREF pixel = GetPixel(hdcMem, cur.x, cur.y);
                     // Sync: GDI returns 0x00BBGGRR
-                    g_targetColor = pixel; 
-                    g_pickedColor = pixel;
-
+                    g_targetColor = pixel;
                     SelectObject(hdcMem, hOld);
                     DeleteDC(hdcMem);
                     ReleaseDC(NULL, hdcScreen);
@@ -190,8 +188,10 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             if (g_currentSelection != NONE) {
                 if (g_currentSelection == SELECTING_ROI && (wParam & MK_LBUTTON)) {
                     POINT cur; GetCursorPos(&cur);
-                    g_selectionRect.right = cur.x;
-                    g_selectionRect.bottom = cur.y;
+                    g_selectionRect.left = min(g_startPoint.x, cur.x);
+                    g_selectionRect.right = max(g_startPoint.x, cur.x);
+                    g_selectionRect.top = min(g_startPoint.y, cur.y);
+                    g_selectionRect.bottom = max(g_startPoint.y, cur.y);
                 }
                 InvalidateRect(hWnd, NULL, FALSE);
             }
@@ -214,7 +214,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         }
 
         case WM_PAINT:
-            DrawOverlay(hWnd, g_logic.GetAngle(), g_status.c_str(), g_detectionRatio, g_showCrosshair);
+            DrawOverlay(hWnd, g_logic.GetAngle(), g_detectionRatio, g_showCrosshair);
             return 0;
 
         case WM_DESTROY:

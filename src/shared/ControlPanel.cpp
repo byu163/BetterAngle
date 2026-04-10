@@ -1,6 +1,5 @@
 #include "shared/State.h"
 #include "shared/Overlay.h"
-#include "shared/Config.h"
 #include "shared/ControlPanel.h"
 #include "shared/Updater.h"
 #include "shared/Profile.h"
@@ -215,9 +214,6 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                 }
                 if (g_updateAvailable && x >= 40 && x <= 380 && y >= 380 && y <= 430) {
                     ShellExecuteW(0, L"open", L"https://github.com/MahanYTT/BetterAngle/releases/latest", 0, 0, SW_SHOW);
-                }
-                if (g_latestVersion > 4.92f && x >= 40 && x <= 380 && y >= 270 && y <= 290) {
-                    ShellExecuteW(0, L"open", L"https://github.com/MahanYTT/BetterAngle/releases", 0, 0, SW_SHOW);
                 }
             }
 
