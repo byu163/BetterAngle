@@ -392,6 +392,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     g_running = false;
     if (detThread.joinable()) detThread.join();
+    
+    // Final Save on Exit
+    if (!g_allProfiles.empty()) {
+        Profile& p = g_allProfiles[g_selectedProfileIdx];
+        p.Save(GetAppStoragePath() + p.name + L".json");
+    }
+    SaveSettings();
+
     GdiplusShutdown(g_gdiplusToken);
     return (int)msg.wParam;
 }

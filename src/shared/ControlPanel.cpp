@@ -247,27 +247,9 @@ void RenderImGuiFrame() {
             PrecisionSlider("Rotation", &g_crossAngle, -180.0f, 180.0f, 5.0f);
             PrecisionSlider("Offset X", &g_crossOffsetX, -500.0f, 500.0f, 0.5f);
             PrecisionSlider("Offset Y", &g_crossOffsetY, -500.0f, 500.0f, 0.5f);
-            
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
 
-            if (ImGui::Button("RESET", ImVec2(100, 35))) {
-                g_crossThickness = 2.0f; g_crossOffsetX = 0.0f; g_crossOffsetY = 0.0f;
-                g_crossAngle = 0.0f; g_crossPulse = false; g_crossColor = RGB(255,0,0);
-                SaveSettings();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("SAVE POS", ImVec2(100, 35))) {
-                if (!g_allProfiles.empty()) {
-                    Profile& p = g_allProfiles[g_selectedProfileIdx];
-                    p.crossOffsetX = g_crossOffsetX;
-                    p.crossOffsetY = g_crossOffsetY;
-                    p.Save(GetAppStoragePath() + p.name + L".json");
-                }
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("SAVE ALL", ImVec2(100, 35))) {
+            // Auto-save helper
+            auto SyncAndSaveCurrentProfile = [&]() {
                 if (!g_allProfiles.empty()) {
                     Profile& p = g_allProfiles[g_selectedProfileIdx];
                     p.crossThickness = g_crossThickness; p.crossColor = g_crossColor;
@@ -275,6 +257,24 @@ void RenderImGuiFrame() {
                     p.crossAngle     = g_crossAngle;     p.crossPulse   = g_crossPulse;
                     p.Save(GetAppStoragePath() + p.name + L".json");
                 }
+                SaveSettings();
+            };
+
+            // Hook sliders to auto-save
+            static float lastX = 0, lastY = 0, lastT = 0, lastA = 0;
+            if (g_crossOffsetX != lastX || g_crossOffsetY != lastY || g_crossThickness != lastT || g_crossAngle != lastA) {
+                SyncAndSaveCurrentProfile();
+                lastX = g_crossOffsetX; lastY = g_crossOffsetY; lastT = g_crossThickness; lastA = g_crossAngle;
+            }
+            
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            if (ImGui::Button("RESET", ImVec2(-1, 35))) {
+                g_crossThickness = 2.0f; g_crossOffsetX = 0.0f; g_crossOffsetY = 0.0f;
+                g_crossAngle = 0.0f; g_crossPulse = false; g_crossColor = RGB(255,0,0);
+                SyncAndSaveCurrentProfile();
             }
 
             ImGui::Spacing();
