@@ -282,8 +282,9 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
                         else
                             g_updateAvailable = true; // restore flag so user can retry
                     }).detach();
-                } else {
+                } else if (!g_isCheckingForUpdates) {
                     g_isCheckingForUpdates = true;
+                    g_hasCheckedForUpdates = false;
                     std::thread(CheckForUpdates).detach();
                 }
             }
@@ -533,9 +534,17 @@ LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
             } else if (g_updateAvailable) {
                 g_pRenderTarget->DrawText(L"Update available! Click below to install.", 40, pBody,
                     D2D1::RectF(L.margin, cY + 0.22f * L.H, L.W - L.margin, cY + 0.27f * L.H), pBlue);
+            } else if (g_hasCheckedForUpdates) {
+                g_pRenderTarget->DrawText(L"You are currently on the latest version.", 39, pBody,
+                    D2D1::RectF(L.margin, cY + 0.22f * L.H, L.W - L.margin, cY + 0.27f * L.H), pGrey);
+                btnCol = ColorF(0.1f, 0.45f, 0.2f); // Success Green
             }
 
-            DrawD2DButton(g_pRenderTarget, btnRect, g_updateAvailable ? L"INSTALL UPDATE NOW" : L"CHECK / DOWNLOAD LATEST", btnCol, 13.0f * baseScale);
+            const wchar_t* btnLabel = L"CHECK / DOWNLOAD LATEST";
+            if (g_updateAvailable) btnLabel = L"INSTALL UPDATE NOW";
+            else if (g_hasCheckedForUpdates && !g_isCheckingForUpdates) btnLabel = L"UP TO DATE (CHECK AGAIN)";
+            
+            DrawD2DButton(g_pRenderTarget, btnRect, btnLabel, btnCol, 13.0f * baseScale);
 
         } else if (g_currentTab == 2) {
             // ─ COLORS ───────────────────────────────────────────────────────

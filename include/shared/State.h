@@ -42,6 +42,7 @@ extern bool g_showROIBox;
 extern int g_currentTab;
 extern std::wstring g_latestName;
 extern bool g_isCheckingForUpdates;
+extern bool g_hasCheckedForUpdates;
 extern bool g_updateAvailable;
 extern float g_freefallThreshold;
 extern float g_glideThreshold;

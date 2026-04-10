@@ -203,6 +203,7 @@ bool CheckForUpdates() {
 
     if (!got || json.empty()) {
         g_isCheckingForUpdates = false;
+        g_hasCheckedForUpdates = true;
         return false;
     }
 
@@ -224,6 +225,7 @@ bool CheckForUpdates() {
 
     if (highestTag.empty()) {
         g_isCheckingForUpdates = false;
+        g_hasCheckedForUpdates = true;
         return false;
     }
 
@@ -234,6 +236,7 @@ bool CheckForUpdates() {
     std::string local = APP_VERSION_STR;
     g_updateAvailable = IsVersionHigher(highestTag, local);
     g_isCheckingForUpdates = false;
+    g_hasCheckedForUpdates = true;
     return g_updateAvailable;
 }
 
