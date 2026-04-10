@@ -58,6 +58,7 @@ void SaveSettings();
 extern bool g_updateAvailable;
 extern bool g_showCrosshair;
 extern COLORREF g_targetColor;
+extern COLORREF g_pickedColor;
 extern float g_latestVersion;
 extern float g_detectionRatio;
 extern float g_updateSpinAngle;

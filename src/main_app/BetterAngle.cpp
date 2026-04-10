@@ -53,12 +53,9 @@ void DetectorThread() {
             if (g_forceDiving) {
                 g_isDiving = true;
                 g_logic.SetDivingState(true);
-            } else if (g_detectionRatio >= g_freefallThreshold) {
+            } else if (g_detectionRatio >= 0.01f) { // Sensitive Prompt Detection (1% match)
                 g_isDiving = true;
                 g_logic.SetDivingState(true);
-            } else if (g_detectionRatio >= g_glideThreshold) {
-                g_isDiving = true;
-                g_logic.SetDivingState(false); // Gliding uses normalScale
             } else {
                 g_isDiving = false;
                 g_logic.SetDivingState(false);
@@ -155,6 +152,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     POINT cur; GetCursorPos(&cur);
                     COLORREF pixel = GetPixel(hdcMem, cur.x, cur.y);
                     // Sync: GDI returns 0x00BBGGRR
+                    g_pickedColor = pixel;
                     g_targetColor = pixel;
                     SelectObject(hdcMem, hOld);
                     DeleteDC(hdcMem);
@@ -168,11 +166,11 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
                 if (!g_allProfiles.empty()) {
                     Profile& p = g_allProfiles[g_selectedProfileIdx];
-                    p.target_color = g_targetColor;
-                    p.roi_x = min(g_selectionRect.left, g_selectionRect.right);
-                    p.roi_y = min(g_selectionRect.top, g_selectionRect.bottom);
-                    p.roi_w = abs(g_selectionRect.right - g_selectionRect.left);
-                    p.roi_h = abs(g_selectionRect.bottom - g_selectionRect.top);
+                    p.target_color = g_pickedColor;
+                    p.roi_x = g_selectionRect.left;
+                    p.roi_y = g_selectionRect.top;
+                    p.roi_w = g_selectionRect.right - g_selectionRect.left;
+                    p.roi_h = g_selectionRect.bottom - g_selectionRect.top;
                     
                     // Save to the actual profile path
                     std::wstring profilePath = GetAppStoragePath() + p.name + L".json";
