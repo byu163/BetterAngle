@@ -17,6 +17,8 @@ bool g_downloadComplete    = false;
 std::string g_updateHistory = "";
 std::atomic<bool> g_fortniteFocusedCache(false);
 bool g_setupComplete = false;
+std::string g_lastVersionRun = "";
+
 
 Profile g_currentProfile;
 std::vector<Profile> g_allProfiles;
@@ -162,6 +164,15 @@ void LoadSettings() {
     g_setupComplete  = eFloat("setupComplete", 0.0f) > 0.5f;
     g_showCrosshair  = eFloat("showCrosshair", 1.0f) > 0.5f;
 
+    size_t vp = content.find("\"lastVersionRun\":\"");
+    if (vp != std::string::npos) {
+      size_t end = content.find("\"", vp + 18);
+      if (end != std::string::npos) {
+          g_lastVersionRun = content.substr(vp + 18, end - (vp + 18));
+      }
+    }
+
+
     size_t pp = content.find("\"lastProfile\":\"");
     if (pp != std::string::npos) {
       size_t end = content.find("\"", pp + 15);
@@ -192,6 +203,8 @@ void SaveSettings() {
   ofs << "  \"crossPulse\": " << (g_crossPulse ? 1 : 0) << ",\n";
   ofs << "  \"setupComplete\": " << (g_setupComplete ? 1 : 0) << ",\n";
   ofs << "  \"showCrosshair\": " << (g_showCrosshair ? 1 : 0) << ",\n";
+  ofs << "  \"lastVersionRun\":\"" << VERSION_STR << "\",\n";
+
 
   std::string lp = "";
   for (wchar_t c : g_lastLoadedProfileName)

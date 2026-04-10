@@ -317,8 +317,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // Phase 1: Startup Sequence (Splash)
     LoadSettings();
-    
-    // Phase 1: Startup Guard (v4.20.44: Complete Lockdown)
+    CleanupUpdateJunk();
+
+    // Fresh Start: If version mismatch, force raw setup again (Robust Update v4.20.57)
+    if (g_lastVersionRun != VERSION_STR) {
+        g_setupComplete = false;
+        // Save immediately so even if they crash during setup, it's marked
+        SaveSettings();
+    }
+
     bool ranSetup = false;
     if (!g_setupComplete) {
         ShowFirstTimeSetup(hInstance);

@@ -332,3 +332,18 @@ void ApplyUpdateAndRestart() {
     ShellExecuteA(NULL, "open", batA.c_str(), NULL, dirA.c_str(), SW_HIDE);
     ExitProcess(0);
 }
+
+void CleanupUpdateJunk() {
+    wchar_t exePath[MAX_PATH];
+    GetModuleFileNameW(NULL, exePath, MAX_PATH);
+    std::wstring exeStr = exePath;
+    size_t lastSlash = exeStr.find_last_of(L"\\/");
+    if (lastSlash == std::wstring::npos) return;
+
+    std::wstring exeDir = exeStr.substr(0, lastSlash + 1);
+    std::wstring tmpPath = exeDir + L"update_tmp.exe";
+    std::wstring batPath = exeDir + L"ba_update.bat";
+    
+    DeleteFileW(tmpPath.c_str());
+    DeleteFileW(batPath.c_str());
+}

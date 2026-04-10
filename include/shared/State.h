@@ -23,6 +23,8 @@ extern std::atomic<bool> g_fortniteFocusedCache;
 #define V_PAT 56
 #endif
 extern bool g_setupComplete;
+extern std::string g_lastVersionRun;
+
 
 #define VERSION_STR  APP_STR_Y(V_MAJ) "." APP_STR_Y(V_MIN) "." APP_STR_Y(V_PAT)
 #define VERSION_WSTR APP_WSTR_Y(V_MAJ) L"." APP_WSTR_Y(V_MIN) L"." APP_WSTR_Y(V_PAT)
