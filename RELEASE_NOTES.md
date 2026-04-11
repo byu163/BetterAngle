@@ -1,4 +1,9 @@
-### BetterAngle Pro v4.21.3
+### BetterAngle Pro v4.21.8
+- **Async Framework Optimization:** Implemented `QTimer::singleShot` deferral for heavy backend initialization, ensuring the Splash Screen renders instantaneously without being blocked by resource loading.
+- **QML Setup Workflow:** Replaced the legacy Win32 setup dialog with a modern, high-fidelity `FirstTimeSetup.qml` component featuring strict OS window flags to prevent "hide-to-tray" confusion during initial calibration.
+- **Safety Exit Policy:** Configured the Setup Wizard to quit the application entirely if closed prematurely, ensuring a consistent and clean state for first-time users.
+
+### BetterAngle Pro v4.21.7
 - **Build System Patch:** Replaced `main()` with `WinMain()` in the uninstaller utility to resolve `LNK2019` entry point errors during compilation.
 - **CI/CD Reliability:** Verified `WIN32` executable flags for all binary targets to ensure headless execution on Windows.
 

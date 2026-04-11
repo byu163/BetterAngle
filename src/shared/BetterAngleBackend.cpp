@@ -305,24 +305,9 @@ void BetterAngleBackend::requestShowControlPanel() {
     }
 
     // Transition stage: Splash timer just ended.
-    // Ensure we have a profile. If not, trigger the blocking native Wizard.
+    // Ensure we have a profile. If not, trigger the QML Wizard.
     if (g_needsSetup || g_allProfiles.empty()) {
-        QTimer::singleShot(50, [this]() {
-            ShowFirstTimeSetup(GetModuleHandle(NULL));
-            LoadSettings();
-            g_allProfiles = GetProfiles(GetProfilesPath());
-            g_needsSetup = false;
-            SaveSettings();
-            
-            // Now show the Overlay and Dashboard after wizard completes
-            if (!g_allProfiles.empty()) {
-                if (g_hHUD) {
-                    ShowWindow(g_hHUD, SW_SHOW);
-                    UpdateWindow(g_hHUD);
-                }
-                emit showControlPanelRequested();
-            }
-        });
+        emit showSetupRequested();
         return;
     }
 
@@ -338,6 +323,25 @@ void BetterAngleBackend::requestShowControlPanel() {
 
 void BetterAngleBackend::requestToggleControlPanel() {
     emit toggleControlPanelRequested();
+}
+
+void BetterAngleBackend::finishSetup() {
+    extern void FinishSetup(); // from FirstTimeSetup.cpp
+    FinishSetup();
+    
+    // Refresh profiles
+    g_allProfiles = GetProfiles(GetProfilesPath());
+    g_needsSetup = false;
+    SaveSettings();
+
+    // Now show the Overlay and Dashboard
+    if (!g_allProfiles.empty()) {
+        if (g_hHUD) {
+            ShowWindow(g_hHUD, SW_SHOW);
+            UpdateWindow(g_hHUD);
+        }
+        emit showControlPanelRequested();
+    }
 }
 
 

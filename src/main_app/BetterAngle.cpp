@@ -377,148 +377,83 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     GdiplusStartupInput gdiplusStartupInput;
     GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
 
-    // Phase 1: Startup Sequence (Splash)
-    LoadSettings();
-    CleanupUpdateJunk();
-
-    // Check for profiles early to determine if setup is truly required
-    g_allProfiles = GetProfiles(GetProfilesPath());
-
-    bool ranSetup = false;
-    // Moved ShowFirstTimeSetup to happen after Splash or via Backend to prevent blocking WinMain startup
-
-    // Cache the profiles set by setup (have correct sens in memory)
-    std::vector<Profile> setupProfiles = g_allProfiles;
-
-    g_allProfiles = GetProfiles(GetProfilesPath());
-    if (g_allProfiles.empty() || g_needsSetup) {
-        g_needsSetup = true;
-        // Enforce hard-coded master defaults to prevent "select file prompt" or accidental junk loading
-        g_allProfiles.clear();
-        Profile def;
-        def.name = L"Default";
-        def.sensitivityX = 0.05; def.sensitivityY = 0.05;
-        def.showCrosshair = true;
-        def.crossThickness = 2.0f;
-        def.crossColor = RGB(0, 255, 204);
-        g_allProfiles.push_back(def);
-        g_selectedProfileIdx = 0;
-    }
-
-    // If setup just ran, trust its in-memory sensitivityX/Y values over what was read from disk
-    // (GetProfiles re-parses the JSON which may have edge cases)
-    if (ranSetup && !setupProfiles.empty() && !g_allProfiles.empty()) {
-        g_allProfiles[0].sensitivityX = setupProfiles[0].sensitivityX;
-        g_allProfiles[0].sensitivityY = setupProfiles[0].sensitivityY;
-        // Re-save to ensure the correct values are on disk too
-        g_allProfiles[0].Save(GetProfilesPath() + g_allProfiles[0].name + L".json");
-    }
-    
-    // Sensitivity is loaded from the JSON profile; Do not blindly overwrite it here.
-    g_currentProfile = g_allProfiles[g_selectedProfileIdx];
-    
-    // Guard: if still empty after setup, something went wrong — exit cleanly
-    if (g_allProfiles.empty()) {
-        MessageBoxW(NULL, L"Setup failed to create a profile. Please restart.", L"BetterAngle Setup Error", MB_OK | MB_ICONERROR);
-        return 1;
-    }
-    
-    g_selectedProfileIdx = 0;
-    bool foundProfile = false;
-    for (size_t i = 0; i < g_allProfiles.size(); i++) {
-        if (g_allProfiles[i].name == g_lastLoadedProfileName) {
-            g_selectedProfileIdx = i; 
-            foundProfile = true;
-            break;
-        }
-    }
-    
-    // Safety: If last profile not found, fall back to what was in settings.json index
-    // if that index is valid.
-    if (!foundProfile && g_selectedProfileIdx < (int)g_allProfiles.size()) {
-       // Keep original g_selectedProfileIdx loaded from settings.json
-    } else if (!foundProfile) {
-        g_selectedProfileIdx = 0;
-    }
-    
-    if (g_lastLoadedProfileName.empty() && !g_allProfiles.empty()) {
-        g_lastLoadedProfileName = g_allProfiles[0].name;
-    }
-    
-    g_currentProfile = g_allProfiles[g_selectedProfileIdx];
-    
-    // Sync Crosshair Settings from Profile to Global State
-    g_crossThickness = g_currentProfile.crossThickness;
-    g_crossColor     = g_currentProfile.crossColor;
-    g_crossOffsetX   = g_currentProfile.crossOffsetX;
-    g_crossOffsetY   = g_currentProfile.crossOffsetY;
-    g_crossAngle     = g_currentProfile.crossAngle;
-    g_crossPulse     = g_currentProfile.crossPulse;
-
-    g_logic.LoadProfile(g_currentProfile.sensitivityX); // Now using the auto-fetched 800 DPI matched sens
-
-    // Hotkeys are registered exclusively in HUDWndProc WM_CREATE.
-    // NULL-window registration would steal WM_HOTKEY messages before HUD can handle them.
-
-    // Message Window for Raw Input (Bypasses Layered Window UI Bugs)
-    WNDCLASS wcMsg = { 0 };
-    wcMsg.lpfnWndProc = MsgWndProc;
-    wcMsg.hInstance = hInstance;
-    wcMsg.lpszClassName = L"BetterAngleMsgWnd";
-    RegisterClass(&wcMsg);
-    HWND hMsgWnd = CreateWindowEx(0, L"BetterAngleMsgWnd", NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
-    RegisterRawMouse(hMsgWnd);
-
-    // Phase 2: Create Control Panel (Interactive) via Qt
-    g_hPanel = CreateControlPanel(hInstance);
-    
-    // Phase 3: Create HUD Window (Transparent Overlay)
-    WNDCLASS wc = { 0 };
-    wc.lpfnWndProc = HUDWndProc;
-    wc.hInstance = hInstance;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.lpszClassName = L"BetterAngleHUD";
-    RegisterClass(&wc);
-
-    g_virtScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    g_virtScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    int screenW = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    int screenH = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-
-    g_hHUD = CreateWindowEx(
-        WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW,
-        L"BetterAngleHUD", L"BetterAngle HUD",
-        WS_POPUP,
-        g_virtScreenX, g_virtScreenY, screenW, screenH,
-        NULL, NULL, hInstance, NULL
-    );
-
-    AddSystrayIcon(g_hHUD);
     // Phase 4: Launch UI (Splash first)
     ShowSplashScreen();
-    // HUD and Control Panel now show up only after Splash/Wizard finish via backend.requestShowControlPanel()
-    
-    SetTimer(g_hHUD, 1, 16, NULL); // 60fps (~16ms) Repaint Timer
-    SetTimer(g_hHUD, 2, 30000, NULL); // 30s Auto-Save Timer
 
-    std::thread detThread(DetectorThread);
+    // 2. Defer heavy initialization so the Qt Event Loop can draw the Splash immediately
+    QTimer::singleShot(100, [=]() {
+        // Phase 1: Startup Sequence
+        LoadSettings();
+        CleanupUpdateJunk();
 
-    // Run Qt Event Loop
-    int exitCode = app.exec();
+        // Check for profiles early
+        g_allProfiles = GetProfiles(GetProfilesPath());
 
-    g_running = false;
-    if (detThread.joinable()) detThread.join();
-    
-    // Final Save on Exit
-    if (!g_allProfiles.empty()) {
-        Profile& p = g_allProfiles[g_selectedProfileIdx];
-        p.crossPulse = g_crossPulse;
-        p.Save(GetProfilesPath() + p.name + L".json");
-    }
+        if (g_allProfiles.empty() || g_needsSetup) {
+            g_needsSetup = true;
+            g_allProfiles.clear();
+            Profile def;
+            def.name = L"Default";
+            def.sensitivityX = 0.05; def.sensitivityY = 0.05;
+            def.showCrosshair = true;
+            def.crossThickness = 2.0f;
+            def.crossColor = RGB(0, 255, 204);
+            g_allProfiles.push_back(def);
+            g_selectedProfileIdx = 0;
+        }
 
-    SaveSettings();
+        g_currentProfile = g_allProfiles[g_selectedProfileIdx];
+        
+        // Sync Crosshair Settings
+        g_crossThickness = g_currentProfile.crossThickness;
+        g_crossColor     = g_currentProfile.crossColor;
+        g_crossOffsetX   = g_currentProfile.crossOffsetX;
+        g_crossOffsetY   = g_currentProfile.crossOffsetY;
+        g_crossAngle     = g_currentProfile.crossAngle;
+        g_crossPulse     = g_currentProfile.crossPulse;
 
-    RemoveSystrayIcon(g_hHUD);
-    GdiplusShutdown(g_gdiplusToken);
-    return exitCode;
+        g_logic.LoadProfile(g_currentProfile.sensitivityX);
+
+        // 3. Create Windows
+        WNDCLASS wcMsg = { 0 };
+        wcMsg.lpfnWndProc = MsgWndProc;
+        wcMsg.hInstance = hInstance;
+        wcMsg.lpszClassName = L"BetterAngleMsgWnd";
+        RegisterClass(&wcMsg);
+        HWND hMsgWnd = CreateWindowEx(0, L"BetterAngleMsgWnd", NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
+        RegisterRawMouse(hMsgWnd);
+
+        g_hPanel = CreateControlPanel(hInstance);
+        
+        WNDCLASS wc = { 0 };
+        wc.lpfnWndProc = HUDWndProc;
+        wc.hInstance = hInstance;
+        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wc.lpszClassName = L"BetterAngleHUD";
+        RegisterClass(&wc);
+
+        g_virtScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+        g_virtScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+        int screenW = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        int screenH = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+        g_hHUD = CreateWindowEx(
+            WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW,
+            L"BetterAngleHUD", L"BetterAngle HUD",
+            WS_POPUP,
+            g_virtScreenX, g_virtScreenY, screenW, screenH,
+            NULL, NULL, hInstance, NULL
+        );
+
+        AddSystrayIcon(g_hHUD);
+        
+        SetTimer(g_hHUD, 1, 16, NULL); // Repaint Timer
+        SetTimer(g_hHUD, 2, 30000, NULL); // Auto-Save Timer
+
+        static std::thread detThread(DetectorThread);
+        detThread.detach(); // Allow it to run independently
+    });
+
+    // 4. Start the event loop (this draws the splash immediately)
+    return app.exec();
 }

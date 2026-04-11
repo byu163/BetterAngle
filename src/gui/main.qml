@@ -24,6 +24,11 @@ Window {
             mainWindow.raise()
             mainWindow.requestActivate()
         }
+        onShowSetupRequested: {
+            setupWindow.show()
+            setupWindow.raise()
+            setupWindow.requestActivate()
+        }
         onToggleControlPanelRequested: {
             if (mainWindow.visible) mainWindow.hide()
             else {
@@ -32,6 +37,10 @@ Window {
                 mainWindow.requestActivate()
             }
         }
+    }
+
+    FirstTimeSetup {
+        id: setupWindow
     }
 
     Rectangle {
