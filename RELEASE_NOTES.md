@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.23.6
+- **ROOT CAUSE FIX: App Does Nothing on Launch.** Two critical issues resolved: (1) `CMakeLists.txt` was only linking `Qt6::Qml` but not `Qt6::Quick` or `Qt6::QuickControls2`. These modules provide `Window`, `Rectangle`, `TabBar`, `Button` and all visual primitives — without them the QML engine runs but cannot render anything. (2) The installer did not include the Visual C++ Redistributable. On clean Windows PCs without Visual Studio, the MSVC runtime DLLs are missing and the `.exe` crashes silently before `WinMain` is reached.
+- **Fix Applied:** Added `Qt6::Quick Qt6::QuickControls2` to `find_package` and `target_link_libraries`. Added VC++ Redist download to CI pipeline and silent install step to `installer.iss`. Also added `--quick` flag to `windeployqt` to ensure Quick DLLs are deployed.
+
 ### BetterAngle Pro v4.23.5
 - **DEFINITIVE FIX: Blank/Invisible Startup.** Removed the broken `import BetterAngleUI 1.0` module import from `main.qml`. Qt named modules require a matching subdirectory (e.g. `BetterAngleUI/qmldir`) which was never created correctly — causing all QML type resolution to fail silently. Replaced with Qt's built-in filename-based auto-discovery: `Dashboard.qml` and `FirstTimeSetup.qml` in the same `qrc:/src/gui/` path are automatically usable as types without any import. Also removed the now-unnecessary `qmldir` file and `addImportPath()` call. Added QML load error logging to `debug.log` for future diagnostics.
 

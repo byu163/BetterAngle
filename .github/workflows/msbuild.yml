@@ -40,7 +40,11 @@ jobs:
       - name: Deploy Qt Dependencies
         run: |
           cd build
-          windeployqt Release/BetterAngle.exe --qmldir ../src/gui
+          windeployqt Release/BetterAngle.exe --qmldir ../src/gui --quick --no-translations
+
+      - name: Download VC++ Redistributable
+        run: |
+          Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "build/Release/vc_redist.x64.exe"
           
       - name: Archive Build
         run: |
