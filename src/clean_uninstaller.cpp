@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <tlhelp32.h>
+#include <shlobj.h>
 
 namespace fs = std::filesystem;
 

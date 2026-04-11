@@ -430,6 +430,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         RegisterClass(&wcMsg);
         HWND hMsgWnd = CreateWindowEx(0, L"BetterAngleMsgWnd", NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
         RegisterRawMouse(hMsgWnd);
+        
+        g_virtScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+        g_virtScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+        int screenW = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        int screenH = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
         g_hHUD = CreateWindowEx(
             WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW,

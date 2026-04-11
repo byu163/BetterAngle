@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.22.5
+- **Build System Patch:** Resolved a compilation error in `BetterAngle.cpp` by restoring the missing screen dimension identifiers (`screenW`, `screenH`) required for multi-monitor HUD initialization.
+- **Uninstaller Hotfix:** Corrected a build failure in the uninstaller by adding the missing `<shlobj.h>` header, enabling successful desktop shortcut removal.
+
 ### BetterAngle Pro v4.22.4
 - **Multi-Monitor Visibility Fix:** Implemented dynamic monitor centering for the Splash, Wizard, and Dashboard screens, ensuring they no longer appear off-screen on multi-monitor setups.
 - **Enhanced Uninstaller:** The uninstaller now fully removes the application state, including AppData profiles, hidden setup markers, and the Desktop shortcut.
