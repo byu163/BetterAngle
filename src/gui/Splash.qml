@@ -131,7 +131,7 @@ Window {
                         font.letterSpacing: 4
                     }
                     Text {
-                        text: "V E R S I O N  4 . 2 1 . 0"
+                        text: "V E R S I O N  4 . 2 1 . 1"
                         color: "#666"
                         font.pixelSize: 10
                         font.bold: true
@@ -140,43 +140,43 @@ Window {
                 }
             }
 
-            // Bottom Banner Message
+            // Provided Banner Image
             Rectangle {
                 width: parent.width
-                height: 60
-                color: "#1a00ffa3"
+                height: 100
+                color: "#1a000000"
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 40
+                clip: true
                 
-                Rectangle {
-                    width: parent.width; height: 1; color: "#2affff"
-                    anchors.top: parent.top; opacity: 0.2
-                }
-                Rectangle {
-                    width: parent.width; height: 1; color: "#2affff"
-                    anchors.bottom: parent.bottom; opacity: 0.2
+                Image {
+                    anchors.fill: parent
+                    source: "qrc:/assets/banner.png"
+                    fillMode: Image.PreserveAspectFit
+                    opacity: 0.9
                 }
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "THE BEST WINS BEGIN WITH THE BEST DROPS."
-                    color: "#00ffa3"
-                    font.pixelSize: 14
-                    font.bold: true
-                    font.letterSpacing: 3
+                // Top/Bottom border accents
+                Rectangle {
+                    width: parent.width; height: 1; color: "#00ffa3"
+                    anchors.top: parent.top; opacity: 0.3
+                }
+                Rectangle {
+                    width: parent.width; height: 1; color: "#00ffa3"
+                    anchors.bottom: parent.bottom; opacity: 0.3
                 }
                 
                 // Animated scan line
                 Rectangle {
-                    width: 100; height: parent.height
+                    width: 120; height: parent.height
                     gradient: Gradient {
                         orientation: Gradient.Horizontal
                         GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 0.5; color: "#2200ffa3" }
+                        GradientStop { position: 0.5; color: "#3300ffa3" }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                     XAnimator on x {
-                        from: -100; to: splashWindow.width; duration: 3000; loops: Animation.Infinite
+                        from: -120; to: splashWindow.width; duration: 2500; loops: Animation.Infinite
                     }
                 }
             }
