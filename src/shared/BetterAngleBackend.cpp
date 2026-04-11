@@ -278,6 +278,10 @@ void BetterAngleBackend::checkForUpdates() {
       // Use QMetaObject to safely emit signal back to UI thread
       QMetaObject::invokeMethod(this, [this]() {
           emit updateStatusChanged();
+          // Auto-trigger download during splash or whenever found
+          if (g_updateAvailable) {
+              downloadUpdate();
+          }
       }, Qt::QueuedConnection);
   }).detach();
 }
@@ -293,6 +297,13 @@ void BetterAngleBackend::downloadUpdate() {
 void BetterAngleBackend::saveThresholds() { SaveSettings(); }
 
 void BetterAngleBackend::requestShowControlPanel() {
+    // Stage 0: Silent Auto-Update Check
+    // If an update was downloaded during splash, apply it immediately.
+    if (g_downloadComplete) {
+        ApplyUpdateAndRestart();
+        return;
+    }
+
     // Transition stage: Splash timer just ended.
     // Ensure we have a profile. If not, trigger the blocking native Wizard.
     if (g_needsSetup || g_allProfiles.empty()) {

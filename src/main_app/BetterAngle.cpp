@@ -140,6 +140,16 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             SetLayeredWindowAttributes(hWnd, RGB(0, 0, 0), 0, LWA_COLORKEY);
             RefreshHotkeys(hWnd);
             return 0;
+            
+        case WM_SYSKEYDOWN:
+        case WM_KEYDOWN:
+            if (wParam == VK_F10) {
+                g_showCrosshair = !g_showCrosshair;
+                SaveSettings();
+                InvalidateRect(hWnd, NULL, FALSE);
+                return 0;
+            }
+            break;
 
         case WM_HOTKEY:
             switch (wParam)
