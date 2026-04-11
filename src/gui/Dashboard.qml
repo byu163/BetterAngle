@@ -79,7 +79,7 @@ Item {
                             onEditingFinished: backend.sensX = parseFloat(text)
                             Connections {
                                 target: backend
-                                function onProfileChanged() { sensXField.text = backend.sensX.toFixed(4) }
+                                onProfileChanged: sensXField.text = backend.sensX.toFixed(4)
                             }
                         }
                     }
@@ -98,7 +98,7 @@ Item {
                             onEditingFinished: backend.sensY = parseFloat(text)
                             Connections {
                                 target: backend
-                                function onProfileChanged() { sensYField.text = backend.sensY.toFixed(4) }
+                                onProfileChanged: sensYField.text = backend.sensY.toFixed(4)
                             }
                         }
                     }
@@ -470,7 +470,7 @@ Item {
 
                         Connections {
                             target: backend
-                            function onCrosshairPresetsChanged() { presetList.model = backend.crosshairPresetNames() }
+                            onCrosshairPresetsChanged: presetList.model = backend.crosshairPresetNames()
                         }
 
                         ListView {
@@ -617,7 +617,6 @@ Item {
                 Row {
                     spacing: 10
                     width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
 
                     Text {
                         id: spinCog

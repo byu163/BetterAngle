@@ -15,7 +15,7 @@ Window {
 
     Connections {
         target: backend
-        function onShowControlPanelRequested() {
+        onShowControlPanelRequested: {
             mainWindow.show()
             mainWindow.raise()
             mainWindow.requestActivate()
