@@ -401,6 +401,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         def.showCrosshair = true;
         def.crossThickness = 2.0f;
         def.crossColor = RGB(0, 255, 204);
+        def.tolerance = 1;
         g_allProfiles.push_back(def);
         g_selectedProfileIdx = 0;
     }
