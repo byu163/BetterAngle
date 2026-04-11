@@ -365,7 +365,7 @@ static QString vkToString(UINT vk) {
     if (vk == VK_F11) return "F11"; if (vk == VK_F12) return "F12";
     if (vk == VK_TAB) return "TAB"; if (vk == VK_SPACE) return "SPACE";
     if (vk == VK_ESCAPE) return "ESC"; if (vk == VK_CONTROL) return "CTRL";
-    if (vk == VK_SHIFT) return "SHIFT"; if (vk == VK_ALT) return "ALT";
+    if (vk == VK_SHIFT) return "SHIFT"; if (vk == VK_MENU) return "ALT";
     return "";
 }
 
