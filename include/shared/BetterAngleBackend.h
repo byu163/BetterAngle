@@ -132,5 +132,6 @@ signals:
     void hotkeysChanged();
 
 private:
+    void syncAndSaveProfile();
     QString m_syncResult;
 };

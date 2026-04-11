@@ -108,38 +108,50 @@ void BetterAngleBackend::setTolerance(int v) {
 
 QString BetterAngleBackend::syncResult() const { return m_syncResult; }
 
+void BetterAngleBackend::syncAndSaveProfile() {
+    if (g_allProfiles.empty()) return;
+    Profile &p = g_allProfiles[g_selectedProfileIdx];
+    p.crossThickness = g_crossThickness;
+    p.crossColor     = g_crossColor;
+    p.crossOffsetX   = g_crossOffsetX;
+    p.crossOffsetY   = g_crossOffsetY;
+    p.crossPulse     = g_crossPulse;
+    p.Save(GetProfilesPath() + p.name + L".json");
+    SaveSettings();
+}
+
 bool BetterAngleBackend::crosshairOn() const { return g_showCrosshair; }
 void BetterAngleBackend::setCrosshairOn(bool v) {
   g_showCrosshair = v;
-  SaveSettings();
+  syncAndSaveProfile();
   emit crosshairChanged();
 }
 
 float BetterAngleBackend::crossThickness() const { return g_crossThickness; }
 void BetterAngleBackend::setCrossThickness(float v) {
   g_crossThickness = v;
-  SaveSettings();
+  syncAndSaveProfile();
   emit crosshairChanged();
 }
 
 float BetterAngleBackend::crossOffsetX() const { return g_crossOffsetX; }
 void BetterAngleBackend::setCrossOffsetX(float v) {
   g_crossOffsetX = v;
-  SaveSettings();
+  syncAndSaveProfile();
   emit crosshairChanged();
 }
 
 float BetterAngleBackend::crossOffsetY() const { return g_crossOffsetY; }
 void BetterAngleBackend::setCrossOffsetY(float v) {
   g_crossOffsetY = v;
-  SaveSettings();
+  syncAndSaveProfile();
   emit crosshairChanged();
 }
 
 bool BetterAngleBackend::crossPulse() const { return g_crossPulse; }
 void BetterAngleBackend::setCrossPulse(bool v) {
   g_crossPulse = v;
-  SaveSettings();
+  syncAndSaveProfile();
   emit crosshairChanged();
 }
 
@@ -149,7 +161,7 @@ QColor BetterAngleBackend::crossColor() const {
 }
 void BetterAngleBackend::setCrossColor(const QColor &c) {
   g_crossColor = RGB(c.red(), c.green(), c.blue());
-  SaveSettings();
+  syncAndSaveProfile();
   emit crosshairChanged();
 }
 
@@ -237,7 +249,9 @@ void BetterAngleBackend::syncWithFortnite() {
 }
 
 void BetterAngleBackend::terminateApp() {
-  SaveSettings();
+  // Final safety sync before process exits
+  syncAndSaveProfile();
+  
   if (g_hHUD) {
       PostMessage(g_hHUD, WM_CLOSE, 0, 0);
   }
