@@ -1,5 +1,9 @@
+### BetterAngle Pro v4.22.3
+- **Build System Patch:** Resolved a compilation error in `BetterAngle.cpp` by adding the missing `<QTimer>` header, ensuring correct handling of deferred initialization.
+- **Hotfix:** Synchronized core framework headers to resolve CI/CD pipeline compilation errors.
+
 ### BetterAngle Pro v4.22.2
-- **Hotfix:** Added missing `#include <QTimer>` in `BetterAngle.cpp` to resolve compilation errors in the CI/CD pipeline related to deferred initialization logic.
+- **Documentation Sync:** Updated `RELEASE_NOTES.md` and repository versioning to align with the core multi-monitor and keybind functionality updates.
 
 ### BetterAngle Pro v4.22.1
 - **Multi-Monitor Crosshair Visibility:** Recalibrated crosshair centering to use the Primary Monitor's center instead of the entire desktop span, preventing it from being hidden between screens.
