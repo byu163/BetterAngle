@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.23.5
+- **DEFINITIVE FIX: Blank/Invisible Startup.** Removed the broken `import BetterAngleUI 1.0` module import from `main.qml`. Qt named modules require a matching subdirectory (e.g. `BetterAngleUI/qmldir`) which was never created correctly — causing all QML type resolution to fail silently. Replaced with Qt's built-in filename-based auto-discovery: `Dashboard.qml` and `FirstTimeSetup.qml` in the same `qrc:/src/gui/` path are automatically usable as types without any import. Also removed the now-unnecessary `qmldir` file and `addImportPath()` call. Added QML load error logging to `debug.log` for future diagnostics.
+
 ### BetterAngle Pro v4.23.4
 - **CRITICAL FIX: Application Fails to Launch (Blank/Invisible UI).** Root-cause identified and resolved. `Dashboard` and `FirstTimeSetup` were undefined QML types because no `qmldir` module manifest existed. The engine was silently failing to build the UI tree. Fixed by creating `src/gui/qmldir`, registering it in `qml.qrc`, and adding `addImportPath("qrc:/src/gui")` to the engine before any `load()` call.
 - **Fixed Popup on Launch:** `FirstTimeSetup.qml` had `visible: true` which caused it to immediately open as a separate OS window every time `main.qml` loaded. Set to `visible: false` — it now only appears when triggered by the `showSetupRequested` signal.

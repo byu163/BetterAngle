@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QGuiApplication>
+#include <QDebug>
 #include "shared/BetterAngleBackend.h"
 
 QQmlApplicationEngine* g_qmlEngine = nullptr;
@@ -12,30 +13,32 @@ void EnsureEngineInitialized() {
         g_qmlEngine = new QQmlApplicationEngine();
         g_backend = new BetterAngleBackend(g_qmlEngine);
 
-        // Register "backend" context property BEFORE any load() call
+        // Register "backend" context property BEFORE any load() call.
         g_qmlEngine->rootContext()->setContextProperty("backend", g_backend);
-
-        // Register the src/gui/ directory as a QML import path so that
-        // Dashboard.qml and FirstTimeSetup.qml are resolvable as types
-        // via the qmldir file embedded in the QRC.
-        g_qmlEngine->addImportPath("qrc:/src/gui");
     }
 }
 
 HWND CreateControlPanel(HINSTANCE hInstance) {
     EnsureEngineInitialized();
 
-    // Track whether main.qml has been loaded by using a static flag,
-    // not by inspecting rootObjects().size() (which is unreliable because
-    // Splash.qml is already root object #1).
+    // Use a static flag to prevent loading main.qml more than once.
     static bool mainLoaded = false;
     if (!mainLoaded) {
         mainLoaded = true;
+
+        // Load main.qml. Dashboard.qml and FirstTimeSetup.qml are in the
+        // same qrc:/src/gui/ directory and Qt auto-discovers them as types —
+        // no import statement or qmldir needed.
         g_qmlEngine->load(QUrl(QStringLiteral("qrc:/src/gui/main.qml")));
+
         if (g_qmlEngine->rootObjects().size() < 2) {
-            MessageBoxW(NULL, L"CRITICAL: Failed to load UI (main.qml). The application will now close.", L"BetterAngle Error", MB_OK | MB_ICONERROR);
+            qDebug() << "[ERROR] main.qml failed to load. Root objects:" << g_qmlEngine->rootObjects().size();
+            MessageBoxW(NULL,
+                L"CRITICAL: Failed to load the dashboard UI (main.qml).\n\nCheck AppData\\BetterAngle\\debug.log for details.",
+                L"BetterAngle UI Error", MB_OK | MB_ICONERROR);
             exit(1);
         }
+        qDebug() << "[BOOT] main.qml loaded successfully.";
     }
 
     return (HWND)1;
@@ -44,6 +47,11 @@ HWND CreateControlPanel(HINSTANCE hInstance) {
 void ShowSplashScreen() {
     EnsureEngineInitialized();
     g_qmlEngine->load(QUrl(QStringLiteral("qrc:/src/gui/Splash.qml")));
+    if (g_qmlEngine->rootObjects().isEmpty()) {
+        qDebug() << "[ERROR] Splash.qml failed to load.";
+    } else {
+        qDebug() << "[BOOT] Splash.qml loaded successfully.";
+    }
 }
 
 void ShowControlPanel() {

@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
-import BetterAngleUI 1.0
 
 Window {
     id: mainWindow
