@@ -7,17 +7,23 @@
 QQmlApplicationEngine* g_qmlEngine = nullptr;
 BetterAngleBackend* g_backend = nullptr;
 
-HWND CreateControlPanel(HINSTANCE hInstance) {
+void EnsureEngineInitialized() {
     if (!g_qmlEngine) {
         g_qmlEngine = new QQmlApplicationEngine();
-        
-        // Register backend
         g_backend = new BetterAngleBackend(g_qmlEngine);
         g_qmlEngine->rootContext()->setContextProperty("backend", g_backend);
-        
+    }
+}
+
+HWND CreateControlPanel(HINSTANCE hInstance) {
+    EnsureEngineInitialized();
+    
+    // Always attempt to load main.qml if it's not already loaded
+    if (g_qmlEngine->rootObjects().isEmpty() || g_qmlEngine->rootObjects().size() < 2) {
         g_qmlEngine->load(QUrl(QStringLiteral("qrc:/src/gui/main.qml")));
         if (g_qmlEngine->rootObjects().isEmpty()) {
-            MessageBoxW(NULL, L"Failed to load user interface (main.qml). Please check installation.", L"BetterAngle Error", MB_OK | MB_ICONERROR);
+            MessageBoxW(NULL, L"CRITICAL: Failed to load UI (main.qml). The application will now close.", L"BetterAngle Error", MB_OK | MB_ICONERROR);
+            exit(1);
         }
     }
     
@@ -25,11 +31,7 @@ HWND CreateControlPanel(HINSTANCE hInstance) {
 }
 
 void ShowSplashScreen() {
-    if (!g_qmlEngine) {
-        g_qmlEngine = new QQmlApplicationEngine();
-        g_backend = new BetterAngleBackend(g_qmlEngine);
-        g_qmlEngine->rootContext()->setContextProperty("backend", g_backend);
-    }
+    EnsureEngineInitialized();
     g_qmlEngine->load(QUrl(QStringLiteral("qrc:/src/gui/Splash.qml")));
 }
 

@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.22.6
+- **FIX: Critical Startup Failure:** Resolved a logic conflict where the application was skipping the Dashboard/Wizard loading if the Splash screen was enabled. UI elements are now guaranteed to load.
+- **NEW: Recovery Mode (SHIFT + Start):** Holding the **SHIFT** key while launching the application will now offer to reset all settings to defaults. Use this if the app is crashing or failing to start.
+- **Robust Initialization:** Upgraded the application startup logic to use more reliable Win32 process arguments, preventing "ghost" background processes.
+
 ### BetterAngle Pro v4.22.5
 - **Build System Patch:** Resolved a compilation error in `BetterAngle.cpp` by restoring the missing screen dimension identifiers (`screenW`, `screenH`) required for multi-monitor HUD initialization.
 - **Uninstaller Hotfix:** Corrected a build failure in the uninstaller by adding the missing `<shlobj.h>` header, enabling successful desktop shortcut removal.

@@ -359,11 +359,18 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
 // WinMain...
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    SetProcessDPIAware();
-    int argc = 1;
-    char* argv[] = { (char*)"BetterAngle.exe", nullptr };
-    QGuiApplication app(argc, argv);
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
+    // 1. Recovery Mode: Holding SHIFT during startup resets everything
+    if (GetKeyState(VK_SHIFT) & 0x8000) {
+        if (MessageBoxW(NULL, L"BetterAngle: Hold SHIFT to Reset Settings?\n\nThis will clear your profiles and restore defaults. This is recommended if the app is not starting correctly.", L"BetterAngle Recovery", MB_YESNO | MB_ICONQUESTION) == IDYES) {
+            std::wstring root = GetAppRootPath();
+            std::filesystem::remove_all(root);
+            MessageBoxW(NULL, L"Settings have been reset. BetterAngle will now start in Setup mode.", L"Reset Complete", MB_OK | MB_ICONINFORMATION);
+        }
+    }
+
+    // Use robust Win32 arguments for Qt
+    QGuiApplication app(__argc, __argv);
     app.setQuitOnLastWindowClosed(false); // Prevent premature exit if windows are still initializing
 
     // Phase 0: Kick off version check in background — never blocks startup.
