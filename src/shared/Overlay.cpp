@@ -216,16 +216,22 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     FontFamily ff(L"Segoe UI");
     Font labelFont(&ff, 9, FontStyleBold, UnitPixel);
     SolidBrush labelBrush(Color(160, 180, 185, 195));
+    StringFormat fmtLabel;
+    fmtLabel.SetAlignment(StringAlignmentCenter);
     graphics.DrawString(L"CURRENT ANGLE", -1, &labelFont,
-                        PointF(float(rx + 14), float(ry + 8)), &labelBrush);
+                        RectF(float(rx), float(ry + 8), float(rw), 18.0f), &fmtLabel, &labelBrush);
 
     // Angle text — L"\xB0" is the degree symbol (safe ASCII escape)
     Font angleFont(&ff, 68, FontStyleBold, UnitPixel);
     std::wstring angleStr = FmtFloat(std::abs(angle), 1) + L"\xB0";
     Color angleCol = g_isDiving ? Color(255, 0, 220, 255) : Color(255, 0, 210, 140);
     SolidBrush angleBrush(angleCol);
+
+    StringFormat fmtAngle;
+    fmtAngle.SetAlignment(StringAlignmentCenter);
+    fmtAngle.SetLineAlignment(StringAlignmentNear);
     graphics.DrawString(angleStr.c_str(), -1, &angleFont,
-                        PointF(float(rx + 14), float(ry + 22)), &angleBrush);
+                        RectF(float(rx), float(ry + 26), float(rw), 80.0f), &fmtAngle, &angleBrush);
 
     // Match % label
     Font subFont(&ff, 12, FontStyleBold, UnitPixel);
