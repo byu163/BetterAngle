@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.22.9
+- **Uninstaller Hardening:** Extended the uninstaller to perform a comprehensive cleanup of Shortcuts. It now removes "BetterAngle Pro" and "BetterAngle" entries from the Desktop, Startup folder, and Windows Programs Menu.
+
 ### BetterAngle Pro v4.22.8
 - **Deep Stability Pass:** Simplified the Splash screen to remove GPU-intensive Canvas animations, resolving potential startup hangs on older drivers.
 - **Sequential UI Loading:** Optimized the QML engine to load the Dashboard only after the Splash screen is visible, reducing system resource contention.

@@ -54,13 +54,23 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         pathsToDelete.push_back(installDir);
     }
 
-    // 2.5. Desktop Shortcut
-    wchar_t desktop[MAX_PATH];
-    if (SHGetSpecialFolderPathW(NULL, desktop, CSIDL_DESKTOP, FALSE)) {
-        fs::path shortcut = fs::path(desktop) / "BetterAngle Pro.lnk";
-        if (fs::exists(shortcut)) {
-            try { fs::remove(shortcut); } catch(...) {}
+    // 2.5. Shortcuts Cleanup
+    auto deleteLnk = [&](int csidl, const std::string& name) {
+        wchar_t path[MAX_PATH];
+        if (SHGetSpecialFolderPathW(NULL, path, csidl, FALSE)) {
+            fs::path shortcut = fs::path(path) / (name + ".lnk");
+            if (fs::exists(shortcut)) {
+                try { fs::remove(shortcut); } catch(...) {}
+            }
         }
+    };
+
+    std::vector<std::string> names = { "BetterAngle Pro", "BetterAngle" };
+    for (const auto& name : names) {
+        deleteLnk(CSIDL_DESKTOP, name);
+        deleteLnk(CSIDL_STARTUP, name);
+        deleteLnk(CSIDL_PROGRAMS, name);
+        deleteLnk(CSIDL_COMMON_STARTUP, name);
     }
 
     // 3. Delete folders
