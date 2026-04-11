@@ -9,6 +9,13 @@ Item {
         id: bar
         width: parent.width
         background: Rectangle { color: "#0d0d12" }
+        onCurrentIndexChanged: {
+            if (currentIndex == 4) { // UPDATES tab
+                if (!backend.hasCheckedForUpdates) {
+                    backend.checkForUpdates()
+                }
+            }
+        }
         
         TabButton {
             text: qsTr("GENERAL")
@@ -598,7 +605,7 @@ Item {
                     }
                     onClicked: {
                         if (backend.downloadComplete) {
-                            backend.terminateApp() 
+                            backend.downloadUpdate() // Calls ApplyUpdateAndRestart internally
                         } else if (backend.updateAvailable) {
                             backend.downloadUpdate()
                         } else {

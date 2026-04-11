@@ -43,6 +43,8 @@ bool DownloadFile(const std::wstring& url, const std::wstring& dest) {
     return true;
 }
 
+static std::wstring g_dynamicDownloadUrl = DOWNLOAD_URL;
+
 bool CheckForUpdates() {
     g_isCheckingForUpdates = true;
     
@@ -69,7 +71,22 @@ bool CheckForUpdates() {
 
                     g_latestVersionOnline = latestVerStr;
                     
-                    // Strip 'v' from current version for comparison if it exists
+                    // Find actual download URL for BetterAngle.exe
+                    size_t assetPos = json.find("\"browser_download_url\":");
+                    while (assetPos != std::string::npos) {
+                        size_t uS = json.find("\"", assetPos + 23);
+                        size_t uE = json.find("\"", uS + 1);
+                        if (uS != std::string::npos && uE != std::string::npos) {
+                            std::string uStr = json.substr(uS + 1, uE - uS - 1);
+                            if (uStr.find("BetterAngle.exe") != std::string::npos || 
+                                uStr.find(".exe") != std::string::npos) {
+                                g_dynamicDownloadUrl = std::wstring(uStr.begin(), uStr.end());
+                                break;
+                            }
+                        }
+                        assetPos = json.find("\"browser_download_url\":", assetPos + 23);
+                    }
+                    
                     std::string currentVer = VERSION_STR;
                     if (!currentVer.empty() && (currentVer[0] == 'v' || currentVer[0] == 'V')) {
                         currentVer = currentVer.substr(1);
@@ -98,7 +115,7 @@ void UpdateApp() {
     g_isDownloadingUpdate = true;
     std::thread([]() {
         std::wstring dest = GetAppRootPath() + L"update_tmp.exe";
-        if (DownloadFile(DOWNLOAD_URL, dest)) {
+        if (DownloadFile(g_dynamicDownloadUrl, dest)) {
             g_downloadComplete = true;
         }
         g_isDownloadingUpdate = false;

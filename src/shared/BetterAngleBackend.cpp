@@ -46,6 +46,13 @@ BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
     }
   });
   timer->start(100);
+  
+  // Auto-check for updates on startup
+  QTimer::singleShot(2000, this, [this]() {
+      if (!g_hasCheckedForUpdates && !g_isCheckingForUpdates) {
+          checkForUpdates();
+      }
+  });
 }
 
 double BetterAngleBackend::sensX() const {
