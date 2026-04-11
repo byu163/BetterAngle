@@ -104,12 +104,19 @@ void RefreshHotkeys(HWND hWnd) {
 
     if (!g_allProfiles.empty()) {
         Profile& p = g_allProfiles[g_selectedProfileIdx];
-        // Use standard registration without MOD_NOREPEAT for maximum compatibility
-        RegisterHotKey(hWnd, 1, p.keybinds.toggleMod, p.keybinds.toggleKey);
-        RegisterHotKey(hWnd, 2, p.keybinds.roiMod,    p.keybinds.roiKey);
-        RegisterHotKey(hWnd, 3, p.keybinds.crossMod,  p.keybinds.crossKey);
-        RegisterHotKey(hWnd, 4, p.keybinds.zeroMod,   p.keybinds.zeroKey);
-        RegisterHotKey(hWnd, 5, p.keybinds.debugMod,  p.keybinds.debugKey);
+        
+        auto reg = [&](int id, UINT mod, UINT key, const wchar_t* name) {
+            if (key == 0) return;
+            if (!RegisterHotKey(hWnd, id, mod, key)) {
+                std::wcerr << L"HOTKEY ERROR: Failed to register " << name << L". Error: " << GetLastError() << std::endl;
+            }
+        };
+
+        reg(1, p.keybinds.toggleMod, p.keybinds.toggleKey, L"Toggle");
+        reg(2, p.keybinds.roiMod,    p.keybinds.roiKey,    L"ROI");
+        reg(3, p.keybinds.crossMod,  p.keybinds.crossKey,  L"Crosshair");
+        reg(4, p.keybinds.zeroMod,   p.keybinds.zeroKey,   L"Zero");
+        reg(5, p.keybinds.debugMod,  p.keybinds.debugKey,  L"Debug");
     }
 }
 
@@ -372,21 +379,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     std::vector<Profile> setupProfiles = g_allProfiles;
 
     g_allProfiles = GetProfiles(GetProfilesPath());
-    if (g_allProfiles.empty()) {
-        Profile p;
-        p.name = L"Default";
-        p.tolerance = 45; // Enhanced for Euclidean matching
-        p.roi_x = 760; p.roi_y = 640; p.roi_w = 400; p.roi_h = 70;
-        p.target_color = RGB(150, 150, 150);
-        p.sensitivityX = 0.05;
-        p.sensitivityY = 0.05;
-        p.showCrosshair = true;
-        p.crossThickness = 2.0f;
-        p.crossColor = RGB(0, 255, 163); // Neon Cyan
-        p.crossPulse = true;
-        p.Save(GetProfilesPath() + L"Default.json");
-
-        g_allProfiles.push_back(p);
+    if (g_allProfiles.empty() || g_needsSetup) {
+        g_needsSetup = true;
+        // Enforce hard-coded master defaults to prevent "select file prompt" or accidental junk loading
+        g_allProfiles.clear();
+        Profile def;
+        def.name = L"Default";
+        def.sensitivityX = 0.05; def.sensitivityY = 0.05;
+        def.showCrosshair = true;
+        def.crossThickness = 2.0f;
+        def.crossColor = RGB(0, 255, 204);
+        g_allProfiles.push_back(def);
+        g_selectedProfileIdx = 0;
     }
 
     // If setup just ran, trust its in-memory sensitivityX/Y values over what was read from disk

@@ -12,6 +12,7 @@
 #include "shared/Logic.h"
 #include <gdiplus.h>
 
+extern double FetchFortniteSensitivity();
 using namespace Gdiplus;
 
 // Use persistent state from shared/State.h
@@ -202,6 +203,15 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
         wc.hCursor = LoadCursor(NULL, IDC_ARROW);
         wc.lpszClassName = L"FTSWindowClass";
         RegisterClass(&wc);
+    }
+
+    // Auto-detect sensitivity from game files to pre-fill the wizard
+    double detectedSens = FetchFortniteSensitivity();
+    if (detectedSens > 0.0) {
+        wchar_t buf[32];
+        swprintf_s(buf, L"%.4f", detectedSens);
+        g_setupSensX = buf;
+        g_setupSensY = buf;
     }
 
     int W = 500, H = 320;

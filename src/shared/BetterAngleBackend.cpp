@@ -15,6 +15,8 @@ extern std::vector<Profile> g_allProfiles;
 extern int g_selectedProfileIdx;
 extern AngleLogic g_logic;
 extern double FetchFortniteSensitivity();
+extern HWND g_hHUD;
+extern void RefreshHotkeys(HWND hWnd);
 
 BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
   // Emit profileChanged once the Qt event loop starts so QML fields
@@ -112,11 +114,13 @@ QString BetterAngleBackend::syncResult() const { return m_syncResult; }
 void BetterAngleBackend::syncAndSaveProfile() {
     if (g_allProfiles.empty()) return;
     Profile &p = g_allProfiles[g_selectedProfileIdx];
+    p.showCrosshair  = g_showCrosshair;
     p.crossThickness = g_crossThickness;
     p.crossColor     = g_crossColor;
     p.crossOffsetX   = g_crossOffsetX;
     p.crossOffsetY   = g_crossOffsetY;
     p.crossPulse     = g_crossPulse;
+    // Keybinds are already updated in the profile struct via the setters
     p.Save(GetProfilesPath() + p.name + L".json");
     SaveSettings();
 }
@@ -125,6 +129,7 @@ bool BetterAngleBackend::crosshairOn() const { return g_showCrosshair; }
 void BetterAngleBackend::setCrosshairOn(bool v) {
   g_showCrosshair = v;
   syncAndSaveProfile();
+  if (g_hHUD) { InvalidateRect(g_hHUD, NULL, FALSE); UpdateWindow(g_hHUD); }
   emit crosshairChanged();
 }
 
@@ -132,6 +137,7 @@ float BetterAngleBackend::crossThickness() const { return g_crossThickness; }
 void BetterAngleBackend::setCrossThickness(float v) {
   g_crossThickness = v;
   syncAndSaveProfile();
+  if (g_hHUD) { InvalidateRect(g_hHUD, NULL, FALSE); UpdateWindow(g_hHUD); }
   emit crosshairChanged();
 }
 
@@ -139,6 +145,7 @@ float BetterAngleBackend::crossOffsetX() const { return g_crossOffsetX; }
 void BetterAngleBackend::setCrossOffsetX(float v) {
   g_crossOffsetX = v;
   syncAndSaveProfile();
+  if (g_hHUD) { InvalidateRect(g_hHUD, NULL, FALSE); UpdateWindow(g_hHUD); }
   emit crosshairChanged();
 }
 
@@ -146,6 +153,7 @@ float BetterAngleBackend::crossOffsetY() const { return g_crossOffsetY; }
 void BetterAngleBackend::setCrossOffsetY(float v) {
   g_crossOffsetY = v;
   syncAndSaveProfile();
+  if (g_hHUD) { InvalidateRect(g_hHUD, NULL, FALSE); UpdateWindow(g_hHUD); }
   emit crosshairChanged();
 }
 
@@ -153,6 +161,7 @@ bool BetterAngleBackend::crossPulse() const { return g_crossPulse; }
 void BetterAngleBackend::setCrossPulse(bool v) {
   g_crossPulse = v;
   syncAndSaveProfile();
+  if (g_hHUD) { InvalidateRect(g_hHUD, NULL, FALSE); UpdateWindow(g_hHUD); }
   emit crosshairChanged();
 }
 
@@ -243,8 +252,7 @@ void BetterAngleBackend::syncWithFortnite() {
     // More detailed diagnostic info for the user
     wchar_t appdata[MAX_PATH] = {};
     SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata);
-    QString path = QString::fromWCharArray(appdata) + "\\FortniteGame\\Saved";
-    m_syncResult = QString("NOT FOUND: Scanned %1 tree").arg(path);
+    m_syncResult = "NOT FOUND: Scanned AppData and Documents trees";
   }
   emit syncResultChanged();
 }
@@ -289,10 +297,12 @@ void BetterAngleBackend::saveThresholds() { SaveSettings(); }
 void BetterAngleBackend::requestShowControlPanel() {
     // Transition stage: Splash timer just ended.
     // Ensure we have a profile. If not, trigger the blocking native Wizard.
-    if (g_allProfiles.empty()) {
+    if (g_needsSetup || g_allProfiles.empty()) {
         ShowFirstTimeSetup(GetModuleHandle(NULL));
         LoadSettings();
         g_allProfiles = GetProfiles(GetProfilesPath());
+        g_needsSetup = false;
+        SaveSettings();
     }
 
     // Now that setup is done (or was already done), show the Overlay and Dashboard
@@ -437,19 +447,54 @@ static void parseFullKey(const QString& s, UINT& outMod, UINT& outKey) {
 }
 
 QString BetterAngleBackend::keyToggle() const { if (g_allProfiles.empty()) return "Ctrl + U"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.toggleMod, k.toggleKey); }
-void BetterAngleBackend::setKeyToggle(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.toggleMod, g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey); emit hotkeysChanged(); } }
+void BetterAngleBackend::setKeyToggle(const QString& s) { 
+  if (!g_allProfiles.empty()) { 
+    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.toggleMod, g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey); 
+    syncAndSaveProfile();
+    RefreshHotkeys(g_hHUD);
+    emit hotkeysChanged(); 
+  } 
+}
 
 QString BetterAngleBackend::keyRoi() const { if (g_allProfiles.empty()) return "Ctrl + 8"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.roiMod, k.roiKey); }
-void BetterAngleBackend::setKeyRoi(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.roiMod, g_allProfiles[g_selectedProfileIdx].keybinds.roiKey); emit hotkeysChanged(); } }
+void BetterAngleBackend::setKeyRoi(const QString& s) { 
+  if (!g_allProfiles.empty()) { 
+    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.roiMod, g_allProfiles[g_selectedProfileIdx].keybinds.roiKey); 
+    syncAndSaveProfile();
+    RefreshHotkeys(g_hHUD);
+    emit hotkeysChanged(); 
+  } 
+}
 
 QString BetterAngleBackend::keyCross() const { if (g_allProfiles.empty()) return "F10"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.crossMod, k.crossKey); }
-void BetterAngleBackend::setKeyCross(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.crossMod, g_allProfiles[g_selectedProfileIdx].keybinds.crossKey); emit hotkeysChanged(); } }
+void BetterAngleBackend::setKeyCross(const QString& s) { 
+  if (!g_allProfiles.empty()) { 
+    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.crossMod, g_allProfiles[g_selectedProfileIdx].keybinds.crossKey); 
+    syncAndSaveProfile();
+    RefreshHotkeys(g_hHUD);
+    emit hotkeysChanged(); 
+  } 
+}
 
 QString BetterAngleBackend::keyZero() const { if (g_allProfiles.empty()) return "Ctrl + G"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.zeroMod, k.zeroKey); }
-void BetterAngleBackend::setKeyZero(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.zeroMod, g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey); emit hotkeysChanged(); } }
+void BetterAngleBackend::setKeyZero(const QString& s) { 
+  if (!g_allProfiles.empty()) { 
+    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.zeroMod, g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey); 
+    syncAndSaveProfile();
+    RefreshHotkeys(g_hHUD);
+    emit hotkeysChanged(); 
+  } 
+}
 
 QString BetterAngleBackend::keyDebug() const { if (g_allProfiles.empty()) return "Ctrl + 9"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.debugMod, k.debugKey); }
-void BetterAngleBackend::setKeyDebug(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.debugMod, g_allProfiles[g_selectedProfileIdx].keybinds.debugKey); emit hotkeysChanged(); } }
+void BetterAngleBackend::setKeyDebug(const QString& s) { 
+  if (!g_allProfiles.empty()) { 
+    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.debugMod, g_allProfiles[g_selectedProfileIdx].keybinds.debugKey); 
+    syncAndSaveProfile();
+    RefreshHotkeys(g_hHUD);
+    emit hotkeysChanged(); 
+  } 
+}
 
 void BetterAngleBackend::saveKeybinds() {
     if (g_allProfiles.empty()) return;

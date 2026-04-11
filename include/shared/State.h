@@ -21,8 +21,9 @@ extern std::atomic<bool> g_fortniteFocusedCache;
 #ifndef V_MAJ
 #define V_MAJ 4
 #define V_MIN 20
-#define V_PAT 63
+#define V_PAT 66
 #endif
+extern bool g_needsSetup;
 extern bool g_setupComplete;
 extern std::string g_lastVersionRun;
 
