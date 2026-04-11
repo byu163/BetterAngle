@@ -42,6 +42,7 @@ struct Profile {
   int tolerance;
 
   // Crosshair Settings
+  bool showCrosshair;
   float crossThickness;
   COLORREF crossColor;
   float crossOffsetX;
