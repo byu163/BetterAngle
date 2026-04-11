@@ -6,6 +6,7 @@
 
 HWND CreateControlPanel(HINSTANCE hInst);
 void ShowControlPanel();
+void ShowSplashScreen();
 LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 #endif

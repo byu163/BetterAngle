@@ -476,7 +476,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     );
 
     AddSystrayIcon(g_hHUD);
-    ShowControlPanel(); // Force Dashboard to show on startup
+    // Phase 4: Launch UI (Splash first)
+    CreateControlPanel(hInstance);
+    ShowSplashScreen();
     ShowWindow(g_hHUD, SW_SHOW);
     UpdateWindow(g_hHUD);
     SetTimer(g_hHUD, 1, 16, NULL); // 60fps (~16ms) Repaint Timer

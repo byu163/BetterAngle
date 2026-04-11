@@ -148,7 +148,7 @@ Item {
                             TextField { 
                                 text: backend.keyToggle; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyToggle = text
+                                onEditingFinished: { backend.keyToggle = text; backend.saveKeybinds() }
                             }
                         }
                         RowLayout {
@@ -156,7 +156,7 @@ Item {
                             TextField { 
                                 text: backend.keyRoi; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyRoi = text
+                                onEditingFinished: { backend.keyRoi = text; backend.saveKeybinds() }
                             }
                         }
                         RowLayout {
@@ -164,7 +164,7 @@ Item {
                             TextField { 
                                 text: backend.keyCross; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyCross = text
+                                onEditingFinished: { backend.keyCross = text; backend.saveKeybinds() }
                             }
                         }
                         RowLayout {
@@ -172,7 +172,7 @@ Item {
                             TextField { 
                                 text: backend.keyZero; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyZero = text
+                                onEditingFinished: { backend.keyZero = text; backend.saveKeybinds() }
                             }
                         }
                         RowLayout {
@@ -180,7 +180,7 @@ Item {
                             TextField { 
                                 text: backend.keyDebug; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyDebug = text
+                                onEditingFinished: { backend.keyDebug = text; backend.saveKeybinds() }
                             }
                         }
                         
