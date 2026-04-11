@@ -198,6 +198,7 @@ QString BetterAngleBackend::latestVersion() const {
 }
 bool BetterAngleBackend::updateAvailable() const { return g_updateAvailable; }
 bool BetterAngleBackend::isDownloading() const { return g_isDownloadingUpdate; }
+bool BetterAngleBackend::isCheckingForUpdates() const { return g_isCheckingForUpdates; }
 bool BetterAngleBackend::downloadComplete() const { return g_downloadComplete; }
 bool BetterAngleBackend::hasCheckedForUpdates() const { return g_hasCheckedForUpdates; }
 QString BetterAngleBackend::updateHistory() const {
