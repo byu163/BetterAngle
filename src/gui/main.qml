@@ -6,12 +6,14 @@ Window {
     id: mainWindow
     width: 650
     height: 480
+    x: Screen.width / 2 - width / 2
+    y: Screen.height / 2 - height / 2
     visible: false
     title: qsTr("BetterAngle Pro Angle HUD")
     color: "#0a0a0f"
 
     // Frameless window style for a custom sleek look
-    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint
+    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowStaysOnTopHint
 
     onVisibleChanged: {
         // No longer forcing crosshair state here to allow user preference to persist

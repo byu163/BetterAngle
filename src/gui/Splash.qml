@@ -6,9 +6,11 @@ Window {
     id: splashWindow
     width: 600
     height: 380
+    x: Screen.width / 2 - width / 2
+    y: Screen.height / 2 - height / 2
     visible: true
     color: "transparent"
-    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SplashScreen
 
     Rectangle {
         id: mainBg
@@ -131,7 +133,7 @@ Window {
                         font.letterSpacing: 4
                     }
                     Text {
-                        text: "V E R S I O N  4 . 2 2 . 3"
+                        text: "V E R S I O N  4 . 2 2 . 4"
                         color: "#666"
                         font.pixelSize: 10
                         font.bold: true

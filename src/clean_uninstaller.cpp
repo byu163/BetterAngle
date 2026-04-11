@@ -53,6 +53,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         pathsToDelete.push_back(installDir);
     }
 
+    // 2.5. Desktop Shortcut
+    wchar_t desktop[MAX_PATH];
+    if (SHGetSpecialFolderPathW(NULL, desktop, CSIDL_DESKTOP, FALSE)) {
+        fs::path shortcut = fs::path(desktop) / "BetterAngle Pro.lnk";
+        if (fs::exists(shortcut)) {
+            try { fs::remove(shortcut); } catch(...) {}
+        }
+    }
+
     // 3. Delete folders
     for (const auto& p : pathsToDelete) {
         try {

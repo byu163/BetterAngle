@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.22.4
+- **Multi-Monitor Visibility Fix:** Implemented dynamic monitor centering for the Splash, Wizard, and Dashboard screens, ensuring they no longer appear off-screen on multi-monitor setups.
+- **Enhanced Uninstaller:** The uninstaller now fully removes the application state, including AppData profiles, hidden setup markers, and the Desktop shortcut.
+- **Startup Engine Optimization:** Refined the QML initialization sequence to prevent race conditions during the Splash-to-Wizard transition.
+
 ### BetterAngle Pro v4.22.3
 - **Build System Patch:** Resolved a compilation error in `BetterAngle.cpp` by adding the missing `<QTimer>` header, ensuring correct handling of deferred initialization.
 - **Hotfix:** Synchronized core framework headers to resolve CI/CD pipeline compilation errors.
