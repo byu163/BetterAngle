@@ -1,3 +1,9 @@
+### BetterAngle Pro v4.23.4
+- **CRITICAL FIX: Application Fails to Launch (Blank/Invisible UI).** Root-cause identified and resolved. `Dashboard` and `FirstTimeSetup` were undefined QML types because no `qmldir` module manifest existed. The engine was silently failing to build the UI tree. Fixed by creating `src/gui/qmldir`, registering it in `qml.qrc`, and adding `addImportPath("qrc:/src/gui")` to the engine before any `load()` call.
+- **Fixed Popup on Launch:** `FirstTimeSetup.qml` had `visible: true` which caused it to immediately open as a separate OS window every time `main.qml` loaded. Set to `visible: false` — it now only appears when triggered by the `showSetupRequested` signal.
+- **Fixed Dashboard Overlapping Splash:** `main.qml` had `visible: true` which caused the dashboard window to appear instantly at 1500ms while the Splash was still displayed. Set to `visible: false` — it now only appears when triggered by the `showControlPanelRequested` signal.
+- **Fixed Brittle Re-load Guard:** Replaced the `rootObjects().size() < 2` check in `CreateControlPanel()` with a reliable `static bool mainLoaded` flag.
+
 ### BetterAngle Pro v4.23.3
 - **Compilation Stability Patch:** Resolved multiple build failures in `BetterAngle.cpp` by correctly including backend headers and standardizing global pointer declarations. Fixed the `syntax error: missing ';' before '*'` and related undeclared identifier errors.
 
