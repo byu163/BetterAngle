@@ -369,20 +369,43 @@ static QString vkToString(UINT vk) {
     return "";
 }
 
-QString BetterAngleBackend::keyToggle() const { if (g_allProfiles.empty()) return "U"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey); }
-void BetterAngleBackend::setKeyToggle(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey = stringToVk(s); emit hotkeysChanged(); } }
+static QString fullKeyToString(UINT mod, UINT vk) {
+    QString res;
+    if (mod & MOD_CONTROL) res += "Ctrl + ";
+    if (mod & MOD_SHIFT) res += "Shift + ";
+    if (mod & MOD_ALT) res += "Alt + ";
+    res += vkToString(vk);
+    return res;
+}
 
-QString BetterAngleBackend::keyRoi() const { if (g_allProfiles.empty()) return "8"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.roiKey); }
-void BetterAngleBackend::setKeyRoi(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.roiKey = stringToVk(s); emit hotkeysChanged(); } }
+static void parseFullKey(const QString& s, UINT& outMod, UINT& outKey) {
+    outMod = 0;
+    QString lower = s.toLower();
+    if (lower.contains("ctrl")) outMod |= MOD_CONTROL;
+    if (lower.contains("shift")) outMod |= MOD_SHIFT;
+    if (lower.contains("alt")) outMod |= MOD_ALT;
+    
+    QString keyPart = s;
+    if (s.contains("+")) {
+        keyPart = s.split("+").last().trimmed();
+    }
+    outKey = stringToVk(keyPart);
+}
 
-QString BetterAngleBackend::keyCross() const { if (g_allProfiles.empty()) return "F10"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.crossKey); }
-void BetterAngleBackend::setKeyCross(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.crossKey = stringToVk(s); emit hotkeysChanged(); } }
+QString BetterAngleBackend::keyToggle() const { if (g_allProfiles.empty()) return "Ctrl + U"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.toggleMod, k.toggleKey); }
+void BetterAngleBackend::setKeyToggle(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.toggleMod, g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey); emit hotkeysChanged(); } }
 
-QString BetterAngleBackend::keyZero() const { if (g_allProfiles.empty()) return "G"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey); }
-void BetterAngleBackend::setKeyZero(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey = stringToVk(s); emit hotkeysChanged(); } }
+QString BetterAngleBackend::keyRoi() const { if (g_allProfiles.empty()) return "Ctrl + 8"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.roiMod, k.roiKey); }
+void BetterAngleBackend::setKeyRoi(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.roiMod, g_allProfiles[g_selectedProfileIdx].keybinds.roiKey); emit hotkeysChanged(); } }
 
-QString BetterAngleBackend::keyDebug() const { if (g_allProfiles.empty()) return "9"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.debugKey); }
-void BetterAngleBackend::setKeyDebug(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.debugKey = stringToVk(s); emit hotkeysChanged(); } }
+QString BetterAngleBackend::keyCross() const { if (g_allProfiles.empty()) return "F10"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.crossMod, k.crossKey); }
+void BetterAngleBackend::setKeyCross(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.crossMod, g_allProfiles[g_selectedProfileIdx].keybinds.crossKey); emit hotkeysChanged(); } }
+
+QString BetterAngleBackend::keyZero() const { if (g_allProfiles.empty()) return "Ctrl + G"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.zeroMod, k.zeroKey); }
+void BetterAngleBackend::setKeyZero(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.zeroMod, g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey); emit hotkeysChanged(); } }
+
+QString BetterAngleBackend::keyDebug() const { if (g_allProfiles.empty()) return "Ctrl + 9"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.debugMod, k.debugKey); }
+void BetterAngleBackend::setKeyDebug(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.debugMod, g_allProfiles[g_selectedProfileIdx].keybinds.debugKey); emit hotkeysChanged(); } }
 
 void BetterAngleBackend::saveKeybinds() {
     if (g_allProfiles.empty()) return;

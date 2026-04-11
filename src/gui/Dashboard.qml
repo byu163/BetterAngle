@@ -146,7 +146,7 @@ Item {
                         RowLayout {
                             Text { text: "Toggle Dashboard:"; color: "white"; Layout.preferredWidth: 150 }
                             TextField { 
-                                text: backend.keyToggle; width: 60; color: "#00cca3"
+                                text: backend.keyToggle; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
                                 onTextChanged: backend.keyToggle = text
                             }
@@ -154,7 +154,7 @@ Item {
                         RowLayout {
                             Text { text: "Selection Overlay:"; color: "white"; Layout.preferredWidth: 150 }
                             TextField { 
-                                text: backend.keyRoi; width: 60; color: "#00cca3"
+                                text: backend.keyRoi; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
                                 onTextChanged: backend.keyRoi = text
                             }
@@ -162,7 +162,7 @@ Item {
                         RowLayout {
                             Text { text: "Toggle Crosshair:"; color: "white"; Layout.preferredWidth: 150 }
                             TextField { 
-                                text: backend.keyCross; width: 60; color: "#00cca3"
+                                text: backend.keyCross; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
                                 onTextChanged: backend.keyCross = text
                             }
@@ -170,7 +170,7 @@ Item {
                         RowLayout {
                             Text { text: "Zero Counter:"; color: "white"; Layout.preferredWidth: 150 }
                             TextField { 
-                                text: backend.keyZero; width: 60; color: "#00cca3"
+                                text: backend.keyZero; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
                                 onTextChanged: backend.keyZero = text
                             }
@@ -178,7 +178,7 @@ Item {
                         RowLayout {
                             Text { text: "Debug Overlay:"; color: "white"; Layout.preferredWidth: 150 }
                             TextField { 
-                                text: backend.keyDebug; width: 60; color: "#00cca3"
+                                text: backend.keyDebug; width: 120; color: "#00cca3"
                                 background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
                                 onTextChanged: backend.keyDebug = text
                             }
