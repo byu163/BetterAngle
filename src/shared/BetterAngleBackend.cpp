@@ -250,7 +250,6 @@ void BetterAngleBackend::terminateApp() {
     p.Save(GetProfilesPath() + p.name + L".json");
   }
 
-void BetterAngleBackend::terminateApp() {
   SaveSettings();
   if (g_hHUD) {
       PostMessage(g_hHUD, WM_CLOSE, 0, 0);
