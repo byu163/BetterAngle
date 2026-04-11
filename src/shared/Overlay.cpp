@@ -222,16 +222,17 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
                         RectF(float(rx), float(ry + 8), float(rw), 18.0f), &fmtLabel, &labelBrush);
 
     // Angle text — L"\xB0" is the degree symbol (safe ASCII escape)
-    Font angleFont(&ff, 68, FontStyleBold, UnitPixel);
-    std::wstring angleStr = FmtFloat(std::abs(angle), 1) + L"\xB0";
-    Color angleCol = g_isDiving ? Color(255, 0, 220, 255) : Color(255, 0, 210, 140);
+    // Unified Angle HUD (integer + decimal in one unit)
+    Font angleFont(&ff, 58, FontStyleBold, UnitPixel);
+    std::wstring angleStr = FmtFloat(std::abs(angle), 2) + L"\xB0";
+    Color angleCol = g_isDiving ? Color(255, 0, 255, 220) : Color(255, 0, 210, 140);
     SolidBrush angleBrush(angleCol);
 
     StringFormat fmtAngle;
     fmtAngle.SetAlignment(StringAlignmentCenter);
     fmtAngle.SetLineAlignment(StringAlignmentNear);
     graphics.DrawString(angleStr.c_str(), -1, &angleFont,
-                        RectF(float(rx), float(ry + 26), float(rw), 80.0f), &fmtAngle, &angleBrush);
+                        RectF(float(rx), float(ry + 28), float(rw), 80.0f), &fmtAngle, &angleBrush);
 
     // Match % label
     Font subFont(&ff, 12, FontStyleBold, UnitPixel);

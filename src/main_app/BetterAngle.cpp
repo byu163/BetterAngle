@@ -177,6 +177,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     g_debugMode = !g_debugMode;
                     break;
             }
+            InvalidateRect(hWnd, NULL, FALSE);
             return 0;
 
         case WM_TRAYICON:

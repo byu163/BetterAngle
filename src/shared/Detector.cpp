@@ -62,9 +62,9 @@ float FovDetector::Scan(const RoiConfig& cfg) {
     
     for (int i = 0; i < totalPixels; i++) {
         DWORD p = pPixels[i];
-        int b = p & 0xFF;
+        int r = p & 0xFF;
         int g = (p >> 8) & 0xFF;
-        int r = (p >> 16) & 0xFF;
+        int b = (p >> 16) & 0xFF;
 
         int dr = r - (int)tr;
         int dg = g - (int)tg;
