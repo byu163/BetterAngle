@@ -245,10 +245,14 @@ void BetterAngleBackend::terminateApp() {
     p.Save(GetProfilesPath() + p.name + L".json");
   }
 
+void BetterAngleBackend::terminateApp() {
   SaveSettings();
-  QGuiApplication::quit();
+  if (g_hHUD) {
+      PostMessage(g_hHUD, WM_CLOSE, 0, 0);
+  } else {
+      QGuiApplication::quit();
+  }
 }
-
 void BetterAngleBackend::checkForUpdates() {
   g_hasCheckedForUpdates = false; 
   g_updateAvailable = false;

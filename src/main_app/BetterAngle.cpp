@@ -183,8 +183,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
         case WM_COMMAND:
             if (LOWORD(wParam) == ID_TRAY_EXIT) {
-                g_running = false;
-                QCoreApplication::quit();
+                SendMessage(hWnd, WM_CLOSE, 0, 0);
             }
             return 0;
         case WM_LBUTTONDOWN:
@@ -265,8 +264,8 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     bool lDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
                     POINT pt; GetCursorPos(&pt);
                     if (lDown && !g_isDraggingHUD) {
-                        if (pt.x >= g_hudX && pt.x <= g_hudX + 160 && 
-                            pt.y >= g_hudY && pt.y <= g_hudY + 80) {
+                        if (pt.x >= g_hudX && pt.x <= g_hudX + 260 && 
+                            pt.y >= g_hudY && pt.y <= g_hudY + 150) {
                             g_isDraggingHUD = true;
                             g_dragStartMouse = pt;
                             g_dragStartHUD.x = g_hudX;
@@ -324,9 +323,15 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             if ((wParam & 0xFFF0) == SC_KEYMENU) return 0;
             break;
 
+        case WM_CLOSE:
+            DestroyWindow(hWnd);
+            return 0;
+
         case WM_DESTROY:
             g_running = false;
-            QCoreApplication::quit();
+            RemoveSystrayIcon(hWnd);
+            QCoreApplication::exit(0);
+            PostQuitMessage(0);
             return 0;
 
         default:
@@ -343,6 +348,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     int argc = 1;
     char* argv[] = { (char*)"BetterAngle.exe", nullptr };
     QGuiApplication app(argc, argv);
+    app.setQuitOnLastWindowClosed(true);
 
     // Phase 0: Kick off version check in background — never blocks startup.
     // g_updateAvailable will be set when done; the control panel UPDATES tab shows it.
