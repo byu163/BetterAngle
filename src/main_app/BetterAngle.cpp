@@ -324,7 +324,9 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             break;
 
         case WM_CLOSE:
-            DestroyWindow(hWnd);
+            g_running = false;
+            PostQuitMessage(0);
+            QCoreApplication::quit();
             return 0;
 
         case WM_DESTROY:

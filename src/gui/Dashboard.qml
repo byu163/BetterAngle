@@ -137,18 +137,60 @@ Item {
                         Text { text: Math.round(backend.freefallThreshold * 100).toString() + "%"; color: "#aaa" }
                     }
 
-                    Text { text: "ACTIVE HOTKEYS (Edit from JSON)"; color: "#666"; font.pixelSize: 12; topPadding: 10 }
-                    RowLayout {
-                        Text { text: "Selection Overlay:"; color: "white"; Layout.preferredWidth: 150 }
-                        Text { text: "Ctrl + 8"; color: "#00cca3" }
-                    }
-                    RowLayout {
-                        Text { text: "Debug Overlay:"; color: "white"; Layout.preferredWidth: 150 }
-                        Text { text: "Ctrl + 9"; color: "#00cca3" }
-                    }
-                    RowLayout {
-                        Text { text: "Toggle Crosshair:"; color: "white"; Layout.preferredWidth: 150 }
-                        Text { text: "F10"; color: "#00cca3" }
+                    Text { text: "HOTKEY CONFIGURATION"; color: "#666"; font.pixelSize: 11; font.bold: true; topPadding: 10 }
+                    
+                    Column {
+                        spacing: 8
+                        width: parent.width
+                        
+                        RowLayout {
+                            Text { text: "Toggle Dashboard:"; color: "white"; Layout.preferredWidth: 150 }
+                            TextField { 
+                                text: backend.keyToggle; width: 60; color: "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
+                                onTextChanged: backend.keyToggle = text
+                            }
+                        }
+                        RowLayout {
+                            Text { text: "Selection Overlay:"; color: "white"; Layout.preferredWidth: 150 }
+                            TextField { 
+                                text: backend.keyRoi; width: 60; color: "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
+                                onTextChanged: backend.keyRoi = text
+                            }
+                        }
+                        RowLayout {
+                            Text { text: "Toggle Crosshair:"; color: "white"; Layout.preferredWidth: 150 }
+                            TextField { 
+                                text: backend.keyCross; width: 60; color: "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
+                                onTextChanged: backend.keyCross = text
+                            }
+                        }
+                        RowLayout {
+                            Text { text: "Zero Counter:"; color: "white"; Layout.preferredWidth: 150 }
+                            TextField { 
+                                text: backend.keyZero; width: 60; color: "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
+                                onTextChanged: backend.keyZero = text
+                            }
+                        }
+                        RowLayout {
+                            Text { text: "Debug Overlay:"; color: "white"; Layout.preferredWidth: 150 }
+                            TextField { 
+                                text: backend.keyDebug; width: 60; color: "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
+                                onTextChanged: backend.keyDebug = text
+                            }
+                        }
+                        
+                        Button {
+                            text: "SAVE KEYBINDS"
+                            width: parent.width; height: 36
+                            contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                            background: Rectangle { color: parent.hovered ? "#4a3080" : "#302060"; radius: 4; border.color: "#6644aa" }
+                            onClicked: backend.saveKeybinds()
+                        }
                     }
 
 

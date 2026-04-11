@@ -15,10 +15,13 @@ const wchar_t* VERSION_URL = L"https://api.github.com/repos/MahanYTT/BetterAngle
 const wchar_t* DOWNLOAD_URL = L"https://github.com/MahanYTT/BetterAngle/releases/latest/download/BetterAngle.exe";
 
 bool DownloadFile(const std::wstring& url, const std::wstring& dest) {
-    HINTERNET hInternet = InternetOpenW(L"BetterAngleUpdater", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+    HINTERNET hInternet = InternetOpenW(L"BetterAngle", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
     if (!hInternet) return false;
 
-    HINTERNET hUrl = InternetOpenUrlW(hInternet, url.c_str(), L"User-Agent: BetterAngleUpdater\r\n", -1L, INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE, 0);
+    // GitHub API requires a User-Agent and recommends an Accept header
+    std::wstring headers = L"Accept: application/vnd.github.v3+json\r\nUser-Agent: BetterAngleUpdater\r\n";
+    HINTERNET hUrl = InternetOpenUrlW(hInternet, url.c_str(), headers.c_str(), (DWORD)-1, INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE, 0);
+    
     if (!hUrl) {
         InternetCloseHandle(hInternet);
         return false;
@@ -31,7 +34,7 @@ bool DownloadFile(const std::wstring& url, const std::wstring& dest) {
         return false;
     }
 
-    char buffer[4096];
+    char buffer[8192];
     DWORD bytesRead;
     while (InternetReadFile(hUrl, buffer, sizeof(buffer), &bytesRead) && bytesRead > 0) {
         ofs.write(buffer, bytesRead);
@@ -47,39 +50,34 @@ static std::wstring g_dynamicDownloadUrl = DOWNLOAD_URL;
 
 bool CheckForUpdates() {
     g_isCheckingForUpdates = true;
+    bool success = false;
     
     std::wstring tempRes = GetAppRootPath() + L"latest_release.json";
     if (DownloadFile(VERSION_URL, tempRes)) {
         std::ifstream ifs(tempRes);
-        std::string json((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-        ifs.close();
-        
-        // Simple but robust JSON parsing for "tag_name": "vX.Y.Z"
-        size_t tagPos = json.find("\"tag_name\":");
-        if (tagPos != std::string::npos) {
-            size_t start = json.find("\"", tagPos + 11);
-            if (start != std::string::npos) {
-                size_t end = json.find("\"", start + 1);
-                if (end != std::string::npos) {
+        if (ifs.is_open()) {
+            std::string json((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+            ifs.close();
+            
+            // Search for "tag_name": "vX.Y.Z"
+            size_t tagPos = json.find("\"tag_name\":");
+            if (tagPos != std::string::npos) {
+                size_t start = json.find("\"", tagPos + 11);
+                size_t end = (start != std::string::npos) ? json.find("\"", start + 1) : std::string::npos;
+                
+                if (start != std::string::npos && end != std::string::npos) {
                     std::string latestVerStr = json.substr(start + 1, end - start - 1);
-                    
-                    // Normalize (strip 'v' prefix if present)
-                    std::string normLatest = latestVerStr;
-                    if (!normLatest.empty() && (normLatest[0] == 'v' || normLatest[0] == 'V')) {
-                        normLatest = normLatest.substr(1);
-                    }
-
                     g_latestVersionOnline = latestVerStr;
-                    
-                    // Find actual download URL for BetterAngle.exe
+                    success = true;
+
+                    // Search for "browser_download_url": "..."
                     size_t assetPos = json.find("\"browser_download_url\":");
                     while (assetPos != std::string::npos) {
                         size_t uS = json.find("\"", assetPos + 23);
-                        size_t uE = json.find("\"", uS + 1);
+                        size_t uE = (uS != std::string::npos) ? json.find("\"", uS + 1) : std::string::npos;
                         if (uS != std::string::npos && uE != std::string::npos) {
                             std::string uStr = json.substr(uS + 1, uE - uS - 1);
-                            if (uStr.find("BetterAngle.exe") != std::string::npos || 
-                                uStr.find(".exe") != std::string::npos) {
+                            if (uStr.find("BetterAngle.exe") != std::string::npos) {
                                 g_dynamicDownloadUrl = std::wstring(uStr.begin(), uStr.end());
                                 break;
                             }
@@ -87,14 +85,16 @@ bool CheckForUpdates() {
                         assetPos = json.find("\"browser_download_url\":", assetPos + 23);
                     }
                     
+                    // Version normalization (strip 'v')
+                    std::string normLatest = latestVerStr;
+                    if (!normLatest.empty() && (normLatest[0] == 'v' || normLatest[0] == 'V')) normLatest = normLatest.substr(1);
+                    
                     std::string currentVer = VERSION_STR;
-                    if (!currentVer.empty() && (currentVer[0] == 'v' || currentVer[0] == 'V')) {
-                        currentVer = currentVer.substr(1);
-                    }
+                    if (!currentVer.empty() && (currentVer[0] == 'v' || currentVer[0] == 'V')) currentVer = currentVer.substr(1);
 
                     if (!normLatest.empty() && normLatest != currentVer) {
                         g_updateAvailable = true;
-                        g_updateHistory = "Latest: " + latestVerStr + " (Current: " + VERSION_STR + ")";
+                        g_updateHistory = "Latest: " + latestVerStr + " (Manual Check)";
                     } else {
                         g_updateAvailable = false;
                     }
@@ -105,7 +105,7 @@ bool CheckForUpdates() {
     }
 
     g_isCheckingForUpdates = false;
-    g_hasCheckedForUpdates = true;
+    g_hasCheckedForUpdates = success;
     return g_updateAvailable;
 }
 

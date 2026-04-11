@@ -237,24 +237,12 @@ void BetterAngleBackend::syncWithFortnite() {
 }
 
 void BetterAngleBackend::terminateApp() {
-  // Save everything before quitting so last position/preferences are preserved
-  if (!g_allProfiles.empty()) {
-    Profile &p = g_allProfiles[g_selectedProfileIdx];
-    p.crossThickness = g_crossThickness;
-    p.crossColor = g_crossColor;
-    p.crossOffsetX = g_crossOffsetX;
-    p.crossOffsetY = g_crossOffsetY;
-    p.crossAngle = g_crossAngle;
-    p.crossPulse = g_crossPulse;
-    p.Save(GetProfilesPath() + p.name + L".json");
-  }
-
   SaveSettings();
   if (g_hHUD) {
       PostMessage(g_hHUD, WM_CLOSE, 0, 0);
-  } else {
-      QGuiApplication::quit();
   }
+  // Also terminate the Qt loop immediately to ensure everything shuts down
+  QCoreApplication::quit();
 }
 void BetterAngleBackend::checkForUpdates() {
   g_hasCheckedForUpdates = false; 
@@ -343,4 +331,62 @@ void BetterAngleBackend::deleteCrosshairPreset(int index) {
   p.crosshairPresets.erase(p.crosshairPresets.begin() + index);
   p.Save(GetProfilesPath() + p.name + L".json");
   emit crosshairPresetsChanged();
+}
+
+// --- Hotkey Helpers ---
+static UINT stringToVk(const QString& s) {
+    QString upper = s.toUpper().trimmed();
+    if (upper.isEmpty()) return 0;
+    if (upper.length() == 1) {
+        char c = upper[0].toLatin1();
+        if (c >= 'A' && c <= 'Z') return (UINT)c;
+        if (c >= '0' && c <= '9') return (UINT)c;
+    }
+    if (upper == "F1") return VK_F1; if (upper == "F2") return VK_F2;
+    if (upper == "F3") return VK_F3; if (upper == "F4") return VK_F4;
+    if (upper == "F5") return VK_F5; if (upper == "F6") return VK_F6;
+    if (upper == "F7") return VK_F7; if (upper == "F8") return VK_F8;
+    if (upper == "F9") return VK_F9; if (upper == "F10") return VK_F10;
+    if (upper == "F11") return VK_F11; if (upper == "F12") return VK_F12;
+    if (upper == "TAB") return VK_TAB; if (upper == "SPACE") return VK_SPACE;
+    if (upper == "ESC") return VK_ESCAPE; if (upper == "CTRL") return VK_CONTROL;
+    if (upper == "SHIFT") return VK_SHIFT; if (upper == "ALT") return VK_MENU;
+    return 0;
+}
+
+static QString vkToString(UINT vk) {
+    if (vk >= 'A' && vk <= 'Z') return QString((char)vk);
+    if (vk >= '0' && vk <= '9') return QString((char)vk);
+    if (vk == VK_F1) return "F1"; if (vk == VK_F2) return "F2";
+    if (vk == VK_F3) return "F3"; if (vk == VK_F4) return "F4";
+    if (vk == VK_F5) return "F5"; if (vk == VK_F6) return "F6";
+    if (vk == VK_F7) return "F7"; if (vk == VK_F8) return "F8";
+    if (vk == VK_F9) return "F9"; if (vk == VK_F10) return "F10";
+    if (vk == VK_F11) return "F11"; if (vk == VK_F12) return "F12";
+    if (vk == VK_TAB) return "TAB"; if (vk == VK_SPACE) return "SPACE";
+    if (vk == VK_ESCAPE) return "ESC"; if (vk == VK_CONTROL) return "CTRL";
+    if (vk == VK_SHIFT) return "SHIFT"; if (vk == VK_ALT) return "ALT";
+    return "";
+}
+
+QString BetterAngleBackend::keyToggle() const { if (g_allProfiles.empty()) return "U"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey); }
+void BetterAngleBackend::setKeyToggle(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey = stringToVk(s); emit hotkeysChanged(); } }
+
+QString BetterAngleBackend::keyRoi() const { if (g_allProfiles.empty()) return "8"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.roiKey); }
+void BetterAngleBackend::setKeyRoi(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.roiKey = stringToVk(s); emit hotkeysChanged(); } }
+
+QString BetterAngleBackend::keyCross() const { if (g_allProfiles.empty()) return "F10"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.crossKey); }
+void BetterAngleBackend::setKeyCross(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.crossKey = stringToVk(s); emit hotkeysChanged(); } }
+
+QString BetterAngleBackend::keyZero() const { if (g_allProfiles.empty()) return "G"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey); }
+void BetterAngleBackend::setKeyZero(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey = stringToVk(s); emit hotkeysChanged(); } }
+
+QString BetterAngleBackend::keyDebug() const { if (g_allProfiles.empty()) return "9"; return vkToString(g_allProfiles[g_selectedProfileIdx].keybinds.debugKey); }
+void BetterAngleBackend::setKeyDebug(const QString& s) { if (!g_allProfiles.empty()) { g_allProfiles[g_selectedProfileIdx].keybinds.debugKey = stringToVk(s); emit hotkeysChanged(); } }
+
+void BetterAngleBackend::saveKeybinds() {
+    if (g_allProfiles.empty()) return;
+    Profile &p = g_allProfiles[g_selectedProfileIdx];
+    p.Save(GetProfilesPath() + p.name + L".json");
+    RefreshHotkeys(g_hHUD);
 }

@@ -33,6 +33,13 @@ class BetterAngleBackend : public QObject {
     Q_PROPERTY(bool hasCheckedForUpdates READ hasCheckedForUpdates NOTIFY updateStatusChanged)
     Q_PROPERTY(bool isCheckingForUpdates READ isCheckingForUpdates NOTIFY updateStatusChanged)
     Q_PROPERTY(bool isDownloading READ isDownloading NOTIFY updateStatusChanged)
+    
+    // Custom Keybinds
+    Q_PROPERTY(QString keyToggle READ keyToggle WRITE setKeyToggle NOTIFY hotkeysChanged)
+    Q_PROPERTY(QString keyRoi READ keyRoi WRITE setKeyRoi NOTIFY hotkeysChanged)
+    Q_PROPERTY(QString keyCross READ keyCross WRITE setKeyCross NOTIFY hotkeysChanged)
+    Q_PROPERTY(QString keyZero READ keyZero WRITE setKeyZero NOTIFY hotkeysChanged)
+    Q_PROPERTY(QString keyDebug READ keyDebug WRITE setKeyDebug NOTIFY hotkeysChanged)
 
 
 public:
@@ -105,6 +112,14 @@ public:
     Q_INVOKABLE void saveCrosshairPreset(const QString& name);
     Q_INVOKABLE void loadCrosshairPreset(int index);
     Q_INVOKABLE void deleteCrosshairPreset(int index);
+    
+    // Keybind management
+    QString keyToggle() const; void setKeyToggle(const QString& s);
+    QString keyRoi() const;    void setKeyRoi(const QString& s);
+    QString keyCross() const;  void setKeyCross(const QString& s);
+    QString keyZero() const;   void setKeyZero(const QString& s);
+    QString keyDebug() const;  void setKeyDebug(const QString& s);
+    Q_INVOKABLE void saveKeybinds();
 
 signals:
     void profileChanged();
@@ -114,6 +129,7 @@ signals:
     void updateStatusChanged();
     void crosshairPresetsChanged();
     void showControlPanelRequested();
+    void hotkeysChanged();
 
 private:
     QString m_syncResult;
