@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.22.8
+- **Deep Stability Pass:** Simplified the Splash screen to remove GPU-intensive Canvas animations, resolving potential startup hangs on older drivers.
+- **Sequential UI Loading:** Optimized the QML engine to load the Dashboard only after the Splash screen is visible, reducing system resource contention.
+- **Diagnostic Logging:** Implemented an internal error tracker that saves all startup and QML errors to `AppData/BetterAngle/debug.log` for advanced troubleshooting.
+
 ### BetterAngle Pro v4.22.7
 - **Build System Patch:** Resolved a compilation error in `BetterAngle.cpp` by adding the missing `<filesystem>` header. This ensures the SHIFT-Reset settings recovery feature works as intended.
 

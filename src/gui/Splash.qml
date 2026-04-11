@@ -21,50 +21,14 @@ Window {
         border.width: 1
         clip: true
 
-        // Animated Topographic Waves
-        Canvas {
-            id: waveCanvas
+        // Diagnostic Background (Lean Boot Mode)
+        Rectangle {
             anchors.fill: parent
-            opacity: 0.3
-            
-            property real phase: 0
-            
-            onPaint: {
-                var ctx = getContext("2d");
-                ctx.clearRect(0, 0, width, height);
-                ctx.lineWidth = 1.5;
-                
-                var layers = [
-                    { speed: 0.02, amp: 40, freq: 0.005, color: "#00ffa3", alpha: 0.4 },
-                    { speed: 0.015, amp: 60, freq: 0.003, color: "#0080ff", alpha: 0.2 },
-                    { speed: 0.01, amp: 30, freq: 0.007, color: "#ffffff", alpha: 0.1 }
-                ];
-                
-                for (var i = 0; i < layers.length; i++) {
-                    var l = layers[i];
-                    ctx.strokeStyle = l.color;
-                    ctx.globalAlpha = l.alpha;
-                    ctx.beginPath();
-                    
-                    for (var x = 0; x <= width; x += 10) {
-                        var y = height * 0.6 + Math.sin(x * l.freq + phase * l.speed) * l.amp 
-                                + Math.cos(x * 0.004 + phase * 0.015) * 20;
-                        if (x === 0) ctx.moveTo(x, y);
-                        else ctx.lineTo(x, y);
-                    }
-                    ctx.stroke();
-                }
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#0a0a14" }
+                GradientStop { position: 1.0; color: "#050508" }
             }
-            
-            Timer {
-                interval: 16
-                running: true
-                repeat: true
-                onTriggered: {
-                    waveCanvas.phase += 1;
-                    waveCanvas.requestPaint();
-                }
-            }
+            opacity: 0.8
         }
 
         // Content Wrapper
@@ -133,7 +97,7 @@ Window {
                         font.letterSpacing: 4
                     }
                     Text {
-                        text: "V E R S I O N  4 . 2 2 . 7"
+                        text: "V E R S I O N  4 . 2 2 . 8"
                         color: "#666"
                         font.pixelSize: 10
                         font.bold: true

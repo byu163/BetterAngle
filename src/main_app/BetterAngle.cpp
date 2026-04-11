@@ -38,7 +38,21 @@ ULONG_PTR g_gdiplusToken;
 std::atomic<bool> g_running(true);
 FovDetector g_detector;
 
-// Only update sensitivity state when Fortnite is the foreground window
+// Verbose logging for QML and Startup
+void QtLogHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+    std::wstring logPath = GetAppRootPath() + L"debug.log";
+    std::wofstream out(logPath, std::ios::app);
+    if (out.is_open()) {
+        switch (type) {
+            case QtDebugMsg: out << L"[DEBUG] "; break;
+            case QtInfoMsg: out << L"[INFO] "; break;
+            case QtWarningMsg: out << L"[WARN] "; break;
+            case QtCriticalMsg: out << L"[CRIT] "; break;
+            case QtFatalMsg: out << L"[FATAL] "; break;
+        }
+        out << msg.toStdWString() << L" (" << context.file << L":" << context.line << L")" << std::endl;
+    }
+}
 
 // FOV Detector Thread
 void DetectorThread() {
@@ -371,10 +385,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     }
 
     // Use robust Win32 arguments for Qt
+    qInstallMessageHandler(QtLogHandler);
     QGuiApplication app(__argc, __argv);
-    app.setQuitOnLastWindowClosed(false); // Prevent premature exit if windows are still initializing
+    app.setQuitOnLastWindowClosed(false); 
 
-    // Phase 0: Kick off version check in background — never blocks startup.
+    // Phase 0: Kick off version check in background
+    qDebug() << "BetterAngle Starting... Version:" << VERSION_STR;
     // g_updateAvailable will be set when done; the control panel UPDATES tab shows it.
     std::thread([]() {
         CheckForUpdates();
@@ -393,9 +409,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     
     // Phase 4: Launch UI
     ShowSplashScreen(); 
-    g_hPanel = CreateControlPanel(hInstance); // Load Dashboard early in background
+    
+    // DELAY Dashboard load to prevent CPU/GPU contention
+    QTimer::singleShot(1500, []() {
+        qDebug() << "Loading Main Dashboard components...";
+        CreateControlPanel(GetModuleHandle(NULL)); 
+    });
 
-    // 2. Defer heavy initialization so the Qt Event Loop can draw the Splash immediately
+    // 2. Defer heavy initialization
     QTimer::singleShot(100, [=]() {
         // Phase 1: Startup Sequence
         LoadSettings();
