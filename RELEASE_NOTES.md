@@ -1,4 +1,4 @@
-### BetterAngle Pro v4.21.10
+### BetterAngle Pro v4.22.1
 - **Async Framework Optimization:** Implemented `QTimer::singleShot` deferral for heavy backend initialization, ensuring the Splash Screen renders instantaneously without being blocked by resource loading.
 - **QML Setup Workflow:** Replaced the legacy Win32 setup dialog with a modern, high-fidelity `FirstTimeSetup.qml` component featuring strict OS window flags to prevent "hide-to-tray" confusion during initial calibration.
 - **Safety Exit Policy:** Configured the Setup Wizard to quit the application entirely if closed prematurely, ensuring a consistent and clean state for first-time users.
