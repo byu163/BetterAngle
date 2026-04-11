@@ -131,9 +131,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             switch (wParam)
             {
                 case 1: // Toggle Panel
-                    if (IsIconic(g_hPanel)) ShowWindow(g_hPanel, SW_RESTORE);
-                    else if (IsWindowVisible(g_hPanel)) ShowWindow(g_hPanel, SW_MINIMIZE);
-                    else ShowWindow(g_hPanel, SW_SHOW);
+                    ShowControlPanel();
                     break;
                 case 2: // ROI Select Toggle
                     if (g_currentSelection == NONE) {
@@ -157,21 +155,21 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     SaveSettings();
                     if (g_hHUD) { InvalidateRect(g_hHUD, NULL, FALSE); UpdateWindow(g_hHUD); }
                     break;
-        case 4:
-            g_currentAngle = 0.0f;
-            g_logic.SetZero();
-            break;
-        case 5:
-            g_debugMode = !g_debugMode;
-            break;
+                case 4:
+                    g_currentAngle = 0.0f;
+                    g_logic.SetZero();
+                    break;
+                case 5:
+                    g_debugMode = !g_debugMode;
+                    break;
+            }
+            return 0;
 
         case WM_TRAYICON:
             if (lParam == WM_RBUTTONUP) {
                 ShowTrayContextMenu(hWnd);
             } else if (lParam == WM_LBUTTONDBLCLK) {
-                if (IsIconic(g_hPanel)) ShowWindow(g_hPanel, SW_RESTORE);
-                else ShowWindow(g_hPanel, SW_SHOW);
-                SetForegroundWindow(g_hPanel);
+                ShowControlPanel();
             }
             return 0;
 
@@ -181,8 +179,6 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                 QCoreApplication::quit();
             }
             return 0;
-    }
-    return 0;
         case WM_LBUTTONDOWN:
             if (g_currentSelection == SELECTING_ROI) {
                 POINT cur; GetCursorPos(&cur);

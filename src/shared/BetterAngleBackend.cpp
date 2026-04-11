@@ -258,6 +258,10 @@ void BetterAngleBackend::downloadUpdate() {
 
 void BetterAngleBackend::saveThresholds() { SaveSettings(); }
 
+void BetterAngleBackend::requestShowControlPanel() {
+    emit showControlPanelRequested();
+}
+
 
 
 

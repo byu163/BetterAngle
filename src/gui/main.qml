@@ -13,6 +13,15 @@ Window {
     // Frameless window style for a custom sleek look
     flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint
 
+    Connections {
+        target: backend
+        function onShowControlPanelRequested() {
+            mainWindow.show()
+            mainWindow.raise()
+            mainWindow.requestActivate()
+        }
+    }
+
     Rectangle {
         id: titleBar
         width: parent.width
@@ -52,7 +61,7 @@ Window {
                 height: 40
                 background: Rectangle { color: parent.hovered ? "#ff3333" : "transparent" }
                 contentItem: Text { text: parent.text; color: "white"; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
-                onClicked: backend.terminateApp()
+                onClicked: mainWindow.hide()
             }
         }
     }

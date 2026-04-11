@@ -5,6 +5,7 @@
 #include <string>
 
 HWND CreateControlPanel(HINSTANCE hInst);
+void ShowControlPanel();
 LRESULT CALLBACK ControlPanelWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 #endif
