@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <shlobj.h>
 #include <vector>
+#include <filesystem>
 
 void FindGameUserSettingsRecursive(const std::wstring& directory, std::vector<std::wstring>& outPaths) {
     if (outPaths.size() > 20) return; // Limit search to prevent hangs

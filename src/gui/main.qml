@@ -13,6 +13,10 @@ Window {
     // Frameless window style for a custom sleek look
     flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint
 
+    onVisibleChanged: {
+        backend.showCrosshair = visible
+    }
+
     Connections {
         target: backend
         onShowControlPanelRequested: {
