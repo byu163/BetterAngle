@@ -22,6 +22,7 @@
 #include "shared/FirstTimeSetup.h"
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QTimer>
 
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "gdiplus.lib")

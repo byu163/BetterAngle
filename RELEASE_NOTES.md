@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.22.2
+- **Hotfix:** Added missing `#include <QTimer>` in `BetterAngle.cpp` to resolve compilation errors in the CI/CD pipeline related to deferred initialization logic.
+
 ### BetterAngle Pro v4.22.1
 - **Async Framework Optimization:** Implemented `QTimer::singleShot` deferral for heavy backend initialization, ensuring the Splash Screen renders instantaneously without being blocked by resource loading.
 - **QML Setup Workflow:** Replaced the legacy Win32 setup dialog with a modern, high-fidelity `FirstTimeSetup.qml` component featuring strict OS window flags to prevent "hide-to-tray" confusion during initial calibration.
