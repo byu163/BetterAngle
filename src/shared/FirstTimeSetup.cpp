@@ -220,6 +220,8 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
 
     ShowWindow(hWnd, SW_SHOW);
     UpdateWindow(hWnd);
+    SetForegroundWindow(hWnd);
+    SetFocus(hWnd);
 
     MSG msg;
     while (IsWindow(hWnd) && GetMessage(&msg, NULL, 0, 0)) {

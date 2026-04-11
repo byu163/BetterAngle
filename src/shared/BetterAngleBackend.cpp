@@ -298,11 +298,23 @@ void BetterAngleBackend::requestShowControlPanel() {
     // Transition stage: Splash timer just ended.
     // Ensure we have a profile. If not, trigger the blocking native Wizard.
     if (g_needsSetup || g_allProfiles.empty()) {
-        ShowFirstTimeSetup(GetModuleHandle(NULL));
-        LoadSettings();
-        g_allProfiles = GetProfiles(GetProfilesPath());
-        g_needsSetup = false;
-        SaveSettings();
+        QTimer::singleShot(50, [this]() {
+            ShowFirstTimeSetup(GetModuleHandle(NULL));
+            LoadSettings();
+            g_allProfiles = GetProfiles(GetProfilesPath());
+            g_needsSetup = false;
+            SaveSettings();
+            
+            // Now show the Overlay and Dashboard after wizard completes
+            if (!g_allProfiles.empty()) {
+                if (g_hHUD) {
+                    ShowWindow(g_hHUD, SW_SHOW);
+                    UpdateWindow(g_hHUD);
+                }
+                emit showControlPanelRequested();
+            }
+        });
+        return;
     }
 
     // Now that setup is done (or was already done), show the Overlay and Dashboard
