@@ -80,8 +80,8 @@ void DetectorThread() {
 void CaptureDesktop() {
     int sw = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     int sh = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-    int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    g_virtScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    g_virtScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
 
     HDC hdcScreen = GetDC(NULL);
     HDC hdcMem = CreateCompatibleDC(hdcScreen);
@@ -90,7 +90,7 @@ void CaptureDesktop() {
     HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
     
     // Capture the entire virtual desktop
-    BitBlt(hdcMem, 0, 0, sw, sh, hdcScreen, sx, sy, SRCCOPY);
+    BitBlt(hdcMem, 0, 0, sw, sh, hdcScreen, g_virtScreenX, g_virtScreenY, SRCCOPY);
     
     SelectObject(hdcMem, hOld);
     ReleaseDC(NULL, hdcScreen);
@@ -215,12 +215,9 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     HDC hdcMem = CreateCompatibleDC(hdcScreen);
                     HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
                     
-                    int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
-                    int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
-                    
                     POINT cur; GetCursorPos(&cur);
                     // Adjust color sample coord by the same virtual screen offset used in CaptureDesktop
-                    COLORREF pixel = GetPixel(hdcMem, cur.x - sx, cur.y - sy);
+                    COLORREF pixel = GetPixel(hdcMem, cur.x - g_virtScreenX, cur.y - g_virtScreenY);
                     
                     g_pickedColor = pixel;
                     g_targetColor = pixel;
@@ -479,16 +476,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.lpszClassName = L"BetterAngleHUD";
     RegisterClass(&wc);
 
-    int screenW = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    int screenH = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-    int screenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    int screenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    g_virtScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    g_virtScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
 
     g_hHUD = CreateWindowEx(
         WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW,
         L"BetterAngleHUD", L"BetterAngle HUD",
         WS_POPUP,
-        screenX, screenY, screenW, screenH,
+        g_virtScreenX, g_virtScreenY, screenW, screenH,
         NULL, NULL, hInstance, NULL
     );
 

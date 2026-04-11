@@ -97,7 +97,8 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
                 REAL dash[] = { 6.0f, 4.0f };
                 dashPen.SetDashPattern(dash, 2);
                 graphics.DrawRectangle(&dashPen,
-                    (int)g_selectionRect.left, (int)g_selectionRect.top,
+                    (int)g_selectionRect.left - g_virtScreenX, 
+                    (int)g_selectionRect.top - g_virtScreenY,
                     (int)(g_selectionRect.right - g_selectionRect.left),
                     (int)(g_selectionRect.bottom - g_selectionRect.top));
             }
@@ -110,7 +111,9 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
 
             // Live magnifier
             POINT curScr; GetCursorPos(&curScr);
-            POINT cur = curScr; ScreenToClient(hwnd, &cur);
+            // Position magnifier relative to virtual screen origin
+            int rx = curScr.x - g_virtScreenX;
+            int ry = curScr.y - g_virtScreenY;
 
             int mx = curScr.x - 40, my = curScr.y - 40, mw = 80, mh = 80;
             HDC hdcScr = GetDC(NULL);
@@ -120,8 +123,8 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
             StretchBlt(hdcZoom, 0, 0, mw * 3, mh * 3, hdcScr, mx, my, mw, mh, SRCCOPY);
 
             // Position magnifier relative to client cursor
-            int zx = (cur.x + 20 + mw * 3 < sw) ? (cur.x + 20) : (cur.x - mw * 3 - 20);
-            int zy = (cur.y + mh * 3 < sh) ? cur.y : (sh - mh * 3);
+            int zx = (rx + 20 + mw * 3 < sw) ? (rx + 20) : (rx - mw * 3 - 20);
+            int zy = (ry + mh * 3 < sh) ? ry : (sh - mh * 3);
             
             // Draw magnifier content and border
             BitBlt(hdcMem, zx, zy, mw * 3, mh * 3, hdcZoom, 0, 0, SRCCOPY);
@@ -135,9 +138,9 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
 
             // Precision dot at cursor tip
             SolidBrush dotBrush(Color(255, 255, 0, 0));
-            graphics.FillEllipse(&dotBrush, (int)cur.x - 2, (int)cur.y - 2, 4, 4);
+            graphics.FillEllipse(&dotBrush, (int)rx - 2, (int)ry - 2, 4, 4);
             Pen dotOuter(Color(255, 255, 255, 255), 1.0f);
-            graphics.DrawEllipse(&dotOuter, (int)cur.x - 2, (int)cur.y - 2, 4, 4);
+            graphics.DrawEllipse(&dotOuter, (int)rx - 2, (int)ry - 2, 4, 4);
 
             DeleteObject(hbmZoom);
             DeleteDC(hdcZoom);
@@ -160,7 +163,10 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
             Pen roiPen(roiCol, 2.0f);
             REAL dash[] = { 8.0f, 4.0f };
             roiPen.SetDashPattern(dash, 2);
-            graphics.DrawRectangle(&roiPen, p.roi_x, p.roi_y, p.roi_w, p.roi_h);
+            graphics.DrawRectangle(&roiPen, 
+                p.roi_x - g_virtScreenX, 
+                p.roi_y - g_virtScreenY, 
+                p.roi_w, p.roi_h);
 
             FontFamily roiFF(L"Segoe UI");
             Font roiFont(&roiFF, 10, FontStyleBold, UnitPixel);

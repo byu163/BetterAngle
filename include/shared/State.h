@@ -84,6 +84,8 @@ extern bool g_forceDiving;
 extern bool g_forceDetection;
 extern int g_hudX;
 extern int g_hudY;
+extern int g_virtScreenX;
+extern int g_virtScreenY;
 extern bool g_isDraggingHUD;
 extern POINT g_dragStartHUD;
 extern POINT g_dragStartMouse;
