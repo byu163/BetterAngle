@@ -106,6 +106,7 @@ public:
     Q_INVOKABLE void downloadUpdate();
     Q_INVOKABLE void saveThresholds();
     Q_INVOKABLE void requestShowControlPanel();
+    Q_INVOKABLE void requestToggleControlPanel();
 
     // Crosshair preset management
     Q_INVOKABLE QStringList crosshairPresetNames() const;
@@ -129,6 +130,7 @@ signals:
     void updateStatusChanged();
     void crosshairPresetsChanged();
     void showControlPanelRequested();
+    void toggleControlPanelRequested();
     void hotkeysChanged();
 
 private:

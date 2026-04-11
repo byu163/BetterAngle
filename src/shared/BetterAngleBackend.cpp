@@ -289,6 +289,10 @@ void BetterAngleBackend::requestShowControlPanel() {
     emit showControlPanelRequested();
 }
 
+void BetterAngleBackend::requestToggleControlPanel() {
+    emit toggleControlPanelRequested();
+}
+
 
 
 

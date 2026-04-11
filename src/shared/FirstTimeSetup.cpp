@@ -9,6 +9,7 @@
 #include <cwctype>
 #include "shared/Profile.h"
 #include "shared/State.h"
+#include "shared/Logic.h"
 #include <gdiplus.h>
 
 using namespace Gdiplus;
@@ -185,6 +186,15 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 }
 
 void ShowFirstTimeSetup(HINSTANCE hInstance) {
+    // Attempt auto-detection before showing UI
+    double detected = FetchFortniteSensitivity();
+    if (detected > 0.0) {
+        wchar_t buf[32];
+        swprintf(buf, 32, L"%.4f", detected);
+        g_setupSensX = buf;
+        g_setupSensY = buf;
+    }
+
     WNDCLASS wc = { 0 };
     if (!GetClassInfo(hInstance, L"FTSWindowClass", &wc)) {
         wc.lpfnWndProc = FirstTimeSetupProc;

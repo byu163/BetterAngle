@@ -24,6 +24,14 @@ Window {
             mainWindow.raise()
             mainWindow.requestActivate()
         }
+        onToggleControlPanelRequested: {
+            if (mainWindow.visible) mainWindow.hide()
+            else {
+                mainWindow.show()
+                mainWindow.raise()
+                mainWindow.requestActivate()
+            }
+        }
     }
 
     Rectangle {

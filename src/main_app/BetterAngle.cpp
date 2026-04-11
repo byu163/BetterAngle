@@ -227,13 +227,11 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     p.roi_w = g_selectionRect.right - g_selectionRect.left;
                     p.roi_h = g_selectionRect.bottom - g_selectionRect.top;
                     
-                    // Save to the actual profile path
-                    std::wstring profilePath = GetProfilesPath() + p.name + L".json";
-                    p.Save(profilePath);
+                    // Re-save to ensure the correct values are on disk too
+                    p.Save(GetProfilesPath() + p.name + L".json");
                     
-                    // Also maintain the legacy 'last_calibrated' for quick-load logic if needed
-                    p.Save(GetProfilesPath() + L"last_calibrated.json");
-
+                    g_showROIBox = true;
+                    SaveSettings();
                 }
             }
             return 0;

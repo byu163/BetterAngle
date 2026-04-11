@@ -28,6 +28,6 @@ HWND CreateControlPanel(HINSTANCE hInstance) {
 
 void ShowControlPanel() {
     if (g_backend) {
-        g_backend->requestShowControlPanel();
+        g_backend->requestToggleControlPanel();
     }
 }
