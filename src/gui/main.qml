@@ -30,19 +30,6 @@ Window {
                 mainWindow.requestActivate()
             }
         }
-        onShowSetupRequested: {
-            setupWindow.show()
-            setupWindow.raise()
-            setupWindow.requestActivate()
-        }
-        onToggleControlPanelRequested: {
-            if (mainWindow.visible) mainWindow.hide()
-            else {
-                mainWindow.show()
-                mainWindow.raise()
-                mainWindow.requestActivate()
-            }
-        }
     }
 
     FirstTimeSetup {

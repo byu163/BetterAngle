@@ -1,3 +1,9 @@
+### BetterAngle Pro v4.27.96
+- **CI Build Fix**: Aligned [`ShowControlPanel()`](src/shared/ControlPanel.cpp:61) with [`requestShowControlPanel()`](src/shared/BetterAngleBackend.cpp:278) and removed stale dashboard signal handlers from [`src/gui/main.qml`](src/gui/main.qml:22), resolving the GitHub Actions compile/runtime mismatch.
+- **Setup Flow Fix**: Added backend [`finishSetup()`](src/shared/BetterAngleBackend.cpp:282) support in [`include/shared/BetterAngleBackend.h`](include/shared/BetterAngleBackend.h:124) and updated [`src/gui/FirstTimeSetup.qml`](src/gui/FirstTimeSetup.qml:110) to use property writes so first-time calibration can persist correctly.
+- **Crosshair Default Fix**: Set the default crosshair line thickness to `1.0f` in [`src/shared/State.cpp`](src/shared/State.cpp:108) / [`src/shared/State.cpp`](src/shared/State.cpp:209), kept legacy profile fallback at `1.0f` in [`src/shared/Profile.cpp`](src/shared/Profile.cpp:91), and preserved the `0.1` minimum slider range in [`src/gui/Dashboard.qml`](src/gui/Dashboard.qml:236).
+- **Selection Overlay Fix**: Confirmed the selected ROI outline remains visible during prompt colour selection in [`src/shared/Overlay.cpp`](src/shared/Overlay.cpp:112).
+
 ### BetterAngle Pro v4.27.94
 - **Toggle Dashboard Fix**: Changed the dashboard hotkey from show-only to proper toggle (hide/show) in [`src/gui/main.qml`](src/gui/main.qml:18).
 - **Debug Overlay Fix**: Added window repaint after toggling debug mode via hotkey in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:174).
