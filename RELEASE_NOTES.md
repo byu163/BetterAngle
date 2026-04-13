@@ -1,3 +1,9 @@
+### BetterAngle Pro v4.27.109
+- **Ultra-Fine Crosshairs**: Enabled GDI+ `PixelOffsetModeHighQuality` to support sub-pixel rendering. Crosshairs can now be as thin as 0.1px while maintaining visual clarity through high-quality anti-aliasing.
+- **UI Nomenclature Standardization**: Renamed "SAVED POSITIONS" to "SAVED CONFIG" and updated associated placeholders to "Config name..." to better reflect the profile-based settings architecture.
+- **Persistence Hardening**: Verified and consolidated auto-save triggers for all dashboard sliders and color pickers.
+- **Updater Restart & Reliability**: Integrated the detached PowerShell handoff logic to ensure the installer completes and the app relaunches only on successful update completion.
+
 ### BetterAngle Pro v4.27.108
 - **GitHub Actions Uninstaller Path Fix**: Updated the workflow verification and MSVC compile steps in [`.github/workflows/msbuild.yml`](.github/workflows/msbuild.yml:32) and [`.github/workflows/msbuild.yml`](.github/workflows/msbuild.yml:55) to use [`src/shared/uninstall.cpp`](src/shared/uninstall.cpp:1), matching the actual repository layout.
 - **CI Release Reliability**: This fixes the failing `Test-Path "shared/uninstall.cpp"` check and keeps the uninstaller build fully inside GitHub Actions, consistent with the no-local-release-build policy.
@@ -11,6 +17,8 @@
 - **Persistence Hardening**: Consolidated all functional settings (ROI, Color, Tolerance, Crosshair) into the individual user profile JSONs. This establishes the active profile as the single source of truth and prevents settings from resetting after an application restart.
 - **Auto-Save Engine Update**: Implemented immediate disk persistence for Calibration Tolerance and Sensitivity adjustments. Every dashboard change is now committed to the profile in real-time.
 - **Startup Calibration Sync**: Fixed a bug where ROI and target color were not correctly synchronized with the internal detector state on launch. The app now correctly remembers and applies your last calibration without needing a re-selection.
+- **In-App Update Handoff Fix**: Reworked [`ApplyUpdateAndRestart()`](src/shared/Updater.cpp:152) so the updater launches a temporary handoff script that waits for the app to close, runs the downloaded installer, and then explicitly restarts the updated executable.
+- **Version Metadata Sync**: Updated [`CMakeLists.txt`](CMakeLists.txt:2) and [`include/shared/State.h`](include/shared/State.h:20) to report `4.27.106`, matching [`VERSION`](VERSION).
 
 ### BetterAngle Pro v4.27.105
 - **Crosshair Auto-Save**: Implemented profile-level persistence for all crosshair settings in [`src/shared/BetterAngleBackend.cpp`](src/shared/BetterAngleBackend.cpp:115). Adjusting thickness, color, pulse, or offset now automatically updates and saves the active profile's `.json` configuration.

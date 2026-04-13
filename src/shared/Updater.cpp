@@ -57,6 +57,18 @@ bool DownloadFile(const std::wstring &url, const std::wstring &dest) {
 
 static std::wstring g_dynamicDownloadUrl = DOWNLOAD_URL;
 
+static std::wstring EscapePowerShellSingleQuoted(const std::wstring &value) {
+  std::wstring escaped;
+  escaped.reserve(value.size());
+  for (wchar_t ch : value) {
+    if (ch == L'\'')
+      escaped += L"''";
+    else
+      escaped += ch;
+  }
+  return escaped;
+}
+
 bool CheckForUpdates() {
   g_isCheckingForUpdates = true;
   bool success = false;
@@ -145,6 +157,7 @@ void UpdateApp() {
 void CleanupUpdateJunk() {
   std::wstring root = GetAppRootPath();
   DeleteFileW((root + L"ba_update.bat").c_str());
+  DeleteFileW((root + L"ba_update.ps1").c_str());
   DeleteFileW((root + L"BetterAngle_Setup_update.exe").c_str());
   DeleteFileW((root + L"latest_version.txt").c_str());
 }
@@ -152,6 +165,7 @@ void CleanupUpdateJunk() {
 void ApplyUpdateAndRestart() {
   std::wstring root = GetAppRootPath();
   std::wstring installerPath = root + L"BetterAngle_Setup_update.exe";
+  std::wstring scriptPath = root + L"ba_update.ps1";
 
   if (GetFileAttributesW(installerPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
     g_downloadComplete = false;
@@ -162,16 +176,53 @@ void ApplyUpdateAndRestart() {
     return;
   }
 
-  std::wstring params = L"/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART "
-                        L"/CLOSEAPPLICATIONS /FORCECLOSEAPPLICATIONS";
-  HINSTANCE result = ShellExecuteW(NULL, L"open", installerPath.c_str(),
-                                   params.c_str(), NULL, SW_SHOWNORMAL);
+  wchar_t currentExe[MAX_PATH] = {};
+  if (GetModuleFileNameW(NULL, currentExe, MAX_PATH) == 0) {
+    g_downloadComplete = false;
+    g_updateAvailable = true;
+    return;
+  }
+
+  const std::wstring installerEsc = EscapePowerShellSingleQuoted(installerPath);
+  const std::wstring currentExeEsc = EscapePowerShellSingleQuoted(currentExe);
+  const std::wstring paramsEsc = EscapePowerShellSingleQuoted(
+      L"/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART "
+      L"/CLOSEAPPLICATIONS /FORCECLOSEAPPLICATIONS");
+
+  std::wofstream script(scriptPath, std::ios::trunc);
+  if (!script.is_open()) {
+    g_downloadComplete = false;
+    g_updateAvailable = true;
+    return;
+  }
+
+  script << L"$ErrorActionPreference = 'Stop'\r\n";
+  script << L"$installer = '" << installerEsc << L"'\r\n";
+  script << L"$app = '" << currentExeEsc << L"'\r\n";
+  script << L"$args = '" << paramsEsc << L"'\r\n";
+  script << L"Start-Sleep -Seconds 2\r\n";
+  script << L"try {\r\n";
+  script << L"  $p = Start-Process -FilePath $installer -ArgumentList $args "
+            L"-Verb RunAs -PassThru -Wait\r\n";
+  script
+      << L"  if ($p.ExitCode -eq 0 -and (Test-Path -LiteralPath $app)) {\r\n";
+  script << L"    Start-Sleep -Seconds 2\r\n";
+  script << L"    Start-Process -FilePath $app\r\n";
+  script << L"  }\r\n";
+  script << L"} catch { } finally {\r\n";
+  script << L"  Remove-Item -LiteralPath $PSCommandPath -Force -ErrorAction "
+            L"SilentlyContinue\r\n";
+  script << L"}\r\n";
+  script.close();
+
+  std::wstring psArgs =
+      L"-NoProfile -ExecutionPolicy Bypass -File \"" + scriptPath + L"\"";
+  HINSTANCE result = ShellExecuteW(NULL, L"open", L"powershell.exe",
+                                   psArgs.c_str(), NULL, SW_HIDE);
   if ((INT_PTR)result <= 32) {
     g_downloadComplete = false;
     g_updateAvailable = true;
-    ShellExecuteW(NULL, L"open",
-                  L"https://github.com/MahanYTT/BetterAngle/releases/latest",
-                  NULL, NULL, SW_SHOWNORMAL);
+    DeleteFileW(scriptPath.c_str());
     return;
   }
 

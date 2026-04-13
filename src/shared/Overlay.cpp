@@ -63,6 +63,8 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
 
   Graphics graphics(hdcMem);
   graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+  graphics.SetInterpolationMode(InterpolationModeHighQuality);
+  graphics.SetPixelOffsetMode(PixelOffsetModeHighQuality);
   graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
   graphics.Clear(Color(0, 0, 0, 0));
 

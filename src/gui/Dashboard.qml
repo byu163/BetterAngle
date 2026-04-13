@@ -591,7 +591,7 @@ Item {
                         TextField {
                             id: presetNameField
                             width: parent.width - 110
-                            placeholderText: "Position name..."
+                            placeholderText: "Config name..."
                             color: "white"
                             background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
                         }
