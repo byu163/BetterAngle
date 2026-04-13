@@ -7,4 +7,8 @@
 void RegisterRawMouse(HWND hwnd);
 int GetRawInputDeltaX(LPARAM lparam);
 
+// Runtime input gating helpers
+bool IsFortniteForeground();
+bool IsCursorCurrentlyVisible();
+
 #endif // INPUT_H

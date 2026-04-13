@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.27.107
+- **Fortnite Input Gate Fix**: Raw mouse angle accumulation in [`MsgWndProc()`](src/main_app/BetterAngle.cpp:113) now updates only when Fortnite is the active foreground process and the system cursor is hidden, restoring the intended gameplay-only tracking behavior.
+- **Cursor Visibility Guard**: Added helper functions in [`src/shared/Input.cpp`](src/shared/Input.cpp:5) and declarations in [`include/shared/Input.h`](include/shared/Input.h:10) to detect the active process and current cursor visibility without reintroducing local release-build requirements.
+- **Debug Override Preserved**: [`g_debugMode`](src/main_app/BetterAngle.cpp:120) still bypasses the Fortnite/cursor gate so diagnostics and manual verification flows continue to work.
+
 ### BetterAngle Pro v4.27.106
 - **Persistence Hardening**: Consolidated all functional settings (ROI, Color, Tolerance, Crosshair) into the individual user profile JSONs. This establishes the active profile as the single source of truth and prevents settings from resetting after an application restart.
 - **Auto-Save Engine Update**: Implemented immediate disk persistence for Calibration Tolerance and Sensitivity adjustments. Every dashboard change is now committed to the profile in real-time.

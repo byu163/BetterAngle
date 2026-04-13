@@ -114,8 +114,14 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
                             LPARAM lParam) {
   if (message == WM_INPUT) {
     int dx = GetRawInputDeltaX(lParam);
-    // Update angle accumulation (the decimal) based on raw input
-    g_logic.Update(dx);
+    g_isCursorVisible = IsCursorCurrentlyVisible();
+
+    const bool allowAngleUpdate =
+        g_debugMode || (IsFortniteForeground() && !g_isCursorVisible);
+    if (allowAngleUpdate) {
+      // Update angle accumulation (the decimal) based on raw input
+      g_logic.Update(dx);
+    }
     return 0;
   }
   return DefWindowProc(hWnd, message, wParam, lParam);
@@ -317,9 +323,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       static float lastAngle = -9999.0f;
       static bool lastDiving = false;
       static bool lastCursor = false;
-      CURSORINFO ci = {sizeof(CURSORINFO)};
-      if (GetCursorInfo(&ci))
-        g_isCursorVisible = (ci.flags & CURSOR_SHOWING);
+      g_isCursorVisible = IsCursorCurrentlyVisible();
       float ang = g_logic.GetAngle();
 
       bool pulseActive = (g_showCrosshair && g_crossPulse);
