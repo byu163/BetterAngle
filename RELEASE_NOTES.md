@@ -1,3 +1,9 @@
+### BetterAngle Pro v4.27.85
+- **Modernized Debug Overlay**: Replaced the legacy debug dashboard with a high-fidelity "glass" aesthetic. Features include semi-transparent gradients, inner-glow borders, and sleek layout dividers.
+- **Dynamic Layout Engine**: Height now automatically adjusts based on the number of active metrics, eliminating empty space at the bottom of the overlay.
+- **Enhanced Diagnostics**: Improved alignment for "Key: Value" pairs and introduced multi-color LED status indicators for critical states like Diving and Detections.
+- **Improved Metrics**: Added "Interaction State" and "System Cursor" tracking for better troubleshooting.
+
 ### BetterAngle Pro v4.27.84
 - **Stability Fix**: Restored the First Time Setup wizard logic which was incorrectly omitted in the previous version. The software now correctly guides new users through initial sensitivity capture.
 - **Game-Agnostic Core**: Completed the transition to a fully manual sensitivity model, removing all Fortnite-specific file parsing and focus-locking hooks.

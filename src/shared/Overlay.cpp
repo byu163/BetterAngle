@@ -278,89 +278,103 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
     // =========================================================================
     // Debug Dashboard (Ctrl+9)
     // =========================================================================
+    // =========================================================================
+    // Modern Debug Dashboard (Ctrl+9)
+    // =========================================================================
     if (g_debugMode) {
-        const int DBG_ROWS = 14;
-        const int ROW_H    = 18;
-        int dw = 370, dh = 28 + DBG_ROWS * ROW_H + 10;
-        int dx = rx, dy = ry + rh + 10;
-
-        if (dy + dh > sh) dy = ry - dh - 8;
-
-        GraphicsPath dbgPath;
-        AddRoundedRect(dbgPath, dx, dy, dw, dh, 6);
-        LinearGradientBrush dbgBg(Point(dx, dy), Point(dx, dy + dh),
-                                  Color(160, 8, 10, 14), Color(160, 3, 4, 6)); // Softer alpha
-        graphics.FillPath(&dbgBg, &dbgPath);
-        Pen dbgP(Color(80, 0, 190, 255), 1.0f);
-        graphics.DrawPath(&dbgP, &dbgPath);
-
-        SolidBrush headerBgB(Color(60, 0, 160, 255));
-        graphics.FillRectangle(&headerBgB, dx, dy, dw, 22);
-
-        Font dbgTitle(&ff, 11, FontStyleBold,    UnitPixel);
-        Font dbgKey  (&ff, 10, FontStyleBold,    UnitPixel);
-        Font dbgVal  (&ff, 10, FontStyleRegular, UnitPixel);
+        // 1. Calculate height dynamically based on active rows
+        std::vector<std::pair<std::wstring, std::pair<std::wstring, SolidBrush*>>> rows;
 
         SolidBrush colTitle(Color(255, 255, 255, 255));
-        SolidBrush colKey  (Color(255, 120, 180, 255));
+        SolidBrush colKey  (Color(255, 140, 200, 255));
         SolidBrush colVal  (Color(255, 220, 230, 240));
-        SolidBrush colGood (Color(255,  60, 230, 100));
-        SolidBrush colBad  (Color(255, 255,  70,  70));
-        SolidBrush colWarn (Color(255, 255, 210,  50));
+        SolidBrush colGood (Color(255,  80, 240, 120));
+        SolidBrush colBad  (Color(255, 255,  80,  80));
+        SolidBrush colWarn (Color(255, 255, 220,  60));
 
-        graphics.DrawString(L"  DEBUG DASHBOARD", -1, &dbgTitle,
-                            PointF(float(dx + 4), float(dy + 5)), &colTitle);
-
-        int row = 0;
-        auto DrawRow = [&](const wchar_t* key, const std::wstring& val, SolidBrush* valBrush) {
-            float y = float(dy + 28 + row * ROW_H);
-            graphics.DrawString(key, -1, &dbgKey, PointF(float(dx + 8),  y), &colKey);
-            graphics.DrawString(val.c_str(), -1, &dbgVal, PointF(float(dx + 175), y), valBrush);
-            if (row > 0) {
-                Pen lnP(Color(20, 255, 255, 255), 1.0f);
-                graphics.DrawLine(&lnP, dx + 4, int(y) - 1, dx + dw - 4, int(y) - 1);
-            }
-            row++;
-        };
-
-
-
-        DrawRow(L"FPS",              FmtFloat(s_fps, 0),          s_fps >= 60.0f ? &colGood : &colWarn);
-        DrawRow(L"Angle (raw)",      FmtFloat(angle, 4) + L"\xB0", &colVal);
-        DrawRow(L"Detection Ratio",
-                FmtFloat(detectionRatio * 100.0, 1) + L"% / match " + std::to_wstring(matchPct) + L"%",
-                matchPct > 5 ? &colGood : &colVal);
-        DrawRow(L"Diving",           g_isDiving ? L"YES" : L"NO",      g_isDiving ? &colGood : &colVal);
-
-
+        rows.push_back({L"FPS",              {FmtFloat(s_fps, 0),                 s_fps >= 60.0f ? &colGood : &colWarn}});
+        rows.push_back({L"Angle (raw)",      {FmtFloat(angle, 4) + L"\xB0",       &colVal}});
+        rows.push_back({L"Detection Ratio",  {FmtFloat(detectionRatio * 100.0, 1) + L"%", matchPct > 5 ? &colGood : &colVal}});
+        rows.push_back({L"Diving State",     {g_isDiving ? L"ACTIVE" : L"INACTIVE", g_isDiving ? &colGood : &colVal}});
+        
         std::wstring profName = !g_allProfiles.empty() ? g_allProfiles[g_selectedProfileIdx].name : L"-";
-        DrawRow(L"Profile", profName, &colVal);
+        rows.push_back({L"Active Profile",   {profName, &colVal}});
 
-        {
-            std::wstring roiStr;
-            if (!g_allProfiles.empty()) {
-                auto& p = g_allProfiles[g_selectedProfileIdx];
-                roiStr = L"x" + std::to_wstring(p.roi_x) +
-                         L"  y" + std::to_wstring(p.roi_y) +
-                         L"  " + std::to_wstring(p.roi_w) + L"x" + std::to_wstring(p.roi_h);
-            } else { roiStr = L"-"; }
-            DrawRow(L"ROI", roiStr, &colVal);
+        if (!g_allProfiles.empty()) {
+            auto& p = g_allProfiles[g_selectedProfileIdx];
+            std::wstring roiStr = L"[" + std::to_wstring(p.roi_x) + L"," + std::to_wstring(p.roi_y) + L"] " + 
+                                  std::to_wstring(p.roi_w) + L"x" + std::to_wstring(p.roi_h);
+            rows.push_back({L"ROI Bounds",   {roiStr, &colVal}});
         }
 
-        DrawRow(L"HUD Position",
-                L"x" + std::to_wstring(g_hudX) + L"  y" + std::to_wstring(g_hudY), &colVal);
-        DrawRow(L"Glide Threshold",
-                FmtFloat(g_glideThreshold * 100.0f, 1) + L"%", &colVal);
-        DrawRow(L"Freefall Threshold",
-                FmtFloat(g_freefallThreshold * 100.0f, 1) + L"%", &colVal);
-        DrawRow(L"Force Diving",    g_forceDiving ? L"ON" : L"OFF",    g_forceDiving    ? &colWarn : &colVal);
-        DrawRow(L"Force Detection", g_forceDetection ? L"ON" : L"OFF", g_forceDetection ? &colWarn : &colVal);
-        DrawRow(L"Cursor Visible",  g_isCursorVisible ? L"YES" : L"NO", &colVal);
+        rows.push_back({L"HUD Position",     {L"x" + std::to_wstring(g_hudX) + L" y" + std::to_wstring(g_hudY), &colVal}});
+        rows.push_back({L"Glide Threshold",  {FmtFloat(g_glideThreshold * 100.0f, 1) + L"%", &colVal}});
+        rows.push_back({L"Freefall Threshold",{FmtFloat(g_freefallThreshold * 100.0f, 1) + L"%", &colVal}});
+        rows.push_back({L"Force Diving",     {g_forceDiving ? L"ON" : L"OFF",   g_forceDiving ? &colWarn : &colVal}});
+        rows.push_back({L"Force Detection",  {g_forceDetection ? L"ON" : L"OFF", g_forceDetection ? &colWarn : &colVal}});
+        rows.push_back({L"System Cursor",    {g_isCursorVisible ? L"VISIBLE" : L"HIDDEN", &colVal}});
 
-        const wchar_t* selStr = (g_currentSelection == NONE)          ? L"NONE"
-                              : (g_currentSelection == SELECTING_ROI) ? L"SELECTING ROI"
-                              : L"SELECTING COLOR";
-        DrawRow(L"Selection State", selStr, g_currentSelection != NONE ? &colWarn : &colVal);
+        const wchar_t* selStr = (g_currentSelection == NONE)          ? L"IDLE"
+                              : (g_currentSelection == SELECTING_ROI) ? L"ROI SELECT"
+                              : L"COLOR SELECT";
+        rows.push_back({L"Interaction State",{selStr, g_currentSelection != NONE ? &colWarn : &colVal}});
+
+        // 2. Render the glass panel
+        const int ROW_H = 20;
+        int dw = 380, dh = 30 + (int)rows.size() * ROW_H + 8;
+        int dx = rx, dy = ry + rh + 12;
+        if (dy + dh > sh) dy = ry - dh - 12;
+
+        GraphicsPath dbgPath;
+        AddRoundedRect(dbgPath, dx, dy, dw, dh, 8);
+        
+        // Premium "Glass" Background
+        LinearGradientBrush dbgBg(Point(dx, dy), Point(dx, dy + dh),
+                                  Color(180, 10, 12, 18), Color(180, 5, 6, 10));
+        graphics.FillPath(&dbgBg, &dbgPath);
+        
+        // Inner Glow Border
+        Pen dbgEdge(Color(60, 255, 255, 255), 1.0f);
+        graphics.DrawPath(&dbgEdge, &dbgPath);
+
+        // Header
+        SolidBrush headerBg(Color(100, 20, 30, 50));
+        graphics.FillRectangle(&headerBg, dx + 1, dy + 1, dw - 2, 26);
+        Pen headerLine(Color(80, 0, 200, 255), 1.5f);
+        graphics.DrawLine(&headerLine, dx + 8, dy + 27, dx + dw - 8, dy + 27);
+
+        Font dbgTitle(&ff, 10, FontStyleBold, UnitPixel);
+        StringFormat sfMid; sfMid.SetAlignment(StringAlignmentNear); sfMid.SetLineAlignment(StringAlignmentCenter);
+        graphics.DrawString(L"  APP METRICS & DIAGNOSTICS", -1, &dbgTitle,
+                            RectF((float)dx, (float)dy, (float)dw, 28.0f), &sfMid, &colTitle);
+
+        // 3. Render rows
+        Font dbgKey(&ff, 10, FontStyleBold, UnitPixel);
+        Font dbgVal(&ff, 10, FontStyleRegular, UnitPixel);
+
+        for (int i = 0; i < (int)rows.size(); ++i) {
+            float yPos = (float)(dy + 32 + i * ROW_H);
+            
+            // Key
+            graphics.DrawString(rows[i].first.c_str(), -1, &dbgKey,
+                                PointF((float)dx + 12, yPos), &colKey);
+            
+            // Value
+            graphics.DrawString(rows[i].second.first.c_str(), -1, &dbgVal,
+                                PointF((float)dx + 185, yPos), rows[i].second.second);
+            
+            // Subtle Divider
+            if (i < (int)rows.size() - 1) {
+                Pen divPen(Color(15, 255, 255, 255), 1.0f);
+                graphics.DrawLine(&divPen, (float)dx + 10, yPos + ROW_H - 2, (float)dx + dw - 10, yPos + ROW_H - 2);
+            }
+
+            // LED indicator for states
+            if (rows[i].first == L"Diving State" || rows[i].first == L"Force Diving") {
+                SolidBrush* ledCol = rows[i].second.first.find(L"ACTIVE") != std::wstring::npos || rows[i].second.first == L"ON" ? &colGood : &colBad;
+                graphics.FillEllipse(ledCol, dx + dw - 20, (int)yPos + 4, 6, 6);
+            }
+        }
     }
 
     // Blit to screen
