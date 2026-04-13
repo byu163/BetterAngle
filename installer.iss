@@ -28,12 +28,11 @@ Name: "{app}"; Permissions: users-modify
 
 [Files]
 Source: "build\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "build\Release\uninstaller.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\BetterAngle Pro"; Filename: "{app}\BetterAngle.exe"
 Name: "{autodesktop}\BetterAngle Pro"; Filename: "{app}\BetterAngle.exe"; Tasks: desktopicon
-Name: "{autoprograms}\BetterAngle Pro\Uninstall BetterAngle"; Filename: "{app}\uninstaller.exe"
+Name: "{autoprograms}\BetterAngle Pro\Uninstall BetterAngle"; Filename: "{uninstallexe}"
 
 [Run]
 ; Install Visual C++ Runtime silently before launching the app.

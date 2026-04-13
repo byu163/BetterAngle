@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.97
+- **Installer Fix**: Removed the stale external uninstaller file dependency from [`installer.iss`](installer.iss:29) and switched the uninstall shortcut to Inno Setup's built-in [`{uninstallexe}`](installer.iss:35), fixing release packaging when [`build/Release/uninstaller.exe`](build/Release/uninstaller.exe) is not produced.
+- **Workflow Fix**: Updated [`.github/workflows/msbuild.yml`](.github/workflows/msbuild.yml:77) to publish only the generated installer artifact, so GitHub Actions no longer fails release upload on the missing uninstaller binary.
+
 ### BetterAngle Pro v4.27.96
 - **CI Build Fix**: Aligned [`ShowControlPanel()`](src/shared/ControlPanel.cpp:61) with [`requestShowControlPanel()`](src/shared/BetterAngleBackend.cpp:278) and removed stale dashboard signal handlers from [`src/gui/main.qml`](src/gui/main.qml:22), resolving the GitHub Actions compile/runtime mismatch.
 - **Setup Flow Fix**: Added backend [`finishSetup()`](src/shared/BetterAngleBackend.cpp:282) support in [`include/shared/BetterAngleBackend.h`](include/shared/BetterAngleBackend.h:124) and updated [`src/gui/FirstTimeSetup.qml`](src/gui/FirstTimeSetup.qml:110) to use property writes so first-time calibration can persist correctly.
