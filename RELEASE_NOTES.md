@@ -14,6 +14,10 @@
 - **Build Fix**: Removed the leftover `g_setupComplete` dependency from [`include/shared/State.h`](include/shared/State.h:20) and [`src/shared/State.cpp`](src/shared/State.cpp:19), resolving the CI failure in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:385).
 - **Source Cleanup**: Deleted [`src/shared/FirstTimeSetup.cpp`](src/shared/FirstTimeSetup.cpp) and [`include/shared/FirstTimeSetup.h`](include/shared/FirstTimeSetup.h), leaving the shipped target in [`CMakeLists.txt`](CMakeLists.txt:24) free of startup wizard and splash-related sources.
 
+### BetterAngle Pro v4.27.91
+- **Unified Stability Release**: Formalizing the integration of the modernized "glass" debug overlay and the optimized color match tolerance (2) with the latest direct-boot architecture (no startup wizard).
+- **Cleanup**: Verified all legacy Fortnite sync and setup dependencies are fully purged from the codebase for a cleaner, game-agnostic experience.
+
 ### BetterAngle Pro v4.27.86
 - **Performance Optimization**: Adjusted the default color match tolerance from 25 to 2. This significantly improves startup detection performance and ensures stricter target matching for high-fidelity overlays.
 
