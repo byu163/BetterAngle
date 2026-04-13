@@ -1,3 +1,26 @@
+### BetterAngle Pro v4.27.100
+- **Startup UI Sync Fix**: Removed the delayed extra [`requestShowControlPanel()`](src/shared/BetterAngleBackend.cpp:60) from [`BetterAngleBackend::BetterAngleBackend()`](src/shared/BetterAngleBackend.cpp:21), so launch no longer re-toggles the main UI closed after [`ShowControlPanel()`](src/main_app/BetterAngle.cpp:478) already opened it.
+- **Launch Behavior Fix**: The decimal HUD and the main dashboard UI now stay visible together on startup instead of only the decimal overlay remaining on screen.
+
+### BetterAngle Pro v4.27.99
+- **Keybind UI Restore**: Replaced the broken free-text hotkey editor in [`src/gui/Dashboard.qml`](src/gui/Dashboard.qml:140) with click-to-capture fields again, so binds change by pressing inside the field instead of being corrupted character-by-character.
+- **Immediate Apply Fix**: Restored immediate hotkey application from the dashboard capture flow in [`src/gui/Dashboard.qml`](src/gui/Dashboard.qml:176), removing the need for the incorrect manual save-button workflow.
+- **Default Label Fix**: Corrected the selection overlay fallback label back to `Ctrl + R` in [`src/shared/BetterAngleBackend.cpp`](src/shared/BetterAngleBackend.cpp:545) so the UI matches the shipped default bind.
+
+### BetterAngle Pro v4.27.98
+- **Dashboard UI Boot Fix**: Corrected [`CreateControlPanel()`](src/shared/ControlPanel.cpp:21) to treat [`main.qml`](src/gui/main.qml:5) as successfully loaded when at least one root window exists, fixing the false failure path that blocked the decimal/dashboard UI from opening.
+- **Error Message Cleanup**: Removed the misleading missing-log reference from the loader error text in [`src/shared/ControlPanel.cpp`](src/shared/ControlPanel.cpp:37), since there is no shipped [`debug.log`](src/shared/ControlPanel.cpp:37) logging system.
+
+### BetterAngle Pro v4.27.97
+- **Installer Fix**: Removed the stale external uninstaller file dependency from [`installer.iss`](installer.iss:29) and switched the uninstall shortcut to Inno Setup's built-in [`{uninstallexe}`](installer.iss:35), fixing release packaging when [`build/Release/uninstaller.exe`](build/Release/uninstaller.exe) is not produced.
+- **Workflow Fix**: Updated [`.github/workflows/msbuild.yml`](.github/workflows/msbuild.yml:77) to publish only the generated installer artifact, so GitHub Actions no longer fails release upload on the missing uninstaller binary.
+
+### BetterAngle Pro v4.27.96
+- **CI Build Fix**: Aligned [`ShowControlPanel()`](src/shared/ControlPanel.cpp:61) with [`requestShowControlPanel()`](src/shared/BetterAngleBackend.cpp:278) and removed stale dashboard signal handlers from [`src/gui/main.qml`](src/gui/main.qml:22), resolving the GitHub Actions compile/runtime mismatch.
+- **Setup Flow Fix**: Added backend [`finishSetup()`](src/shared/BetterAngleBackend.cpp:282) support in [`include/shared/BetterAngleBackend.h`](include/shared/BetterAngleBackend.h:124) and updated [`src/gui/FirstTimeSetup.qml`](src/gui/FirstTimeSetup.qml:110) to use property writes so first-time calibration can persist correctly.
+- **Crosshair Default Fix**: Set the default crosshair line thickness to `1.0f` in [`src/shared/State.cpp`](src/shared/State.cpp:108) / [`src/shared/State.cpp`](src/shared/State.cpp:209), kept legacy profile fallback at `1.0f` in [`src/shared/Profile.cpp`](src/shared/Profile.cpp:91), and preserved the `0.1` minimum slider range in [`src/gui/Dashboard.qml`](src/gui/Dashboard.qml:236).
+- **Selection Overlay Fix**: Confirmed the selected ROI outline remains visible during prompt colour selection in [`src/shared/Overlay.cpp`](src/shared/Overlay.cpp:112).
+
 ### BetterAngle Pro v4.27.94
 - **Toggle Dashboard Fix**: Changed the dashboard hotkey from show-only to proper toggle (hide/show) in [`src/gui/main.qml`](src/gui/main.qml:18).
 - **Debug Overlay Fix**: Added window repaint after toggling debug mode via hotkey in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:174).

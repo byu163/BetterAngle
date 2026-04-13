@@ -25,7 +25,7 @@ extern int g_selectedProfileIdx;
 void FinishSetup() {
     Profile p;
     p.name = L"Default"; 
-    p.tolerance = 25;
+    p.tolerance = 2;
     p.roi_x = 760; p.roi_y = 640; p.roi_w = 400; p.roi_h = 70;
     p.target_color = RGB(150, 150, 150);
     p.fov = 80.0f;
@@ -37,8 +37,8 @@ void FinishSetup() {
     try { if (!g_setupSensX.empty()) sensX  = std::stod(g_setupSensX); } catch(...) {}
     try { if (!g_setupSensY.empty()) sensY  = std::stod(g_setupSensY); } catch(...) {}
     
-    p.sensitivityX = (std::max)(0.0001, sensX);
-    p.sensitivityY = (std::max)(0.0001, sensY);
+    p.sensitivityX = (std::max)(0.0001, std::round(sensX * 10.0) / 10.0);
+    p.sensitivityY = (std::max)(0.0001, std::round(sensY * 10.0) / 10.0);
 
     if (g_allProfiles.empty()) {
         p.Save(GetProfilesPath() + L"Default.json");

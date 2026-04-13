@@ -108,8 +108,8 @@ Window {
                 width: parent.width
                 height: 44
                 onClicked: {
-                    backend.setSensX(parseFloat(sensXInput.text))
-                    backend.setSensY(parseFloat(sensYInput.text))
+                    backend.sensX = parseFloat(sensXInput.text)
+                    backend.sensY = parseFloat(sensYInput.text)
                     backend.finishSetup()
                     setupWindow.visible = false
                 }

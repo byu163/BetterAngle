@@ -6,7 +6,6 @@
 #include <vector>
 #include <windows.h>
 
-
 bool Profile::Load(const std::wstring &path) {
   std::ifstream f(path, std::ios::binary);
   if (!f.is_open())
@@ -44,16 +43,20 @@ bool Profile::Load(const std::wstring &path) {
 
   auto extractString = [&](const std::string &key) -> std::string {
     size_t pos = content.find("\"" + key + "\": \"");
-    if (pos == std::string::npos) return "";
+    if (pos == std::string::npos)
+      return "";
     size_t end = content.find("\"", pos + 4 + key.length());
-    return content.substr(pos + 4 + key.length(), end - (pos + 4 + key.length()));
+    return content.substr(pos + 4 + key.length(),
+                          end - (pos + 4 + key.length()));
   };
 
   sensitivityX = extractDouble("sensitivityX");
-  if (sensitivityX <= 0.0) sensitivityX = 0.05;
-  
+  if (sensitivityX <= 0.0)
+    sensitivityX = 0.05;
+
   sensitivityY = extractDouble("sensitivityY");
-  if (sensitivityY <= 0.0) sensitivityY = 0.05;
+  if (sensitivityY <= 0.0)
+    sensitivityY = 0.05;
 
   fov = (float)extractDouble("fov");
   resolutionWidth = (int)extractDouble("resolutionWidth");
@@ -70,34 +73,52 @@ bool Profile::Load(const std::wstring &path) {
   // Load Keybinds
   keybinds.toggleMod = (UINT)extractDouble("kb_toggleMod");
   keybinds.toggleKey = (UINT)extractDouble("kb_toggleKey");
-  keybinds.roiMod    = (UINT)extractDouble("kb_roiMod");
-  keybinds.roiKey    = (UINT)extractDouble("kb_roiKey");
-  keybinds.crossMod  = (UINT)extractDouble("kb_crossMod");
-  keybinds.crossKey  = (UINT)extractDouble("kb_crossKey");
-  keybinds.zeroMod   = (UINT)extractDouble("kb_zeroMod");
-  keybinds.zeroKey   = (UINT)extractDouble("kb_zeroKey");
-  keybinds.debugMod  = (UINT)extractDouble("kb_debugMod");
-  keybinds.debugKey  = (UINT)extractDouble("kb_debugKey");
+  keybinds.roiMod = (UINT)extractDouble("kb_roiMod");
+  keybinds.roiKey = (UINT)extractDouble("kb_roiKey");
+  keybinds.crossMod = (UINT)extractDouble("kb_crossMod");
+  keybinds.crossKey = (UINT)extractDouble("kb_crossKey");
+  keybinds.zeroMod = (UINT)extractDouble("kb_zeroMod");
+  keybinds.zeroKey = (UINT)extractDouble("kb_zeroKey");
+  keybinds.debugMod = (UINT)extractDouble("kb_debugMod");
+  keybinds.debugKey = (UINT)extractDouble("kb_debugKey");
 
   // Fallback defaults for new files or legacy ones
-  if (keybinds.toggleKey == 0) { keybinds.toggleMod = MOD_CONTROL; keybinds.toggleKey = 'U'; }
-  if (keybinds.roiKey == 0)    { keybinds.roiMod    = MOD_CONTROL; keybinds.roiKey    = 'R'; }
-  if (keybinds.crossKey == 0)  { keybinds.crossMod  = 0;           keybinds.crossKey  = VK_F10; }
-  if (keybinds.zeroKey == 0)   { keybinds.zeroMod   = MOD_CONTROL; keybinds.zeroKey   = 'G'; }
-  if (keybinds.debugKey == 0)  { keybinds.debugMod  = MOD_CONTROL; keybinds.debugKey  = '9'; }
+  if (keybinds.toggleKey == 0) {
+    keybinds.toggleMod = MOD_CONTROL;
+    keybinds.toggleKey = 'U';
+  }
+  if (keybinds.roiKey == 0) {
+    keybinds.roiMod = MOD_CONTROL;
+    keybinds.roiKey = 'R';
+  }
+  if (keybinds.crossKey == 0) {
+    keybinds.crossMod = 0;
+    keybinds.crossKey = VK_F10;
+  }
+  if (keybinds.zeroKey == 0) {
+    keybinds.zeroMod = MOD_CONTROL;
+    keybinds.zeroKey = 'G';
+  }
+  if (keybinds.debugKey == 0) {
+    keybinds.debugMod = MOD_CONTROL;
+    keybinds.debugKey = '9';
+  }
 
   // Load Crosshair (with defaults for legacy files)
   crossThickness = (float)extractDouble("crossThickness");
-  if (crossThickness <= 0) crossThickness = 2.0f;
+  if (crossThickness <= 0)
+    crossThickness = 1.0f;
   crossColor = (COLORREF)extractDouble("crossColor");
-  if (crossColor == 0) crossColor = RGB(255, 0, 0); // Default Red
+  if (crossColor == 0)
+    crossColor = RGB(255, 0, 0); // Default Red
   crossOffsetX = (float)extractDouble("crossOffsetX");
   crossOffsetY = (float)extractDouble("crossOffsetY");
   crossAngle = (float)extractDouble("crossAngle");
   bool pulseVal = extractDouble("crossPulse") > 0.5;
   crossPulse = pulseVal;
   showCrosshair = extractDouble("showCrosshair") > 0.5;
-  if (content.find("\"showCrosshair\"") == std::string::npos) showCrosshair = true; 
+  if (content.find("\"showCrosshair\"") == std::string::npos)
+    showCrosshair = true;
 
   // Load Presets Array (Manual Parser)
   crosshairPresets.clear();
@@ -107,35 +128,37 @@ bool Profile::Load(const std::wstring &path) {
     std::string arrContent = content.substr(arrPos, endArr - arrPos);
     size_t objPos = 0;
     while ((objPos = arrContent.find("{", objPos)) != std::string::npos) {
-        size_t objEnd = arrContent.find("}", objPos);
-        if (objEnd == std::string::npos) break;
-        std::string obj = arrContent.substr(objPos, objEnd - objPos);
-        
-        CrosshairPreset cp;
-        // Parse name
-        size_t nP = obj.find("\"name\": \"");
-        if (nP != std::string::npos) {
-            size_t nE = obj.find("\"", nP + 9);
-            std::string nStr = obj.substr(nP + 9, nE - (nP + 9));
-            cp.name = std::wstring(nStr.begin(), nStr.end());
-        }
-        // Parse coords
-        auto exD = [&](std::string k) -> float {
-            size_t p = obj.find("\"" + k + "\": ");
-            if (p == std::string::npos) return 0.0f;
-            return (float)std::atof(obj.substr(p + k.length() + 3).c_str());
-        };
-        cp.offsetX = exD("x");
-        cp.offsetY = exD("y");
-        cp.angle   = exD("a");
-        crosshairPresets.push_back(cp);
-        objPos = objEnd + 1;
+      size_t objEnd = arrContent.find("}", objPos);
+      if (objEnd == std::string::npos)
+        break;
+      std::string obj = arrContent.substr(objPos, objEnd - objPos);
+
+      CrosshairPreset cp;
+      // Parse name
+      size_t nP = obj.find("\"name\": \"");
+      if (nP != std::string::npos) {
+        size_t nE = obj.find("\"", nP + 9);
+        std::string nStr = obj.substr(nP + 9, nE - (nP + 9));
+        cp.name = std::wstring(nStr.begin(), nStr.end());
+      }
+      // Parse coords
+      auto exD = [&](std::string k) -> float {
+        size_t p = obj.find("\"" + k + "\": ");
+        if (p == std::string::npos)
+          return 0.0f;
+        return (float)std::atof(obj.substr(p + k.length() + 3).c_str());
+      };
+      cp.offsetX = exD("x");
+      cp.offsetY = exD("y");
+      cp.angle = exD("a");
+      crosshairPresets.push_back(cp);
+      objPos = objEnd + 1;
     }
   }
 
   // Ensure default if empty
   if (crosshairPresets.empty()) {
-    CrosshairPreset def = { L"🎯 Screen Center", 0.0f, 0.0f, 0.0f };
+    CrosshairPreset def = {L"🎯 Screen Center", 0.0f, 0.0f, 0.0f};
     crosshairPresets.push_back(def);
   }
 
@@ -144,7 +167,7 @@ bool Profile::Load(const std::wstring &path) {
 
 bool Profile::Save(const std::wstring &path) {
   std::wstring tempPath = path + L".tmp";
-  
+
   // Ensure file is not hidden before writing to avoid permission issues
   SetFileAttributesW(path.c_str(), FILE_ATTRIBUTE_NORMAL);
 
@@ -155,7 +178,7 @@ bool Profile::Save(const std::wstring &path) {
   std::string nStr;
   for (wchar_t c : name)
     nStr += (char)c;
-  
+
   // Ensure we write with a safe dot decimal regardless of locale
   std::wostringstream oss;
   oss.imbue(std::locale("C"));
@@ -191,12 +214,14 @@ bool Profile::Save(const std::wstring &path) {
   oss << L"  \"crossOffsetY\": " << crossOffsetY << L",\n";
   oss << L"  \"crossAngle\": " << crossAngle << L",\n";
   oss << L"  \"crossPulse\": " << (crossPulse ? 1 : 0) << L",\n";
-  
+
   oss << L"  \"crosshairPresets\": [\n";
   for (size_t i = 0; i < crosshairPresets.size(); i++) {
-    const auto& cp = crosshairPresets[i];
-    oss << L"    {\"name\": \"" << cp.name << L"\", \"x\": " << cp.offsetX << L", \"y\": " << cp.offsetY << L", \"a\": " << cp.angle << L"}";
-    if (i < crosshairPresets.size() - 1) oss << L",";
+    const auto &cp = crosshairPresets[i];
+    oss << L"    {\"name\": \"" << cp.name << L"\", \"x\": " << cp.offsetX
+        << L", \"y\": " << cp.offsetY << L", \"a\": " << cp.angle << L"}";
+    if (i < crosshairPresets.size() - 1)
+      oss << L",";
     oss << L"\n";
   }
   oss << L"  ]\n";
@@ -204,7 +229,7 @@ bool Profile::Save(const std::wstring &path) {
 
   f << oss.str();
   f.close();
-  
+
   // Atomic swap
   DeleteFileW(path.c_str());
   MoveFileW(tempPath.c_str(), path.c_str());
