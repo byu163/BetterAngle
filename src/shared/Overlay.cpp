@@ -10,7 +10,7 @@
 
 using namespace Gdiplus;
 
-bool IsFortniteFocused();
+
 
 void AddRoundedRect(GraphicsPath& path, int x, int y, int width, int height, int radius) {
     int d = radius * 2;
@@ -323,7 +323,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
             row++;
         };
 
-        bool fortFocused = IsFortniteFocused();
+
 
         DrawRow(L"FPS",              FmtFloat(s_fps, 0),          s_fps >= 60.0f ? &colGood : &colWarn);
         DrawRow(L"Angle (raw)",      FmtFloat(angle, 4) + L"\xB0", &colVal);
@@ -331,7 +331,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio, bool showCrossha
                 FmtFloat(detectionRatio * 100.0, 1) + L"% / match " + std::to_wstring(matchPct) + L"%",
                 matchPct > 5 ? &colGood : &colVal);
         DrawRow(L"Diving",           g_isDiving ? L"YES" : L"NO",      g_isDiving ? &colGood : &colVal);
-        DrawRow(L"Fortnite Focused", fortFocused ? L"YES" : L"NO",     fortFocused ? &colGood : &colBad);
+
 
         std::wstring profName = !g_allProfiles.empty() ? g_allProfiles[g_selectedProfileIdx].name : L"-";
         DrawRow(L"Profile", profName, &colVal);

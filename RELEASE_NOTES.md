@@ -1,3 +1,10 @@
+### BetterAngle Pro v4.27.83
+- **Complete Fortnite Sync Removal**: Stripped all code that searched for or synced with `GameUserSettings.ini`. The application is now fully game-agnostic regarding sensitivity.
+- **Focus Locking Purged**: Removed `IsFortniteFocused()` and associated gating logic. The app now processes input mouse deltas and calculates angles regardless of which window is in focus, providing consistent behavior across any software or game.
+- **UI Decoupling**: Changed all UI labels from "Fortnite Sens" to generic "Sensitivity" and removed the "Sync with Fortnite" button from the Dashboard.
+- **Setup Wizard Update**: Simplified the First Time Setup wizard to remove Fortnite-specific instructions, focusing strictly on manual sensitivity input.
+- **Cleanup**: Deleted the legacy `Fortnite_Standard.json` profile and removed redundant header files and code comments.
+
 ### BetterAngle Pro v4.20.54
 - **Qt 6 Framework Upgrade**: Replaced the entire ImGui / DirectX 11 interface with a modern Qt Quick (QML) GUI featuring silky smooth transitions, responsive tabs, and a massive reduction in boilerplate size.
 - **Inno Setup Installer Module**: Removed `.zip` packaging. The software now distributes exclusively as a `.exe` setup wizard that automatically injects dependencies, assigns Desktop shortcuts, and provides clean Windows uninstallation.
