@@ -93,6 +93,7 @@ void LoadSettings() {
     g_freefallThreshold = eFloat("freefallThreshold", 0.20f);
     g_hudX = eInt("hudX", 40);
     g_hudY = eInt("hudY", 40);
+
     g_crossThickness = eFloat("crossThickness", 2.0f);
     g_crossColor     = (COLORREF)eFloat("crossColor", (float)RGB(255, 0, 0));
     g_crossOffsetX   = eFloat("crossOffsetX", 0.0f);

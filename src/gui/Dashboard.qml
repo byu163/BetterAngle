@@ -73,13 +73,13 @@ Item {
                             id: sensXField
                             width: parent.width
                             // Re-read when profile changes so value always shows on startup
-                            text: backend.sensX.toFixed(4)
+                            text: backend.sensX.toFixed(1)
                             color: "white"
                             background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                            onEditingFinished: backend.sensX = parseFloat(text)
+                            onEditingFinished: backend.sensX = Number(parseFloat(text).toFixed(1))
                             Connections {
                                 target: backend
-                                onProfileChanged: sensXField.text = backend.sensX.toFixed(4)
+                                onProfileChanged: sensXField.text = backend.sensX.toFixed(1)
                             }
                         }
                     }
@@ -92,13 +92,13 @@ Item {
                         TextField {
                             id: sensYField
                             width: parent.width
-                            text: backend.sensY.toFixed(4)
+                            text: backend.sensY.toFixed(1)
                             color: "white"
                             background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                            onEditingFinished: backend.sensY = parseFloat(text)
+                            onEditingFinished: backend.sensY = Number(parseFloat(text).toFixed(1))
                             Connections {
                                 target: backend
-                                onProfileChanged: sensYField.text = backend.sensY.toFixed(4)
+                                onProfileChanged: sensYField.text = backend.sensY.toFixed(1)
                             }
                         }
                     }
@@ -233,7 +233,7 @@ Item {
                         Text { text: "Line Thickness: " + backend.crossThickness.toFixed(1) + " px"; color: "white"; font.pixelSize: 12 }
                         Slider {
                             width: parent.width
-                            from: 1.0; to: 10.0
+                            from: 0.1; to: 10.0
                             value: backend.crossThickness
                             onMoved: backend.crossThickness = value
                         }
