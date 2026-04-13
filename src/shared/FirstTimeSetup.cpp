@@ -9,10 +9,8 @@
 #include <cwctype>
 #include "shared/Profile.h"
 #include "shared/State.h"
-#include "shared/Logic.h"
 #include <gdiplus.h>
 
-extern double FetchFortniteSensitivity();
 using namespace Gdiplus;
 
 // Use persistent state from shared/State.h
@@ -27,7 +25,7 @@ extern int g_selectedProfileIdx;
 void FinishSetup() {
     Profile p;
     p.name = L"Default"; 
-    p.tolerance = 2;
+    p.tolerance = 25;
     p.roi_x = 760; p.roi_y = 640; p.roi_w = 400; p.roi_h = 70;
     p.target_color = RGB(150, 150, 150);
     p.fov = 80.0f;
@@ -187,15 +185,6 @@ LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 }
 
 void ShowFirstTimeSetup(HINSTANCE hInstance) {
-    // Attempt auto-detection before showing UI
-    double detected = FetchFortniteSensitivity();
-    if (detected > 0.0) {
-        wchar_t buf[32];
-        swprintf(buf, 32, L"%.4f", detected);
-        g_setupSensX = buf;
-        g_setupSensY = buf;
-    }
-
     WNDCLASS wc = { 0 };
     if (!GetClassInfo(hInstance, L"FTSWindowClass", &wc)) {
         wc.lpfnWndProc = FirstTimeSetupProc;
@@ -205,23 +194,12 @@ void ShowFirstTimeSetup(HINSTANCE hInstance) {
         RegisterClass(&wc);
     }
 
-    // Auto-detect sensitivity from game files to pre-fill the wizard
-    double detectedSens = FetchFortniteSensitivity();
-    if (detectedSens > 0.0) {
-        wchar_t buf[32];
-        swprintf_s(buf, L"%.4f", detectedSens);
-        g_setupSensX = buf;
-        g_setupSensY = buf;
-    }
-
     int W = 500, H = 320;
-    HWND hWnd = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TOOLWINDOW, L"FTSWindowClass", L"BetterAngle Pro HUD Calibration", WS_POPUP,
+    HWND hWnd = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TOOLWINDOW, L"FTSWindowClass", L"BetterAngle Setup", WS_POPUP,
         GetSystemMetrics(SM_CXSCREEN)/2 - W/2, GetSystemMetrics(SM_CYSCREEN)/2 - H/2, W, H, NULL, NULL, hInstance, NULL);
 
     ShowWindow(hWnd, SW_SHOW);
     UpdateWindow(hWnd);
-    SetForegroundWindow(hWnd);
-    SetFocus(hWnd);
 
     MSG msg;
     while (IsWindow(hWnd) && GetMessage(&msg, NULL, 0, 0)) {

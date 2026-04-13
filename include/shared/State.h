@@ -21,9 +21,8 @@ extern std::atomic<bool> g_fortniteFocusedCache;
 #ifndef V_MAJ
 #define V_MAJ 4
 #define V_MIN 20
-#define V_PAT 66
+#define V_PAT 56
 #endif
-extern bool g_needsSetup;
 extern bool g_setupComplete;
 extern std::string g_lastVersionRun;
 
@@ -84,8 +83,6 @@ extern bool g_forceDiving;
 extern bool g_forceDetection;
 extern int g_hudX;
 extern int g_hudY;
-extern int g_virtScreenX;
-extern int g_virtScreenY;
 extern bool g_isDraggingHUD;
 extern POINT g_dragStartHUD;
 extern POINT g_dragStartMouse;

@@ -1,9 +1,5 @@
 #include "shared/State.h"
 #include "shared/Logic.h"
-#include <windows.h>
-
-extern HWND g_hHUD;
-extern void RefreshHotkeys(HWND hWnd);
 
 SelectionState g_currentSelection = NONE;
 bool g_isSelectionActive = false;
@@ -191,19 +187,16 @@ void SaveSettings() {
 
   // Set to hidden after saving
   SetFileAttributesW(sp.c_str(), FILE_ATTRIBUTE_HIDDEN);
-
-  // Task A Fix: Refresh hotkeys immediately when settings are saved (v4.21.2)
-  if (g_hHUD) RefreshHotkeys(g_hHUD);
 }
 
 
-bool g_showCrosshair = true;
+bool g_showCrosshair = false;
 float g_crossThickness = 2.0f;
-COLORREF g_crossColor = RGB(0, 255, 163); // Neon Cyan
+COLORREF g_crossColor = RGB(255, 0, 0);
 float g_crossOffsetX = 0.0f;
 float g_crossOffsetY = 0.0f;
 float g_crossAngle = 0.0f;
-bool g_crossPulse = true;
+bool g_crossPulse = false;
 
 COLORREF g_targetColor = RGB(255, 255, 255);
 COLORREF g_pickedColor = RGB(255, 255, 255);
@@ -216,15 +209,12 @@ std::string g_latestVersionOnline = "v" VERSION_STR;
 float g_currentAngle = 0.0f;
 bool g_debugMode = false;
 bool g_isCursorVisible = false;
-bool g_needsSetup = false;
 AngleLogic g_logic(0.05);
 bool g_forceDiving = false;
 bool g_forceDetection = false;
 
 int g_hudX = 40;
 int g_hudY = 40;
-int g_virtScreenX = 0;
-int g_virtScreenY = 0;
 bool g_isDraggingHUD = false;
 POINT g_dragStartHUD = {0, 0};
 POINT g_dragStartMouse = {0, 0};

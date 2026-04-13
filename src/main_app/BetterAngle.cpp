@@ -10,7 +10,6 @@
 #include <gdiplus.h>
 #include <algorithm>
 #include <cmath>
-#include <filesystem>
 
 #include "shared/Input.h"
 #include "shared/Overlay.h"
@@ -19,12 +18,11 @@
 #include "shared/Updater.h"
 #include "shared/Profile.h"
 #include "shared/Tray.h"
+#include "shared/Startup.h"
 #include "shared/ControlPanel.h"
-#include "shared/BetterAngleBackend.h"
 #include "shared/FirstTimeSetup.h"
 #include <QCoreApplication>
 #include <QGuiApplication>
-#include <QTimer>
 
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "gdiplus.lib")
@@ -38,23 +36,8 @@ using namespace Gdiplus;
 ULONG_PTR g_gdiplusToken;
 std::atomic<bool> g_running(true);
 FovDetector g_detector;
-extern BetterAngleBackend* g_backend; // Defined in ControlPanel.cpp
 
-// Verbose logging for QML and Startup
-void QtLogHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
-    std::wstring logPath = GetAppRootPath() + L"debug.log";
-    std::wofstream out(logPath, std::ios::app);
-    if (out.is_open()) {
-        switch (type) {
-            case QtDebugMsg: out << L"[DEBUG] "; break;
-            case QtInfoMsg: out << L"[INFO] "; break;
-            case QtWarningMsg: out << L"[WARN] "; break;
-            case QtCriticalMsg: out << L"[CRIT] "; break;
-            case QtFatalMsg: out << L"[FATAL] "; break;
-        }
-        out << msg.toStdWString() << L" (" << context.file << L":" << context.line << L")" << std::endl;
-    }
-}
+// Only update sensitivity state when Fortnite is the foreground window
 
 // FOV Detector Thread
 void DetectorThread() {
@@ -66,8 +49,8 @@ void DetectorThread() {
             bool fortFocused = IsFortniteFocused();
             g_fortniteFocusedCache = fortFocused;
 
-            if (fortFocused || g_currentSelection != NONE) {
-                // Only scan and change angle scale when Fortnite is in focus OR during ROI selection
+            if (fortFocused || g_debugMode) {
+                // Only scan and change angle scale when Fortnite is in focus
                 RoiConfig cfg = { p.roi_x, p.roi_y, p.roi_w, p.roi_h, p.target_color, p.tolerance };
                 g_detectionRatio = g_detector.Scan(cfg);
                 if (g_forceDetection) g_detectionRatio = 1.0f;
@@ -98,8 +81,8 @@ void DetectorThread() {
 void CaptureDesktop() {
     int sw = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     int sh = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-    g_virtScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    g_virtScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
 
     HDC hdcScreen = GetDC(NULL);
     HDC hdcMem = CreateCompatibleDC(hdcScreen);
@@ -108,7 +91,7 @@ void CaptureDesktop() {
     HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
     
     // Capture the entire virtual desktop
-    BitBlt(hdcMem, 0, 0, sw, sh, hdcScreen, g_virtScreenX, g_virtScreenY, SRCCOPY);
+    BitBlt(hdcMem, 0, 0, sw, sh, hdcScreen, sx, sy, SRCCOPY);
     
     SelectObject(hdcMem, hOld);
     ReleaseDC(NULL, hdcScreen);
@@ -117,30 +100,17 @@ void CaptureDesktop() {
 
 // Refreshes all global hotkeys for the HUD window
 void RefreshHotkeys(HWND hWnd) {
-    if (!hWnd) {
-        qDebug() << "RefreshHotkeys: HUD window not ready yet.";
-        return;
-    }
+    if (!hWnd) return;
     for (int i = 1; i <= 6; i++) UnregisterHotKey(hWnd, i);
 
     if (!g_allProfiles.empty()) {
         Profile& p = g_allProfiles[g_selectedProfileIdx];
-        
-        auto reg = [&](int id, UINT mod, UINT key, const wchar_t* name) {
-            if (key == 0) return;
-            // Add MOD_NOREPEAT to ensure hotkey works reliably on Win7+
-            if (!RegisterHotKey(hWnd, id, mod | MOD_NOREPEAT, key)) {
-                qDebug() << "HOTKEY ERROR: Failed to register" << name << "Key:" << key << "Error:" << GetLastError();
-            } else {
-                qDebug() << "HOTKEY OK:" << name << "Registered successfully.";
-            }
-        };
-
-        reg(1, p.keybinds.toggleMod, p.keybinds.toggleKey, L"Toggle");
-        reg(2, p.keybinds.roiMod,    p.keybinds.roiKey,    L"ROI");
-        reg(3, p.keybinds.crossMod,  p.keybinds.crossKey,  L"Crosshair");
-        reg(4, p.keybinds.zeroMod,   p.keybinds.zeroKey,   L"Zero");
-        reg(5, p.keybinds.debugMod,  p.keybinds.debugKey,  L"Debug");
+        // Use standard registration without MOD_NOREPEAT for maximum compatibility
+        RegisterHotKey(hWnd, 1, p.keybinds.toggleMod, p.keybinds.toggleKey);
+        RegisterHotKey(hWnd, 2, p.keybinds.roiMod,    p.keybinds.roiKey);
+        RegisterHotKey(hWnd, 3, p.keybinds.crossMod,  p.keybinds.crossKey);
+        RegisterHotKey(hWnd, 4, p.keybinds.zeroMod,   p.keybinds.zeroKey);
+        RegisterHotKey(hWnd, 5, p.keybinds.debugMod,  p.keybinds.debugKey);
     }
 }
 
@@ -164,11 +134,6 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
             SetLayeredWindowAttributes(hWnd, RGB(0, 0, 0), 0, LWA_COLORKEY);
             RefreshHotkeys(hWnd);
             return 0;
-            
-        case WM_SYSKEYDOWN:
-        case WM_KEYDOWN:
-            // Handled via WM_HOTKEY to avoid double-toggles
-            break;
 
         case WM_HOTKEY:
             switch (wParam)
@@ -193,13 +158,8 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                         InvalidateRect(hWnd, NULL, FALSE);
                     }
                     break;
-                case 3: // Crosshair
+                case 3:
                     g_showCrosshair = !g_showCrosshair;
-                    if (!g_allProfiles.empty()) {
-                        Profile& p = g_allProfiles[g_selectedProfileIdx];
-                        p.showCrosshair = g_showCrosshair;
-                        p.Save(GetProfilesPath() + p.name + L".json");
-                    }
                     SaveSettings();
                     if (g_hHUD) { InvalidateRect(g_hHUD, NULL, FALSE); UpdateWindow(g_hHUD); }
                     break;
@@ -211,7 +171,6 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     g_debugMode = !g_debugMode;
                     break;
             }
-            InvalidateRect(hWnd, NULL, FALSE);
             return 0;
 
         case WM_TRAYICON:
@@ -239,9 +198,12 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     HDC hdcMem = CreateCompatibleDC(hdcScreen);
                     HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
                     
+                    int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+                    int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+                    
                     POINT cur; GetCursorPos(&cur);
                     // Adjust color sample coord by the same virtual screen offset used in CaptureDesktop
-                    COLORREF pixel = GetPixel(hdcMem, cur.x - g_virtScreenX, cur.y - g_virtScreenY);
+                    COLORREF pixel = GetPixel(hdcMem, cur.x - sx, cur.y - sy);
                     
                     g_pickedColor = pixel;
                     g_targetColor = pixel;
@@ -265,11 +227,13 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     p.roi_w = g_selectionRect.right - g_selectionRect.left;
                     p.roi_h = g_selectionRect.bottom - g_selectionRect.top;
                     
-                    // Re-save to ensure the correct values are on disk too
-                    p.Save(GetProfilesPath() + p.name + L".json");
+                    // Save to the actual profile path
+                    std::wstring profilePath = GetProfilesPath() + p.name + L".json";
+                    p.Save(profilePath);
                     
-                    g_showROIBox = true;
-                    SaveSettings();
+                    // Also maintain the legacy 'last_calibrated' for quick-load logic if needed
+                    p.Save(GetProfilesPath() + L"last_calibrated.json");
+
                 }
             }
             return 0;
@@ -300,9 +264,8 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
                     bool lDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
                     POINT pt; GetCursorPos(&pt);
                     if (lDown && !g_isDraggingHUD) {
-                        // Corrected hitbox: account for virtual screen offsets
-                        if (pt.x >= g_hudX + g_virtScreenX && pt.x <= g_hudX + g_virtScreenX + 260 && 
-                            pt.y >= g_hudY + g_virtScreenY && pt.y <= g_hudY + g_virtScreenY + 150) {
+                        if (pt.x >= g_hudX && pt.x <= g_hudX + 260 && 
+                            pt.y >= g_hudY && pt.y <= g_hudY + 150) {
                             g_isDraggingHUD = true;
                             g_dragStartMouse = pt;
                             g_dragStartHUD.x = g_hudX;
@@ -382,28 +345,118 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
 // WinMain...
 
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
-    // 1. Recovery Mode: Holding SHIFT during startup resets everything
-    if (GetKeyState(VK_SHIFT) & 0x8000) {
-        if (MessageBoxW(NULL, L"BetterAngle: Hold SHIFT to Reset Settings?\n\nThis will clear your profiles and restore defaults. This is recommended if the app is not starting correctly.", L"BetterAngle Recovery", MB_YESNO | MB_ICONQUESTION) == IDYES) {
-            std::wstring root = GetAppRootPath();
-            std::filesystem::remove_all(root);
-            MessageBoxW(NULL, L"Settings have been reset. BetterAngle will now start in Setup mode.", L"Reset Complete", MB_OK | MB_ICONINFORMATION);
-        }
-    }
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+    SetProcessDPIAware();
+    int argc = 1;
+    char* argv[] = { (char*)"BetterAngle.exe", nullptr };
+    QGuiApplication app(argc, argv);
+    app.setQuitOnLastWindowClosed(false); // Prevent premature exit if windows are still initializing
 
-    // Use robust Win32 arguments for Qt
-    qInstallMessageHandler(QtLogHandler);
-    QGuiApplication app(__argc, __argv);
-
-    // Phase 0: Kick off version check in background
-    qDebug() << "BetterAngle Starting... Version:" << VERSION_STR;
+    // Phase 0: Kick off version check in background — never blocks startup.
     // g_updateAvailable will be set when done; the control panel UPDATES tab shows it.
     std::thread([]() {
         CheckForUpdates();
     }).detach();
+
+    GdiplusStartupInput gdiplusStartupInput;
+    GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
+
+    // Phase 1: Startup Sequence (Splash)
+    LoadSettings();
+    CleanupUpdateJunk();
+
+    bool ranSetup = false;
+    if (!g_setupComplete) {
+        ShowFirstTimeSetup(hInstance);
+        LoadSettings(); // Reload after setup to sync settings flags
+        ranSetup = true;
+    }
+
+    // Cache the profiles set by setup (have correct sens in memory)
+    std::vector<Profile> setupProfiles = g_allProfiles;
+
+    g_allProfiles = GetProfiles(GetProfilesPath());
+    if (g_allProfiles.empty()) {
+        Profile p;
+        p.name = L"Default";
+        p.tolerance = 25;
+        p.roi_x = 760; p.roi_y = 640; p.roi_w = 400; p.roi_h = 70;
+        p.target_color = RGB(150, 150, 150);
+        p.crossThickness = 2.0f;
+        p.crossColor = RGB(255,0,0);
+        p.Save(GetProfilesPath() + L"Default.json");
+
+        g_allProfiles.push_back(p);
+    }
+
+    // If setup just ran, trust its in-memory sensitivityX/Y values over what was read from disk
+    // (GetProfiles re-parses the JSON which may have edge cases)
+    if (ranSetup && !setupProfiles.empty() && !g_allProfiles.empty()) {
+        g_allProfiles[0].sensitivityX = setupProfiles[0].sensitivityX;
+        g_allProfiles[0].sensitivityY = setupProfiles[0].sensitivityY;
+        // Re-save to ensure the correct values are on disk too
+        g_allProfiles[0].Save(GetProfilesPath() + g_allProfiles[0].name + L".json");
+    }
     
-    // Register HUD class early
+    // Sensitivity is loaded from the JSON profile; Do not blindly overwrite it here.
+    g_currentProfile = g_allProfiles[g_selectedProfileIdx];
+    
+    // Guard: if still empty after setup, something went wrong — exit cleanly
+    if (g_allProfiles.empty()) {
+        MessageBoxW(NULL, L"Setup failed to create a profile. Please restart.", L"BetterAngle Setup Error", MB_OK | MB_ICONERROR);
+        return 1;
+    }
+    
+    g_selectedProfileIdx = 0;
+    bool foundProfile = false;
+    for (size_t i = 0; i < g_allProfiles.size(); i++) {
+        if (g_allProfiles[i].name == g_lastLoadedProfileName) {
+            g_selectedProfileIdx = i; 
+            foundProfile = true;
+            break;
+        }
+    }
+    
+    // Safety: If last profile not found, fall back to what was in settings.json index
+    // if that index is valid.
+    if (!foundProfile && g_selectedProfileIdx < (int)g_allProfiles.size()) {
+       // Keep original g_selectedProfileIdx loaded from settings.json
+    } else if (!foundProfile) {
+        g_selectedProfileIdx = 0;
+    }
+    
+    if (g_lastLoadedProfileName.empty() && !g_allProfiles.empty()) {
+        g_lastLoadedProfileName = g_allProfiles[0].name;
+    }
+    
+    g_currentProfile = g_allProfiles[g_selectedProfileIdx];
+    
+    // Sync Crosshair Settings from Profile to Global State
+    g_crossThickness = g_currentProfile.crossThickness;
+    g_crossColor     = g_currentProfile.crossColor;
+    g_crossOffsetX   = g_currentProfile.crossOffsetX;
+    g_crossOffsetY   = g_currentProfile.crossOffsetY;
+    g_crossAngle     = g_currentProfile.crossAngle;
+    g_crossPulse     = g_currentProfile.crossPulse;
+
+    g_logic.LoadProfile(g_currentProfile.sensitivityX); // Now using the auto-fetched 800 DPI matched sens
+
+    // Hotkeys are registered exclusively in HUDWndProc WM_CREATE.
+    // NULL-window registration would steal WM_HOTKEY messages before HUD can handle them.
+
+    // Message Window for Raw Input (Bypasses Layered Window UI Bugs)
+    WNDCLASS wcMsg = { 0 };
+    wcMsg.lpfnWndProc = MsgWndProc;
+    wcMsg.hInstance = hInstance;
+    wcMsg.lpszClassName = L"BetterAngleMsgWnd";
+    RegisterClass(&wcMsg);
+    HWND hMsgWnd = CreateWindowEx(0, L"BetterAngleMsgWnd", NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
+    RegisterRawMouse(hMsgWnd);
+
+    // Phase 2: Create Control Panel (Interactive) via Qt
+    g_hPanel = CreateControlPanel(hInstance);
+    
+    // Phase 3: Create HUD Window (Transparent Overlay)
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = HUDWndProc;
     wc.hInstance = hInstance;
@@ -411,98 +464,44 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     wc.lpszClassName = L"BetterAngleHUD";
     RegisterClass(&wc);
 
-    GdiplusStartupInput gdiplusStartupInput;
-    GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
+    int screenW = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    int screenH = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    int screenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    int screenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
 
-    // Phase 1: Engine and Backend Setup
-    qDebug() << "[BOOT] Phase 1: Initializing QML Engine...";
-    EnsureEngineInitialized(); // Creates g_qmlEngine and registers "backend"
+    g_hHUD = CreateWindowEx(
+        WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW,
+        L"BetterAngleHUD", L"BetterAngle HUD",
+        WS_POPUP,
+        screenX, screenY, screenW, screenH,
+        NULL, NULL, hInstance, NULL
+    );
 
-    // Phase 4: Launch UI (Splash first)
-    qDebug() << "[BOOT] Phase 4: Showing Splash Screen...";
-    ShowSplashScreen(); 
+    AddSystrayIcon(g_hHUD);
+    ShowControlPanel(); // Force Dashboard to show on startup
+    ShowWindow(g_hHUD, SW_SHOW);
+    UpdateWindow(g_hHUD);
+    SetTimer(g_hHUD, 1, 16, NULL); // 60fps (~16ms) Repaint Timer
+    SetTimer(g_hHUD, 2, 30000, NULL); // 30s Auto-Save Timer
+
+    std::thread detThread(DetectorThread);
+
+    // Run Qt Event Loop
+    int exitCode = app.exec();
+
+    g_running = false;
+    if (detThread.joinable()) detThread.join();
     
-    // BOOT FAIL-SAFE: If Dashboard hasn't shown in 5 seconds, force it.
-    QTimer::singleShot(5000, []() {
-        if (g_backend) {
-            qDebug() << "[BOOT] Fail-Safe Triggered: Forcing Dashboard Show.";
-            g_backend->requestShowControlPanel();
-        }
-    });
+    // Final Save on Exit
+    if (!g_allProfiles.empty()) {
+        Profile& p = g_allProfiles[g_selectedProfileIdx];
+        p.crossPulse = g_crossPulse;
+        p.Save(GetProfilesPath() + p.name + L".json");
+    }
 
-    // DELAY Dashboard load to prevent CPU/GPU contention
-    QTimer::singleShot(1500, []() {
-        qDebug() << "[BOOT] Phase 5: Loading Main Dashboard components...";
-        CreateControlPanel(GetModuleHandle(NULL)); 
-    });
+    SaveSettings();
 
-    // 2. Defer heavy initialization
-    QTimer::singleShot(100, [=]() {
-        // Phase 1: Startup Sequence
-        LoadSettings();
-        CleanupUpdateJunk();
-
-        // Check for profiles early
-        g_allProfiles = GetProfiles(GetProfilesPath());
-
-        if (g_allProfiles.empty() || g_needsSetup) {
-            g_needsSetup = true;
-            g_allProfiles.clear();
-            Profile def;
-            def.name = L"Default";
-            def.sensitivityX = 0.05; def.sensitivityY = 0.05;
-            def.showCrosshair = true;
-            def.crossThickness = 2.0f;
-            def.crossColor = RGB(0, 255, 204);
-            def.tolerance = 2;
-            g_allProfiles.push_back(def);
-            g_selectedProfileIdx = 0;
-        }
-
-        g_currentProfile = g_allProfiles[g_selectedProfileIdx];
-        
-        // Sync Crosshair Settings
-        g_crossThickness = g_currentProfile.crossThickness;
-        g_crossColor     = g_currentProfile.crossColor;
-        g_crossOffsetX   = g_currentProfile.crossOffsetX;
-        g_crossOffsetY   = g_currentProfile.crossOffsetY;
-        g_crossAngle     = g_currentProfile.crossAngle;
-        g_crossPulse     = g_currentProfile.crossPulse;
-
-        g_logic.LoadProfile(g_currentProfile.sensitivityX);
-
-        // 3. Create Windows
-        WNDCLASS wcMsg = { 0 };
-        wcMsg.lpfnWndProc = MsgWndProc;
-        wcMsg.hInstance = hInstance;
-        wcMsg.lpszClassName = L"BetterAngleMsgWnd";
-        RegisterClass(&wcMsg);
-        HWND hMsgWnd = CreateWindowEx(0, L"BetterAngleMsgWnd", NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
-        RegisterRawMouse(hMsgWnd);
-        
-        g_virtScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
-        g_virtScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
-        int screenW = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-        int screenH = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-
-        g_hHUD = CreateWindowEx(
-            WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW,
-            L"BetterAngleHUD", L"BetterAngle HUD",
-            WS_POPUP,
-            g_virtScreenX, g_virtScreenY, screenW, screenH,
-            NULL, NULL, hInstance, NULL
-        );
-
-        AddSystrayIcon(g_hHUD);
-        
-        SetTimer(g_hHUD, 1, 16, NULL); // Repaint Timer
-        SetTimer(g_hHUD, 2, 30000, NULL); // Auto-Save Timer
-
-        static std::thread detThread(DetectorThread);
-        detThread.detach(); // Allow it to run independently
-    });
-
-    // 4. Start the event loop (this draws the splash immediately)
-    app.setQuitOnLastWindowClosed(false);
-    return app.exec();
+    RemoveSystrayIcon(g_hHUD);
+    GdiplusShutdown(g_gdiplusToken);
+    return exitCode;
 }

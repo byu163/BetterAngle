@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <shlobj.h>
 #include <vector>
-#include <filesystem>
 
 void FindGameUserSettingsRecursive(const std::wstring& directory, std::vector<std::wstring>& outPaths) {
     if (outPaths.size() > 20) return; // Limit search to prevent hangs
@@ -43,67 +42,27 @@ size_t find_case_insensitive(const std::string& buffer, const std::string& key) 
 }
 
 double FetchFortniteSensitivity() {
-    wchar_t appdata[MAX_PATH] = {};
-    if (FAILED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata))) {
-        return -1.0;
-    }
+    wchar_t expPath[MAX_PATH] = {};
+    std::wstring basePath;
+    std::vector<std::wstring> potentialPaths;
 
-    std::wstring localPath = std::wstring(appdata) + L"\\FortniteGame\\Saved";
-    
-    wchar_t userDoc[MAX_PATH] = {};
-    SHGetFolderPathW(NULL, CSIDL_MYDOCUMENTS, NULL, 0, userDoc);
-    std::wstring docPath = std::wstring(userDoc) + L"\\FortniteGame\\Saved";
-
-    std::vector<std::wstring> configFiles;
-
-    // MANDATORY SEARCH TRIAGE
-    std::vector<std::wstring> rootPaths = { localPath, docPath };
-    for (const auto& root : rootPaths) {
-        if (root.empty()) continue;
-        
-        // Priority check
-        std::wstring exact = root + L"\\Config\\WindowsClient\\GameUserSettings.ini";
-        std::error_code ec;
-        if (std::filesystem::exists(exact, ec)) {
-            configFiles.push_back(exact);
+    // Search from 'Saved' instead of just 'Config' to be MORE aggressive (covers all edge cases)
+    if (ExpandEnvironmentStringsW(L"%LOCALAPPDATA%\\FortniteGame\\Saved", expPath, MAX_PATH) && expPath[0] != L'%') {
+        basePath = expPath;
+    } else {
+        wchar_t appdata[MAX_PATH] = {};
+        if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata))) {
+            basePath = std::wstring(appdata) + L"\\FortniteGame\\Saved";
+        } else {
+            return -1.0;
         }
     }
 
-    if (configFiles.empty()) {
-        for (const auto& root : rootPaths) {
-            if (configFiles.size() > 5) break; // Don't over-scan
+    // Crawl subdirectories looking for GameUserSettings.ini
+    FindGameUserSettingsRecursive(basePath, potentialPaths);
 
-            // Fallback: Full recursive crawl with error handling (skip restricted folders)
-            std::error_code ec;
-            for (const auto& entry : std::filesystem::recursive_directory_iterator(root, std::filesystem::directory_options::skip_permission_denied, ec)) {
-                if (ec) { ec.clear(); continue; }
-                if (entry.is_regular_file()) {
-                    std::wstring fname = entry.path().filename().wstring();
-                    std::wstring fext = entry.path().extension().wstring();
-                    std::wstring fpath = entry.path().wstring();
-                    std::transform(fname.begin(), fname.end(), fname.begin(), ::towlower);
-                    
-                    // Search for GameUserSettings.ini in any casing
-                    if (fname.find(L"gameusersettings") != std::wstring::npos && (fext == L".ini" || fext == L".INI")) {
-                        configFiles.push_back(fpath);
-                    }
-                }
-            }
-        }
-    }
-
-    // Diagnostic if still empty
-    if (configFiles.empty()) {
-        std::wcerr << L"FORTNITE DETECT: Scanned " << localPath << L" and " << docPath << L" clusters, no .ini found." << std::endl;
-    }
-
-    if (configFiles.empty()) {
-        return -1.0;
-    }
-
-    // Process all found configs
-    for (const auto& path : configFiles) {
-        std::ifstream ifs(path, std::ios::binary | std::ios::ate);
+    for (const auto& pPath : potentialPaths) {
+        std::ifstream ifs(pPath, std::ios::binary);
         if (!ifs.is_open()) continue;
 
         ifs.seekg(0, std::ios::end);
@@ -114,22 +73,18 @@ double FetchFortniteSensitivity() {
         std::string buffer(static_cast<size_t>(size), '\0');
         if (!ifs.read(&buffer[0], size)) continue;
 
-        // Handle UTF-16 LE (Common for Fortnite configs)
+        // Handle UTF-16 LE
         if (size >= 2 && (unsigned char)buffer[0] == 0xFF && (unsigned char)buffer[1] == 0xFE) {
             std::wstring wbuf((size - 2) / 2, L'\0');
             memcpy(&wbuf[0], buffer.data() + 2, size - 2);
             buffer.clear();
-            for (wchar_t c : wbuf) {
-                if (c == 0) continue; // Skip inner nulls
-                buffer += (c < 128 ? (char)c : ' ');
-            }
+            for (wchar_t c : wbuf) buffer += (c < 128 ? (char)c : '?');
         } else {
-            // Clean up possible null characters in standard ASCII files
             buffer.erase(std::remove(buffer.begin(), buffer.end(), '\0'), buffer.end());
         }
 
-        // Search for sensitivity keys (CASE-INSENSITIVE) - MouseMouseSensitivity is the current Fortnite key
-        const char* keys[] = { "MouseMouseSensitivity", "MouseSensitivityX", "MouseSensitivity", "MouseX" };
+        // Search for sensitivity keys (CASE-INSENSITIVE)
+        const char* keys[] = { "MouseSensitivityX", "MouseSensitivity", "MouseX" };
         for (const char* key : keys) {
             size_t pos = find_case_insensitive(buffer, key);
             if (pos != std::string::npos) {
