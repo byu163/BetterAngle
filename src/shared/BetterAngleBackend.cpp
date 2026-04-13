@@ -5,15 +5,13 @@
 #include "shared/Updater.h"
 #include <QGuiApplication>
 #include <QTimer>
+#include <shlobj.h>
 #include <thread>
 #include <windows.h>
-#include <shlobj.h>
-
 
 extern std::vector<Profile> g_allProfiles;
 extern int g_selectedProfileIdx;
 extern AngleLogic g_logic;
-
 
 BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
   // Emit profileChanged once the Qt event loop starts so QML fields
@@ -46,18 +44,16 @@ BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
     }
   });
   timer->start(100);
-  
+
   // Auto-check for updates on startup
   QTimer::singleShot(2000, this, [this]() {
-      if (!g_hasCheckedForUpdates && !g_isCheckingForUpdates) {
-          checkForUpdates();
-      }
+    if (!g_hasCheckedForUpdates && !g_isCheckingForUpdates) {
+      checkForUpdates();
+    }
   });
 
   // Force show Dashboard shortly after startup
-  QTimer::singleShot(500, this, [this]() {
-      requestShowControlPanel();
-  });
+  QTimer::singleShot(500, this, [this]() { requestShowControlPanel(); });
 }
 
 double BetterAngleBackend::sensX() const {
@@ -93,7 +89,7 @@ void BetterAngleBackend::setSensY(double v) {
 
 int BetterAngleBackend::tolerance() const {
   if (g_allProfiles.empty())
-    return 25;
+    return 2;
   return g_allProfiles[g_selectedProfileIdx].tolerance;
 }
 void BetterAngleBackend::setTolerance(int v) {
@@ -105,8 +101,6 @@ void BetterAngleBackend::setTolerance(int v) {
   SaveSettings();
   emit profileChanged();
 }
-
-
 
 bool BetterAngleBackend::crosshairOn() const { return g_showCrosshair; }
 void BetterAngleBackend::setCrosshairOn(bool v) {
@@ -198,9 +192,13 @@ QString BetterAngleBackend::latestVersion() const {
 }
 bool BetterAngleBackend::updateAvailable() const { return g_updateAvailable; }
 bool BetterAngleBackend::isDownloading() const { return g_isDownloadingUpdate; }
-bool BetterAngleBackend::isCheckingForUpdates() const { return g_isCheckingForUpdates; }
+bool BetterAngleBackend::isCheckingForUpdates() const {
+  return g_isCheckingForUpdates;
+}
 bool BetterAngleBackend::downloadComplete() const { return g_downloadComplete; }
-bool BetterAngleBackend::hasCheckedForUpdates() const { return g_hasCheckedForUpdates; }
+bool BetterAngleBackend::hasCheckedForUpdates() const {
+  return g_hasCheckedForUpdates;
+}
 QString BetterAngleBackend::updateHistory() const {
   return QString::fromStdString(g_updateHistory);
 }
@@ -220,18 +218,16 @@ QString BetterAngleBackend::updateStatus() const {
   return "";
 }
 
-
-
 void BetterAngleBackend::terminateApp() {
   SaveSettings();
   if (g_hHUD) {
-      PostMessage(g_hHUD, WM_CLOSE, 0, 0);
+    PostMessage(g_hHUD, WM_CLOSE, 0, 0);
   }
   // Also terminate the Qt loop immediately to ensure everything shuts down
   QCoreApplication::quit();
 }
 void BetterAngleBackend::checkForUpdates() {
-  g_hasCheckedForUpdates = false; 
+  g_hasCheckedForUpdates = false;
   g_updateAvailable = false;
   emit updateStatusChanged();
   std::thread([]() { CheckForUpdates(); }).detach();
@@ -239,8 +235,8 @@ void BetterAngleBackend::checkForUpdates() {
 
 void BetterAngleBackend::downloadUpdate() {
   if (g_downloadComplete) {
-      ApplyUpdateAndRestart();
-      return;
+    ApplyUpdateAndRestart();
+    return;
   }
   UpdateApp();
 }
@@ -248,12 +244,8 @@ void BetterAngleBackend::downloadUpdate() {
 void BetterAngleBackend::saveThresholds() { SaveSettings(); }
 
 void BetterAngleBackend::requestShowControlPanel() {
-    emit showControlPanelRequested();
+  emit showControlPanelRequested();
 }
-
-
-
-
 
 QStringList BetterAngleBackend::crosshairPresetNames() const {
   QStringList list;
@@ -342,34 +334,62 @@ static UINT stringToVk(const QString &s) {
       return (UINT)c;
   }
 
-  if (upper == "F1") return VK_F1;
-  if (upper == "F2") return VK_F2;
-  if (upper == "F3") return VK_F3;
-  if (upper == "F4") return VK_F4;
-  if (upper == "F5") return VK_F5;
-  if (upper == "F6") return VK_F6;
-  if (upper == "F7") return VK_F7;
-  if (upper == "F8") return VK_F8;
-  if (upper == "F9") return VK_F9;
-  if (upper == "F10") return VK_F10;
-  if (upper == "F11") return VK_F11;
-  if (upper == "F12") return VK_F12;
-  if (upper == "TAB") return VK_TAB;
-  if (upper == "SPACE") return VK_SPACE;
-  if (upper == "ESC" || upper == "ESCAPE") return VK_ESCAPE;
-  if (upper == "ENTER" || upper == "RETURN") return VK_RETURN;
-  if (upper == "UP") return VK_UP;
-  if (upper == "DOWN") return VK_DOWN;
-  if (upper == "LEFT") return VK_LEFT;
-  if (upper == "RIGHT") return VK_RIGHT;
-  if (upper == "HOME") return VK_HOME;
-  if (upper == "END") return VK_END;
-  if (upper == "PGUP" || upper == "PAGEUP") return VK_PRIOR;
-  if (upper == "PGDN" || upper == "PAGEDOWN") return VK_NEXT;
-  if (upper == "INS" || upper == "INSERT") return VK_INSERT;
-  if (upper == "DEL" || upper == "DELETE") return VK_DELETE;
-  if (upper == "PLUS") return VK_OEM_PLUS;
-  if (upper == "MINUS") return VK_OEM_MINUS;
+  if (upper == "F1")
+    return VK_F1;
+  if (upper == "F2")
+    return VK_F2;
+  if (upper == "F3")
+    return VK_F3;
+  if (upper == "F4")
+    return VK_F4;
+  if (upper == "F5")
+    return VK_F5;
+  if (upper == "F6")
+    return VK_F6;
+  if (upper == "F7")
+    return VK_F7;
+  if (upper == "F8")
+    return VK_F8;
+  if (upper == "F9")
+    return VK_F9;
+  if (upper == "F10")
+    return VK_F10;
+  if (upper == "F11")
+    return VK_F11;
+  if (upper == "F12")
+    return VK_F12;
+  if (upper == "TAB")
+    return VK_TAB;
+  if (upper == "SPACE")
+    return VK_SPACE;
+  if (upper == "ESC" || upper == "ESCAPE")
+    return VK_ESCAPE;
+  if (upper == "ENTER" || upper == "RETURN")
+    return VK_RETURN;
+  if (upper == "UP")
+    return VK_UP;
+  if (upper == "DOWN")
+    return VK_DOWN;
+  if (upper == "LEFT")
+    return VK_LEFT;
+  if (upper == "RIGHT")
+    return VK_RIGHT;
+  if (upper == "HOME")
+    return VK_HOME;
+  if (upper == "END")
+    return VK_END;
+  if (upper == "PGUP" || upper == "PAGEUP")
+    return VK_PRIOR;
+  if (upper == "PGDN" || upper == "PAGEDOWN")
+    return VK_NEXT;
+  if (upper == "INS" || upper == "INSERT")
+    return VK_INSERT;
+  if (upper == "DEL" || upper == "DELETE")
+    return VK_DELETE;
+  if (upper == "PLUS")
+    return VK_OEM_PLUS;
+  if (upper == "MINUS")
+    return VK_OEM_MINUS;
   return 0;
 }
 
@@ -378,34 +398,62 @@ static QString vkToString(UINT vk) {
     return QString((char)vk);
   if (vk >= '0' && vk <= '9')
     return QString((char)vk);
-  if (vk == VK_F1) return "F1";
-  if (vk == VK_F2) return "F2";
-  if (vk == VK_F3) return "F3";
-  if (vk == VK_F4) return "F4";
-  if (vk == VK_F5) return "F5";
-  if (vk == VK_F6) return "F6";
-  if (vk == VK_F7) return "F7";
-  if (vk == VK_F8) return "F8";
-  if (vk == VK_F9) return "F9";
-  if (vk == VK_F10) return "F10";
-  if (vk == VK_F11) return "F11";
-  if (vk == VK_F12) return "F12";
-  if (vk == VK_TAB) return "Tab";
-  if (vk == VK_SPACE) return "Space";
-  if (vk == VK_ESCAPE) return "Esc";
-  if (vk == VK_RETURN) return "Enter";
-  if (vk == VK_UP) return "Up";
-  if (vk == VK_DOWN) return "Down";
-  if (vk == VK_LEFT) return "Left";
-  if (vk == VK_RIGHT) return "Right";
-  if (vk == VK_HOME) return "Home";
-  if (vk == VK_END) return "End";
-  if (vk == VK_PRIOR) return "PageUp";
-  if (vk == VK_NEXT) return "PageDown";
-  if (vk == VK_INSERT) return "Insert";
-  if (vk == VK_DELETE) return "Delete";
-  if (vk == VK_OEM_PLUS) return "Plus";
-  if (vk == VK_OEM_MINUS) return "Minus";
+  if (vk == VK_F1)
+    return "F1";
+  if (vk == VK_F2)
+    return "F2";
+  if (vk == VK_F3)
+    return "F3";
+  if (vk == VK_F4)
+    return "F4";
+  if (vk == VK_F5)
+    return "F5";
+  if (vk == VK_F6)
+    return "F6";
+  if (vk == VK_F7)
+    return "F7";
+  if (vk == VK_F8)
+    return "F8";
+  if (vk == VK_F9)
+    return "F9";
+  if (vk == VK_F10)
+    return "F10";
+  if (vk == VK_F11)
+    return "F11";
+  if (vk == VK_F12)
+    return "F12";
+  if (vk == VK_TAB)
+    return "Tab";
+  if (vk == VK_SPACE)
+    return "Space";
+  if (vk == VK_ESCAPE)
+    return "Esc";
+  if (vk == VK_RETURN)
+    return "Enter";
+  if (vk == VK_UP)
+    return "Up";
+  if (vk == VK_DOWN)
+    return "Down";
+  if (vk == VK_LEFT)
+    return "Left";
+  if (vk == VK_RIGHT)
+    return "Right";
+  if (vk == VK_HOME)
+    return "Home";
+  if (vk == VK_END)
+    return "End";
+  if (vk == VK_PRIOR)
+    return "PageUp";
+  if (vk == VK_NEXT)
+    return "PageDown";
+  if (vk == VK_INSERT)
+    return "Insert";
+  if (vk == VK_DELETE)
+    return "Delete";
+  if (vk == VK_OEM_PLUS)
+    return "Plus";
+  if (vk == VK_OEM_MINUS)
+    return "Minus";
   return "";
 }
 
@@ -456,26 +504,43 @@ static UINT qtKeyToVk(int key) {
     return VK_F1 + (UINT)(key - Qt::Key_F1);
 
   switch (key) {
-  case Qt::Key_Tab: return VK_TAB;
-  case Qt::Key_Space: return VK_SPACE;
-  case Qt::Key_Escape: return VK_ESCAPE;
+  case Qt::Key_Tab:
+    return VK_TAB;
+  case Qt::Key_Space:
+    return VK_SPACE;
+  case Qt::Key_Escape:
+    return VK_ESCAPE;
   case Qt::Key_Return:
-  case Qt::Key_Enter: return VK_RETURN;
-  case Qt::Key_Up: return VK_UP;
-  case Qt::Key_Down: return VK_DOWN;
-  case Qt::Key_Left: return VK_LEFT;
-  case Qt::Key_Right: return VK_RIGHT;
-  case Qt::Key_Home: return VK_HOME;
-  case Qt::Key_End: return VK_END;
-  case Qt::Key_PageUp: return VK_PRIOR;
-  case Qt::Key_PageDown: return VK_NEXT;
-  case Qt::Key_Insert: return VK_INSERT;
-  case Qt::Key_Delete: return VK_DELETE;
+  case Qt::Key_Enter:
+    return VK_RETURN;
+  case Qt::Key_Up:
+    return VK_UP;
+  case Qt::Key_Down:
+    return VK_DOWN;
+  case Qt::Key_Left:
+    return VK_LEFT;
+  case Qt::Key_Right:
+    return VK_RIGHT;
+  case Qt::Key_Home:
+    return VK_HOME;
+  case Qt::Key_End:
+    return VK_END;
+  case Qt::Key_PageUp:
+    return VK_PRIOR;
+  case Qt::Key_PageDown:
+    return VK_NEXT;
+  case Qt::Key_Insert:
+    return VK_INSERT;
+  case Qt::Key_Delete:
+    return VK_DELETE;
   case Qt::Key_Equal:
-  case Qt::Key_Plus: return VK_OEM_PLUS;
+  case Qt::Key_Plus:
+    return VK_OEM_PLUS;
   case Qt::Key_Minus:
-  case Qt::Key_Underscore: return VK_OEM_MINUS;
-  default: return 0;
+  case Qt::Key_Underscore:
+    return VK_OEM_MINUS;
+  default:
+    return 0;
   }
 }
 
@@ -498,11 +563,16 @@ static Keybinds *activeKeybinds() {
 }
 
 static QString actionLabel(const QString &action) {
-  if (action == "toggle") return "Toggle Dashboard";
-  if (action == "roi") return "Selection Overlay";
-  if (action == "cross") return "Toggle Crosshair";
-  if (action == "zero") return "Zero Counter";
-  if (action == "debug") return "Debug Overlay";
+  if (action == "toggle")
+    return "Toggle Dashboard";
+  if (action == "roi")
+    return "Selection Overlay";
+  if (action == "cross")
+    return "Toggle Crosshair";
+  if (action == "zero")
+    return "Zero Counter";
+  if (action == "debug")
+    return "Debug Overlay";
   return "Unknown Action";
 }
 
@@ -553,7 +623,8 @@ void BetterAngleBackend::setKeyToggle(const QString &s) {
     return;
   k->toggleMod = mod;
   k->toggleKey = key;
-  s_hotkeyStatus = "Pending save: Toggle Dashboard = " + fullKeyToString(mod, key);
+  s_hotkeyStatus =
+      "Pending save: Toggle Dashboard = " + fullKeyToString(mod, key);
   emit hotkeysChanged();
 }
 
@@ -571,7 +642,8 @@ void BetterAngleBackend::setKeyRoi(const QString &s) {
     return;
   k->roiMod = mod;
   k->roiKey = key;
-  s_hotkeyStatus = "Pending save: Selection Overlay = " + fullKeyToString(mod, key);
+  s_hotkeyStatus =
+      "Pending save: Selection Overlay = " + fullKeyToString(mod, key);
   emit hotkeysChanged();
 }
 
@@ -589,7 +661,8 @@ void BetterAngleBackend::setKeyCross(const QString &s) {
     return;
   k->crossMod = mod;
   k->crossKey = key;
-  s_hotkeyStatus = "Pending save: Toggle Crosshair = " + fullKeyToString(mod, key);
+  s_hotkeyStatus =
+      "Pending save: Toggle Crosshair = " + fullKeyToString(mod, key);
   emit hotkeysChanged();
 }
 
@@ -654,8 +727,8 @@ bool BetterAngleBackend::setCapturedKeybind(const QString &action, int key,
     return false;
   }
 
-  s_hotkeyStatus =
-      "Pending save: " + actionLabel(action) + " = " + fullKeyToString(nativeMod, nativeKey);
+  s_hotkeyStatus = "Pending save: " + actionLabel(action) + " = " +
+                   fullKeyToString(nativeMod, nativeKey);
   emit hotkeysChanged();
   return true;
 }
@@ -670,8 +743,9 @@ void BetterAngleBackend::saveKeybinds() {
   Profile &p = g_allProfiles[g_selectedProfileIdx];
   p.Save(GetProfilesPath() + p.name + L".json");
   bool applied = RefreshHotkeys(g_hHUD);
-  s_hotkeyStatus = applied
-                       ? "Hotkeys saved and applied successfully."
-                       : "Hotkey registration failed. Use unique combos with one main key.";
+  s_hotkeyStatus =
+      applied
+          ? "Hotkeys saved and applied successfully."
+          : "Hotkey registration failed. Use unique combos with one main key.";
   emit hotkeysChanged();
 }
