@@ -394,7 +394,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     p.roi_w = 400;
     p.roi_h = 70;
     p.target_color = RGB(150, 150, 150);
-    p.crossThickness = 2.0f;
+    p.crossThickness = 1.0f;
     p.crossColor = RGB(255, 0, 0);
     p.Save(GetProfilesPath() + L"Default.json");
 
@@ -477,6 +477,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   AddSystrayIcon(g_hHUD);
   ShowControlPanel(); // Force Dashboard to show on startup
   ShowWindow(g_hHUD, SW_SHOW);
+  SetWindowPos(g_hHUD, HWND_TOPMOST, 0, 0, 0, 0,
+               SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
   UpdateWindow(g_hHUD);
   SetTimer(g_hHUD, 1, 16, NULL);    // 60fps (~16ms) Repaint Timer
   SetTimer(g_hHUD, 2, 30000, NULL); // 30s Auto-Save Timer

@@ -42,13 +42,13 @@ struct Profile {
   int tolerance = 2;
 
   // Crosshair Settings
-  bool showCrosshair;
-  float crossThickness;
-  COLORREF crossColor;
-  float crossOffsetX;
-  float crossOffsetY;
-  float crossAngle;
-  bool crossPulse;
+  bool showCrosshair = false;
+  float crossThickness = 1.0f;
+  COLORREF crossColor = RGB(255, 0, 0);
+  float crossOffsetX = 0.0f;
+  float crossOffsetY = 0.0f;
+  float crossAngle = 0.0f;
+  bool crossPulse = false;
 
   Keybinds keybinds;
   std::vector<CrosshairPreset> crosshairPresets;

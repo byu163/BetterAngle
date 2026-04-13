@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.27.102
+- **Crosshair Default Fix**: Set fresh-profile crosshair thickness to `1.0f` in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:397) and added matching initialized profile defaults in [`include/shared/Profile.h`](include/shared/Profile.h:45), so new profiles no longer start at `2.0f`.
+- **Topmost Ordering Fix**: Removed [`Qt.WindowStaysOnTopHint`](src/gui/main.qml:16) from the dashboard window in [`src/gui/main.qml`](src/gui/main.qml:16), preventing the main UI from covering the HUD/crosshair overlay.
+- **Overlay Priority Fix**: This keeps the crosshair/HUD as the effective topmost on-screen layer while the main UI remains usable.
+
 ### BetterAngle Pro v4.27.101
 - **Angle Wrap Fix**: Normalized [`AngleLogic::GetAngle()`](src/shared/Logic.cpp:13) through [`AngleLogic::Norm360()`](src/shared/Logic.cpp:47) so the angle remains in `[0, 360)` and wraps from `359.9` back to `0.x` instead of exceeding `360`.
 - **Local Legacy Folder Ignore**: Added [`betterangle_old_python_version/`](betterangle_old_python_version) to [`.gitignore`](.gitignore) so the old Python reference code stays local and is not included in pushes.
