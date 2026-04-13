@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.98
+- **Dashboard UI Boot Fix**: Corrected [`CreateControlPanel()`](src/shared/ControlPanel.cpp:21) to treat [`main.qml`](src/gui/main.qml:5) as successfully loaded when at least one root window exists, fixing the false failure path that blocked the decimal/dashboard UI from opening.
+- **Error Message Cleanup**: Removed the misleading missing-log reference from the loader error text in [`src/shared/ControlPanel.cpp`](src/shared/ControlPanel.cpp:37), since there is no shipped [`debug.log`](src/shared/ControlPanel.cpp:37) logging system.
+
 ### BetterAngle Pro v4.27.97
 - **Installer Fix**: Removed the stale external uninstaller file dependency from [`installer.iss`](installer.iss:29) and switched the uninstall shortcut to Inno Setup's built-in [`{uninstallexe}`](installer.iss:35), fixing release packaging when [`build/Release/uninstaller.exe`](build/Release/uninstaller.exe) is not produced.
 - **Workflow Fix**: Updated [`.github/workflows/msbuild.yml`](.github/workflows/msbuild.yml:77) to publish only the generated installer artifact, so GitHub Actions no longer fails release upload on the missing uninstaller binary.

@@ -5,7 +5,6 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
-
 QQmlApplicationEngine *g_qmlEngine = nullptr;
 BetterAngleBackend *g_backend = nullptr;
 
@@ -32,17 +31,17 @@ HWND CreateControlPanel(HINSTANCE hInstance) {
     // no import statement or qmldir needed.
     g_qmlEngine->load(QUrl(QStringLiteral("qrc:/src/gui/main.qml")));
 
-    if (g_qmlEngine->rootObjects().size() < 2) {
+    if (g_qmlEngine->rootObjects().isEmpty()) {
       qDebug() << "[ERROR] main.qml failed to load. Root objects:"
                << g_qmlEngine->rootObjects().size();
-      MessageBoxW(
-          NULL,
-          L"CRITICAL: Failed to load the dashboard UI (main.qml).\n\nCheck "
-          L"AppData\\BetterAngle\\debug.log for details.",
-          L"BetterAngle UI Error", MB_OK | MB_ICONERROR);
+      MessageBoxW(NULL,
+                  L"CRITICAL: Failed to load the dashboard UI (main.qml).\n\n"
+                  L"No root QML window was created.",
+                  L"BetterAngle UI Error", MB_OK | MB_ICONERROR);
       exit(1);
     }
-    qDebug() << "[BOOT] main.qml loaded successfully.";
+    qDebug() << "[BOOT] main.qml loaded successfully. Root objects:"
+             << g_qmlEngine->rootObjects().size();
   }
 
   return (HWND)1;
