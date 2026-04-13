@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.27.104
+- **Updater Payload Fix**: Switched the updater in [`src/shared/Updater.cpp`](src/shared/Updater.cpp:15) from downloading/replacing a raw [`BetterAngle.exe`](src/main_app/BetterAngle.cpp) to downloading the shipped installer asset [`BetterAngle_Setup.exe`](src/shared/Updater.cpp:17), preventing the corrupted restart path behind the Windows “Unsupported 16-Bit Application” error.
+- **Installer Apply Fix**: Reworked [`ApplyUpdateAndRestart()`](src/shared/Updater.cpp:150) to launch the downloaded installer silently instead of batch-swapping binaries in place, matching the actual release artifact flow.
+- **Update UI Text Fix**: Updated the update status/button wording in [`src/shared/BetterAngleBackend.cpp`](src/shared/BetterAngleBackend.cpp:216) and [`src/gui/Dashboard.qml`](src/gui/Dashboard.qml:719) so the app now says installer/install instead of restart-to-apply.
+
 ### BetterAngle Pro v4.27.103
 - **Uninstaller Compilation Fix**: Fixed syntax errors in `uninstall.cpp` that prevented compilation with MSVC. The file now compiles successfully with `/std:c++20` and produces a functional uninstaller executable.
 - **Version Bump**: Updated version to 4.27.103 in accordance with release workflow.

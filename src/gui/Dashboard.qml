@@ -717,8 +717,8 @@ Item {
 
                 Button {
                     text: {
-                        if (backend.isDownloading) return "DOWNLOADING..."
-                        if (backend.downloadComplete) return "RESTART TO APPLY"
+                        if (backend.isDownloading) return "DOWNLOADING INSTALLER..."
+                        if (backend.downloadComplete) return "INSTALL UPDATE"
                         if (backend.updateAvailable) return "UPDATE NOW"
                         return "CHECK FOR UPDATES"
                     }
@@ -732,7 +732,7 @@ Item {
                     }
                     onClicked: {
                         if (backend.downloadComplete) {
-                            backend.downloadUpdate() // Calls ApplyUpdateAndRestart internally
+                            backend.downloadUpdate() // Launches the downloaded installer
                         } else if (backend.updateAvailable) {
                             backend.downloadUpdate()
                         } else {

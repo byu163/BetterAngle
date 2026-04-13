@@ -215,9 +215,9 @@ QString BetterAngleBackend::updateHistory() const {
 
 QString BetterAngleBackend::updateStatus() const {
   if (g_isDownloadingUpdate)
-    return "Downloading update...";
+    return "Downloading installer...";
   if (g_downloadComplete)
-    return "Download complete! Restart to apply.";
+    return "Installer ready. Click to install update.";
   if (g_isCheckingForUpdates)
     return "Checking for updates...";
   if (g_hasCheckedForUpdates) {
