@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.27.106
+- **Persistence Hardening**: Consolidated all functional settings (ROI, Color, Tolerance, Crosshair) into the individual user profile JSONs. This establishes the active profile as the single source of truth and prevents settings from resetting after an application restart.
+- **Auto-Save Engine Update**: Implemented immediate disk persistence for Calibration Tolerance and Sensitivity adjustments. Every dashboard change is now committed to the profile in real-time.
+- **Startup Calibration Sync**: Fixed a bug where ROI and target color were not correctly synchronized with the internal detector state on launch. The app now correctly remembers and applies your last calibration without needing a re-selection.
+
 ### BetterAngle Pro v4.27.105
 - **Crosshair Auto-Save**: Implemented profile-level persistence for all crosshair settings in [`src/shared/BetterAngleBackend.cpp`](src/shared/BetterAngleBackend.cpp:115). Adjusting thickness, color, pulse, or offset now automatically updates and saves the active profile's `.json` configuration.
 - **UI Responsiveness Fix**: Enhanced the crosshair toggle and pulse buttons in [`src/gui/Dashboard.qml`](src/gui/Dashboard.qml:307) with tactile `pressed` states and clearer visual feedback.
