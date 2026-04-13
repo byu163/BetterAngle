@@ -62,7 +62,6 @@ class BetterAngleBackend : public QObject {
       QString keyZero READ keyZero WRITE setKeyZero NOTIFY hotkeysChanged)
   Q_PROPERTY(
       QString keyDebug READ keyDebug WRITE setKeyDebug NOTIFY hotkeysChanged)
-  Q_PROPERTY(QString hotkeyStatus READ hotkeyStatus NOTIFY hotkeysChanged)
 
 public:
   explicit BetterAngleBackend(QObject *parent = nullptr);
@@ -142,9 +141,6 @@ public:
   void setKeyZero(const QString &s);
   QString keyDebug() const;
   void setKeyDebug(const QString &s);
-  QString hotkeyStatus() const;
-  Q_INVOKABLE bool setCapturedKeybind(const QString &action, int key,
-                                      int modifiers);
   Q_INVOKABLE void saveKeybinds();
 
 signals:

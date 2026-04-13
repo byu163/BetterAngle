@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.27.89
+- **Link Fix**: Removed stale Qt meta-object declarations for `hotkeyStatus` and `setCapturedKeybind` from [`include/shared/BetterAngleBackend.h`](include/shared/BetterAngleBackend.h:55), resolving the unresolved externals reported by `mocs_compilation_Release.obj`.
+- **Startup Removal Preserved**: Kept the direct boot flow in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:381) with no startup wizard path or splash components in the shipped target.
+- **Release Alignment**: Bumped [`VERSION`](VERSION) and [`CMakeLists.txt`](CMakeLists.txt:2) to `4.27.89` so the GitHub Actions release metadata stays in sync with the fix.
+
 ### BetterAngle Pro v4.27.88
 - **Startup Wizard Removed**: Removed the first-run setup flow from [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:381), so launch now goes straight into settings and profile loading.
 - **Build Fix**: Removed the leftover `g_setupComplete` dependency from [`include/shared/State.h`](include/shared/State.h:20) and [`src/shared/State.cpp`](src/shared/State.cpp:19), resolving the CI failure in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:385).
