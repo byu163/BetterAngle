@@ -124,6 +124,13 @@ Item {
                     }
 
                     Text { text: "HOTKEY CONFIGURATION"; color: "#666"; font.pixelSize: 11; font.bold: true; topPadding: 10 }
+                    Text {
+                        text: "Click a field, then press Ctrl / Shift / Alt plus a key. Single-key binds like F10 also work."
+                        color: "#888"
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                        width: parent.width
+                    }
                     
                     Column {
                         spacing: 8
@@ -131,43 +138,131 @@ Item {
                         
                         RowLayout {
                             Text { text: "Toggle Dashboard:"; color: "white"; Layout.preferredWidth: 150 }
-                            TextField { 
-                                text: backend.keyToggle; width: 120; color: "#00cca3"
-                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyToggle = text
+                            TextField {
+                                Layout.fillWidth: true
+                                readOnly: true
+                                selectByMouse: false
+                                focusPolicy: Qt.StrongFocus
+                                text: activeFocus ? "Press keys..." : backend.keyToggle
+                                color: activeFocus ? "white" : "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: parent.activeFocus ? "#00cca3" : "#333"; border.width: 1 }
+                                MouseArea { anchors.fill: parent; onClicked: parent.forceActiveFocus() }
+                                Keys.priority: Keys.BeforeItem
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Escape) {
+                                        root.forceActiveFocus()
+                                        event.accepted = true
+                                        return
+                                    }
+                                    if (backend.setCapturedKeybind("toggle", event.key, event.modifiers))
+                                        root.forceActiveFocus()
+                                    event.accepted = true
+                                }
                             }
                         }
                         RowLayout {
                             Text { text: "Selection Overlay:"; color: "white"; Layout.preferredWidth: 150 }
-                            TextField { 
-                                text: backend.keyRoi; width: 120; color: "#00cca3"
-                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyRoi = text
+                            TextField {
+                                Layout.fillWidth: true
+                                readOnly: true
+                                selectByMouse: false
+                                focusPolicy: Qt.StrongFocus
+                                text: activeFocus ? "Press keys..." : backend.keyRoi
+                                color: activeFocus ? "white" : "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: parent.activeFocus ? "#00cca3" : "#333"; border.width: 1 }
+                                MouseArea { anchors.fill: parent; onClicked: parent.forceActiveFocus() }
+                                Keys.priority: Keys.BeforeItem
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Escape) {
+                                        root.forceActiveFocus()
+                                        event.accepted = true
+                                        return
+                                    }
+                                    if (backend.setCapturedKeybind("roi", event.key, event.modifiers))
+                                        root.forceActiveFocus()
+                                    event.accepted = true
+                                }
                             }
                         }
                         RowLayout {
                             Text { text: "Toggle Crosshair:"; color: "white"; Layout.preferredWidth: 150 }
-                            TextField { 
-                                text: backend.keyCross; width: 120; color: "#00cca3"
-                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyCross = text
+                            TextField {
+                                Layout.fillWidth: true
+                                readOnly: true
+                                selectByMouse: false
+                                focusPolicy: Qt.StrongFocus
+                                text: activeFocus ? "Press keys..." : backend.keyCross
+                                color: activeFocus ? "white" : "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: parent.activeFocus ? "#00cca3" : "#333"; border.width: 1 }
+                                MouseArea { anchors.fill: parent; onClicked: parent.forceActiveFocus() }
+                                Keys.priority: Keys.BeforeItem
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Escape) {
+                                        root.forceActiveFocus()
+                                        event.accepted = true
+                                        return
+                                    }
+                                    if (backend.setCapturedKeybind("cross", event.key, event.modifiers))
+                                        root.forceActiveFocus()
+                                    event.accepted = true
+                                }
                             }
                         }
                         RowLayout {
                             Text { text: "Zero Counter:"; color: "white"; Layout.preferredWidth: 150 }
-                            TextField { 
-                                text: backend.keyZero; width: 120; color: "#00cca3"
-                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyZero = text
+                            TextField {
+                                Layout.fillWidth: true
+                                readOnly: true
+                                selectByMouse: false
+                                focusPolicy: Qt.StrongFocus
+                                text: activeFocus ? "Press keys..." : backend.keyZero
+                                color: activeFocus ? "white" : "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: parent.activeFocus ? "#00cca3" : "#333"; border.width: 1 }
+                                MouseArea { anchors.fill: parent; onClicked: parent.forceActiveFocus() }
+                                Keys.priority: Keys.BeforeItem
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Escape) {
+                                        root.forceActiveFocus()
+                                        event.accepted = true
+                                        return
+                                    }
+                                    if (backend.setCapturedKeybind("zero", event.key, event.modifiers))
+                                        root.forceActiveFocus()
+                                    event.accepted = true
+                                }
                             }
                         }
                         RowLayout {
                             Text { text: "Debug Overlay:"; color: "white"; Layout.preferredWidth: 150 }
-                            TextField { 
-                                text: backend.keyDebug; width: 120; color: "#00cca3"
-                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
-                                onTextChanged: backend.keyDebug = text
+                            TextField {
+                                Layout.fillWidth: true
+                                readOnly: true
+                                selectByMouse: false
+                                focusPolicy: Qt.StrongFocus
+                                text: activeFocus ? "Press keys..." : backend.keyDebug
+                                color: activeFocus ? "white" : "#00cca3"
+                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: parent.activeFocus ? "#00cca3" : "#333"; border.width: 1 }
+                                MouseArea { anchors.fill: parent; onClicked: parent.forceActiveFocus() }
+                                Keys.priority: Keys.BeforeItem
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Escape) {
+                                        root.forceActiveFocus()
+                                        event.accepted = true
+                                        return
+                                    }
+                                    if (backend.setCapturedKeybind("debug", event.key, event.modifiers))
+                                        root.forceActiveFocus()
+                                    event.accepted = true
+                                }
                             }
+                        }
+
+                        Text {
+                            text: backend.hotkeyStatus
+                            color: "#888"
+                            font.pixelSize: 11
+                            wrapMode: Text.WordWrap
+                            width: parent.width
                         }
                         
                         Button {
@@ -178,7 +273,6 @@ Item {
                             onClicked: backend.saveKeybinds()
                         }
                     }
-
 
                     Button {
                         text: "QUIT APP"

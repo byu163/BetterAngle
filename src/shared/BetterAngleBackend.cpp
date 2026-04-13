@@ -320,82 +320,358 @@ void BetterAngleBackend::deleteCrosshairPreset(int index) {
 }
 
 // --- Hotkey Helpers ---
-static UINT stringToVk(const QString& s) {
-    QString upper = s.toUpper().trimmed();
-    if (upper.isEmpty()) return 0;
-    if (upper.length() == 1) {
-        char c = upper[0].toLatin1();
-        if (c >= 'A' && c <= 'Z') return (UINT)c;
-        if (c >= '0' && c <= '9') return (UINT)c;
-    }
-    if (upper == "F1") return VK_F1; if (upper == "F2") return VK_F2;
-    if (upper == "F3") return VK_F3; if (upper == "F4") return VK_F4;
-    if (upper == "F5") return VK_F5; if (upper == "F6") return VK_F6;
-    if (upper == "F7") return VK_F7; if (upper == "F8") return VK_F8;
-    if (upper == "F9") return VK_F9; if (upper == "F10") return VK_F10;
-    if (upper == "F11") return VK_F11; if (upper == "F12") return VK_F12;
-    if (upper == "TAB") return VK_TAB; if (upper == "SPACE") return VK_SPACE;
-    if (upper == "ESC") return VK_ESCAPE; if (upper == "CTRL") return VK_CONTROL;
-    if (upper == "SHIFT") return VK_SHIFT; if (upper == "ALT") return VK_MENU;
+static QString s_hotkeyStatus =
+    "Click a hotkey field, then press Ctrl / Shift / Alt plus a key.";
+
+static bool isModifierVk(UINT vk) {
+  return vk == 0 || vk == VK_CONTROL || vk == VK_SHIFT || vk == VK_MENU ||
+         vk == VK_LCONTROL || vk == VK_RCONTROL || vk == VK_LSHIFT ||
+         vk == VK_RSHIFT || vk == VK_LMENU || vk == VK_RMENU;
+}
+
+static UINT stringToVk(const QString &s) {
+  QString upper = s.toUpper().trimmed();
+  if (upper.isEmpty())
     return 0;
+
+  if (upper.length() == 1) {
+    char c = upper[0].toLatin1();
+    if (c >= 'A' && c <= 'Z')
+      return (UINT)c;
+    if (c >= '0' && c <= '9')
+      return (UINT)c;
+  }
+
+  if (upper == "F1") return VK_F1;
+  if (upper == "F2") return VK_F2;
+  if (upper == "F3") return VK_F3;
+  if (upper == "F4") return VK_F4;
+  if (upper == "F5") return VK_F5;
+  if (upper == "F6") return VK_F6;
+  if (upper == "F7") return VK_F7;
+  if (upper == "F8") return VK_F8;
+  if (upper == "F9") return VK_F9;
+  if (upper == "F10") return VK_F10;
+  if (upper == "F11") return VK_F11;
+  if (upper == "F12") return VK_F12;
+  if (upper == "TAB") return VK_TAB;
+  if (upper == "SPACE") return VK_SPACE;
+  if (upper == "ESC" || upper == "ESCAPE") return VK_ESCAPE;
+  if (upper == "ENTER" || upper == "RETURN") return VK_RETURN;
+  if (upper == "UP") return VK_UP;
+  if (upper == "DOWN") return VK_DOWN;
+  if (upper == "LEFT") return VK_LEFT;
+  if (upper == "RIGHT") return VK_RIGHT;
+  if (upper == "HOME") return VK_HOME;
+  if (upper == "END") return VK_END;
+  if (upper == "PGUP" || upper == "PAGEUP") return VK_PRIOR;
+  if (upper == "PGDN" || upper == "PAGEDOWN") return VK_NEXT;
+  if (upper == "INS" || upper == "INSERT") return VK_INSERT;
+  if (upper == "DEL" || upper == "DELETE") return VK_DELETE;
+  if (upper == "PLUS") return VK_OEM_PLUS;
+  if (upper == "MINUS") return VK_OEM_MINUS;
+  return 0;
 }
 
 static QString vkToString(UINT vk) {
-    if (vk >= 'A' && vk <= 'Z') return QString((char)vk);
-    if (vk >= '0' && vk <= '9') return QString((char)vk);
-    if (vk == VK_F1) return "F1"; if (vk == VK_F2) return "F2";
-    if (vk == VK_F3) return "F3"; if (vk == VK_F4) return "F4";
-    if (vk == VK_F5) return "F5"; if (vk == VK_F6) return "F6";
-    if (vk == VK_F7) return "F7"; if (vk == VK_F8) return "F8";
-    if (vk == VK_F9) return "F9"; if (vk == VK_F10) return "F10";
-    if (vk == VK_F11) return "F11"; if (vk == VK_F12) return "F12";
-    if (vk == VK_TAB) return "TAB"; if (vk == VK_SPACE) return "SPACE";
-    if (vk == VK_ESCAPE) return "ESC"; if (vk == VK_CONTROL) return "CTRL";
-    if (vk == VK_SHIFT) return "SHIFT"; if (vk == VK_MENU) return "ALT";
-    return "";
+  if (vk >= 'A' && vk <= 'Z')
+    return QString((char)vk);
+  if (vk >= '0' && vk <= '9')
+    return QString((char)vk);
+  if (vk == VK_F1) return "F1";
+  if (vk == VK_F2) return "F2";
+  if (vk == VK_F3) return "F3";
+  if (vk == VK_F4) return "F4";
+  if (vk == VK_F5) return "F5";
+  if (vk == VK_F6) return "F6";
+  if (vk == VK_F7) return "F7";
+  if (vk == VK_F8) return "F8";
+  if (vk == VK_F9) return "F9";
+  if (vk == VK_F10) return "F10";
+  if (vk == VK_F11) return "F11";
+  if (vk == VK_F12) return "F12";
+  if (vk == VK_TAB) return "Tab";
+  if (vk == VK_SPACE) return "Space";
+  if (vk == VK_ESCAPE) return "Esc";
+  if (vk == VK_RETURN) return "Enter";
+  if (vk == VK_UP) return "Up";
+  if (vk == VK_DOWN) return "Down";
+  if (vk == VK_LEFT) return "Left";
+  if (vk == VK_RIGHT) return "Right";
+  if (vk == VK_HOME) return "Home";
+  if (vk == VK_END) return "End";
+  if (vk == VK_PRIOR) return "PageUp";
+  if (vk == VK_NEXT) return "PageDown";
+  if (vk == VK_INSERT) return "Insert";
+  if (vk == VK_DELETE) return "Delete";
+  if (vk == VK_OEM_PLUS) return "Plus";
+  if (vk == VK_OEM_MINUS) return "Minus";
+  return "";
 }
 
 static QString fullKeyToString(UINT mod, UINT vk) {
-    QString res;
-    if (mod & MOD_CONTROL) res += "Ctrl + ";
-    if (mod & MOD_SHIFT) res += "Shift + ";
-    if (mod & MOD_ALT) res += "Alt + ";
-    res += vkToString(vk);
-    return res;
+  QStringList parts;
+  if (mod & MOD_CONTROL)
+    parts << "Ctrl";
+  if (mod & MOD_SHIFT)
+    parts << "Shift";
+  if (mod & MOD_ALT)
+    parts << "Alt";
+  if (vk != 0)
+    parts << vkToString(vk);
+  return parts.join(" + ");
 }
 
-static void parseFullKey(const QString& s, UINT& outMod, UINT& outKey) {
-    outMod = 0;
-    QString lower = s.toLower();
-    if (lower.contains("ctrl")) outMod |= MOD_CONTROL;
-    if (lower.contains("shift")) outMod |= MOD_SHIFT;
-    if (lower.contains("alt")) outMod |= MOD_ALT;
-    
-    QString keyPart = s;
-    if (s.contains("+")) {
-        keyPart = s.split("+").last().trimmed();
-    }
-    outKey = stringToVk(keyPart);
+static bool parseFullKey(const QString &s, UINT &outMod, UINT &outKey) {
+  outMod = 0;
+  outKey = 0;
+
+  QStringList tokens = s.split('+', Qt::SkipEmptyParts);
+  QString keyPart;
+  for (const QString &token : tokens) {
+    QString upper = token.trimmed().toUpper();
+    if (upper == "CTRL" || upper == "CONTROL")
+      outMod |= MOD_CONTROL;
+    else if (upper == "SHIFT")
+      outMod |= MOD_SHIFT;
+    else if (upper == "ALT")
+      outMod |= MOD_ALT;
+    else
+      keyPart = token.trimmed();
+  }
+
+  if (keyPart.isEmpty())
+    keyPart = s.trimmed();
+
+  outKey = stringToVk(keyPart);
+  return !isModifierVk(outKey);
 }
 
-QString BetterAngleBackend::keyToggle() const { if (g_allProfiles.empty()) return "Ctrl + U"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.toggleMod, k.toggleKey); }
-void BetterAngleBackend::setKeyToggle(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.toggleMod, g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey); emit hotkeysChanged(); } }
+static UINT qtKeyToVk(int key) {
+  if (key >= Qt::Key_A && key <= Qt::Key_Z)
+    return 'A' + (UINT)(key - Qt::Key_A);
+  if (key >= Qt::Key_0 && key <= Qt::Key_9)
+    return '0' + (UINT)(key - Qt::Key_0);
+  if (key >= Qt::Key_F1 && key <= Qt::Key_F12)
+    return VK_F1 + (UINT)(key - Qt::Key_F1);
 
-QString BetterAngleBackend::keyRoi() const { if (g_allProfiles.empty()) return "Ctrl + 8"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.roiMod, k.roiKey); }
-void BetterAngleBackend::setKeyRoi(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.roiMod, g_allProfiles[g_selectedProfileIdx].keybinds.roiKey); emit hotkeysChanged(); } }
+  switch (key) {
+  case Qt::Key_Tab: return VK_TAB;
+  case Qt::Key_Space: return VK_SPACE;
+  case Qt::Key_Escape: return VK_ESCAPE;
+  case Qt::Key_Return:
+  case Qt::Key_Enter: return VK_RETURN;
+  case Qt::Key_Up: return VK_UP;
+  case Qt::Key_Down: return VK_DOWN;
+  case Qt::Key_Left: return VK_LEFT;
+  case Qt::Key_Right: return VK_RIGHT;
+  case Qt::Key_Home: return VK_HOME;
+  case Qt::Key_End: return VK_END;
+  case Qt::Key_PageUp: return VK_PRIOR;
+  case Qt::Key_PageDown: return VK_NEXT;
+  case Qt::Key_Insert: return VK_INSERT;
+  case Qt::Key_Delete: return VK_DELETE;
+  case Qt::Key_Equal:
+  case Qt::Key_Plus: return VK_OEM_PLUS;
+  case Qt::Key_Minus:
+  case Qt::Key_Underscore: return VK_OEM_MINUS;
+  default: return 0;
+  }
+}
 
-QString BetterAngleBackend::keyCross() const { if (g_allProfiles.empty()) return "F10"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.crossMod, k.crossKey); }
-void BetterAngleBackend::setKeyCross(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.crossMod, g_allProfiles[g_selectedProfileIdx].keybinds.crossKey); emit hotkeysChanged(); } }
+static UINT qtModifiersToNative(int modifiers) {
+  UINT native = 0;
+  if (modifiers & Qt::ControlModifier)
+    native |= MOD_CONTROL;
+  if (modifiers & Qt::ShiftModifier)
+    native |= MOD_SHIFT;
+  if (modifiers & Qt::AltModifier)
+    native |= MOD_ALT;
+  return native;
+}
 
-QString BetterAngleBackend::keyZero() const { if (g_allProfiles.empty()) return "Ctrl + G"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.zeroMod, k.zeroKey); }
-void BetterAngleBackend::setKeyZero(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.zeroMod, g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey); emit hotkeysChanged(); } }
+static Keybinds *activeKeybinds() {
+  if (g_allProfiles.empty() || g_selectedProfileIdx < 0 ||
+      g_selectedProfileIdx >= (int)g_allProfiles.size())
+    return nullptr;
+  return &g_allProfiles[g_selectedProfileIdx].keybinds;
+}
 
-QString BetterAngleBackend::keyDebug() const { if (g_allProfiles.empty()) return "Ctrl + 9"; const auto& k = g_allProfiles[g_selectedProfileIdx].keybinds; return fullKeyToString(k.debugMod, k.debugKey); }
-void BetterAngleBackend::setKeyDebug(const QString& s) { if (!g_allProfiles.empty()) { parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.debugMod, g_allProfiles[g_selectedProfileIdx].keybinds.debugKey); emit hotkeysChanged(); } }
+static QString actionLabel(const QString &action) {
+  if (action == "toggle") return "Toggle Dashboard";
+  if (action == "roi") return "Selection Overlay";
+  if (action == "cross") return "Toggle Crosshair";
+  if (action == "zero") return "Zero Counter";
+  if (action == "debug") return "Debug Overlay";
+  return "Unknown Action";
+}
+
+static bool assignActionKeybind(const QString &action, UINT mod, UINT key) {
+  Keybinds *k = activeKeybinds();
+  if (!k)
+    return false;
+
+  if (action == "toggle") {
+    k->toggleMod = mod;
+    k->toggleKey = key;
+    return true;
+  }
+  if (action == "roi") {
+    k->roiMod = mod;
+    k->roiKey = key;
+    return true;
+  }
+  if (action == "cross") {
+    k->crossMod = mod;
+    k->crossKey = key;
+    return true;
+  }
+  if (action == "zero") {
+    k->zeroMod = mod;
+    k->zeroKey = key;
+    return true;
+  }
+  if (action == "debug") {
+    k->debugMod = mod;
+    k->debugKey = key;
+    return true;
+  }
+  return false;
+}
+
+QString BetterAngleBackend::keyToggle() const {
+  if (g_allProfiles.empty())
+    return "Ctrl + U";
+  const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
+  return fullKeyToString(k.toggleMod, k.toggleKey);
+}
+
+void BetterAngleBackend::setKeyToggle(const QString &s) {
+  Keybinds *k = activeKeybinds();
+  UINT mod = 0, key = 0;
+  if (!k || !parseFullKey(s, mod, key))
+    return;
+  k->toggleMod = mod;
+  k->toggleKey = key;
+  s_hotkeyStatus = "Pending save: Toggle Dashboard = " + fullKeyToString(mod, key);
+  emit hotkeysChanged();
+}
+
+QString BetterAngleBackend::keyRoi() const {
+  if (g_allProfiles.empty())
+    return "Ctrl + R";
+  const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
+  return fullKeyToString(k.roiMod, k.roiKey);
+}
+
+void BetterAngleBackend::setKeyRoi(const QString &s) {
+  Keybinds *k = activeKeybinds();
+  UINT mod = 0, key = 0;
+  if (!k || !parseFullKey(s, mod, key))
+    return;
+  k->roiMod = mod;
+  k->roiKey = key;
+  s_hotkeyStatus = "Pending save: Selection Overlay = " + fullKeyToString(mod, key);
+  emit hotkeysChanged();
+}
+
+QString BetterAngleBackend::keyCross() const {
+  if (g_allProfiles.empty())
+    return "F10";
+  const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
+  return fullKeyToString(k.crossMod, k.crossKey);
+}
+
+void BetterAngleBackend::setKeyCross(const QString &s) {
+  Keybinds *k = activeKeybinds();
+  UINT mod = 0, key = 0;
+  if (!k || !parseFullKey(s, mod, key))
+    return;
+  k->crossMod = mod;
+  k->crossKey = key;
+  s_hotkeyStatus = "Pending save: Toggle Crosshair = " + fullKeyToString(mod, key);
+  emit hotkeysChanged();
+}
+
+QString BetterAngleBackend::keyZero() const {
+  if (g_allProfiles.empty())
+    return "Ctrl + G";
+  const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
+  return fullKeyToString(k.zeroMod, k.zeroKey);
+}
+
+void BetterAngleBackend::setKeyZero(const QString &s) {
+  Keybinds *k = activeKeybinds();
+  UINT mod = 0, key = 0;
+  if (!k || !parseFullKey(s, mod, key))
+    return;
+  k->zeroMod = mod;
+  k->zeroKey = key;
+  s_hotkeyStatus = "Pending save: Zero Counter = " + fullKeyToString(mod, key);
+  emit hotkeysChanged();
+}
+
+QString BetterAngleBackend::keyDebug() const {
+  if (g_allProfiles.empty())
+    return "Ctrl + 9";
+  const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
+  return fullKeyToString(k.debugMod, k.debugKey);
+}
+
+void BetterAngleBackend::setKeyDebug(const QString &s) {
+  Keybinds *k = activeKeybinds();
+  UINT mod = 0, key = 0;
+  if (!k || !parseFullKey(s, mod, key))
+    return;
+  k->debugMod = mod;
+  k->debugKey = key;
+  s_hotkeyStatus = "Pending save: Debug Overlay = " + fullKeyToString(mod, key);
+  emit hotkeysChanged();
+}
+
+QString BetterAngleBackend::hotkeyStatus() const { return s_hotkeyStatus; }
+
+bool BetterAngleBackend::setCapturedKeybind(const QString &action, int key,
+                                            int modifiers) {
+  if (!activeKeybinds()) {
+    s_hotkeyStatus = "No active profile is loaded.";
+    emit hotkeysChanged();
+    return false;
+  }
+
+  UINT nativeKey = qtKeyToVk(key);
+  UINT nativeMod = qtModifiersToNative(modifiers);
+  if (isModifierVk(nativeKey)) {
+    s_hotkeyStatus =
+        "Press a non-modifier key with optional Ctrl / Shift / Alt.";
+    emit hotkeysChanged();
+    return false;
+  }
+
+  if (!assignActionKeybind(action, nativeMod, nativeKey)) {
+    s_hotkeyStatus = "Unknown hotkey action requested.";
+    emit hotkeysChanged();
+    return false;
+  }
+
+  s_hotkeyStatus =
+      "Pending save: " + actionLabel(action) + " = " + fullKeyToString(nativeMod, nativeKey);
+  emit hotkeysChanged();
+  return true;
+}
 
 void BetterAngleBackend::saveKeybinds() {
-    if (g_allProfiles.empty()) return;
-    Profile &p = g_allProfiles[g_selectedProfileIdx];
-    p.Save(GetProfilesPath() + p.name + L".json");
-    RefreshHotkeys(g_hHUD);
+  if (g_allProfiles.empty()) {
+    s_hotkeyStatus = "No active profile is loaded.";
+    emit hotkeysChanged();
+    return;
+  }
+
+  Profile &p = g_allProfiles[g_selectedProfileIdx];
+  p.Save(GetProfilesPath() + p.name + L".json");
+  bool applied = RefreshHotkeys(g_hHUD);
+  s_hotkeyStatus = applied
+                       ? "Hotkeys saved and applied successfully."
+                       : "Hotkey registration failed. Use unique combos with one main key.";
+  emit hotkeysChanged();
 }

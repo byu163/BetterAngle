@@ -1,3 +1,9 @@
+### BetterAngle Pro v4.27.90
+- **Keybind Capture Rewrite**: Reworked hotkey handling in [`src/shared/BetterAngleBackend.cpp`](src/shared/BetterAngleBackend.cpp) so custom binds can reliably use modifier combos such as `Ctrl + R`, `Shift + F10`, and `Alt + G`.
+- **Hotkey UI Fix**: Replaced fragile free-text editing in [`src/gui/Dashboard.qml`](src/gui/Dashboard.qml) with press-to-capture fields and explicit save/apply feedback.
+- **Default Bind Cleanup**: Standardized the selection overlay default to `Ctrl + R` in [`include/shared/Profile.h`](include/shared/Profile.h).
+- **Startup Removal Preserved**: Confirmed the shipped build still has no startup wizard or splash path, with direct boot continuing through [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:381).
+
 ### BetterAngle Pro v4.27.89
 - **Link Fix**: Removed stale Qt meta-object declarations for `hotkeyStatus` and `setCapturedKeybind` from [`include/shared/BetterAngleBackend.h`](include/shared/BetterAngleBackend.h:55), resolving the unresolved externals reported by `mocs_compilation_Release.obj`.
 - **Startup Removal Preserved**: Kept the direct boot flow in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:381) with no startup wizard path or splash components in the shipped target.
