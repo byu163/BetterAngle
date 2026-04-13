@@ -1,216 +1,122 @@
-#include <windows.h>
-#include <shlobj.h>
-#include <tlhelp32.h>
+name: Build & Release
 
-#include <filesystem>
-#include <iostream>
-#include <string>
-#include <system_error>
-#include <vector>
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
 
-namespace fs = std::filesystem;
+jobs:
+  build:
+    runs-on: windows-latest
 
-static std::wstring GetKnownFolder(REFKNOWNFOLDERID folderId) {
-    PWSTR raw = nullptr;
-    std::wstring result;
-    if (SUCCEEDED(SHGetKnownFolderPath(folderId, 0, nullptr, &raw)) && raw != nullptr) {
-        result = raw;
-        CoTaskMemFree(raw);
-    }
-    return result;
-}
+    permissions:
+      contents: write
 
-static std::wstring GetEnvVar(const wchar_t* name) {
-    DWORD size = GetEnvironmentVariableW(name, nullptr, 0);
-    if (size == 0) {
-        return L"";
-    }
+    steps:
+      - uses: actions/checkout@v4
 
-    std::wstring value(size, L'\0');
-    DWORD written = GetEnvironmentVariableW(name, value.data(), size);
-    if (written == 0 || written >= size) {
-        return L"";
-    }
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
 
-    value.resize(written);
-    return value;
-}
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.3'
+          arch: 'win64_msvc2019_64'
+          setup-python: 'false'
 
-static bool EqualsIgnoreCase(const std::wstring& a, const std::wstring& b) {
-    return _wcsicmp(a.c_str(), b.c_str()) == 0;
-}
+      - name: Verify uninstaller source exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "shared/uninstall.cpp")) {
+            Write-Error "shared/uninstall.cpp was not found."
+            Get-ChildItem -Force
+            if (Test-Path "shared") { Get-ChildItem shared -Force }
+            exit 1
+          }
 
-static void ClearReadOnlyAttribute(const fs::path& path) {
-    DWORD attrs = GetFileAttributesW(path.c_str());
-    if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_READONLY)) {
-        SetFileAttributesW(path.c_str(), attrs & ~FILE_ATTRIBUTE_READONLY);
-    }
-}
+      - name: Configure CMake
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path build | Out-Null
+          Set-Location build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" -A x64
 
-static bool KillProcessByName(const wchar_t* processName) {
-    bool terminated = false;
+      - name: Build BetterAngle
+        shell: pwsh
+        run: |
+          Set-Location build
+          cmake --build . --config Release
 
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (snapshot == INVALID_HANDLE_VALUE) {
-        return false;
-    }
+      - name: Build uninstaller.exe
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path build/Release | Out-Null
+          cl /std:c++20 /EHsc /O2 /W4 /Fe:build/Release/uninstaller.exe shared/uninstall.cpp ole32.lib shell32.lib
 
-    PROCESSENTRY32W entry{};
-    entry.dwSize = sizeof(entry);
+      - name: Deploy Qt Dependencies
+        shell: pwsh
+        run: |
+          Set-Location build
+          windeployqt Release/BetterAngle.exe --qmldir ../src/gui --quick --no-translations
 
-    if (Process32FirstW(snapshot, &entry)) {
-        do {
-            if (EqualsIgnoreCase(entry.szExeFile, processName)) {
-                HANDLE process = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, entry.th32ProcessID);
-                if (process != nullptr) {
-                    if (TerminateProcess(process, 0)) {
-                        WaitForSingleObject(process, 5000);
-                        terminated = true;
-                    }
-                    CloseHandle(process);
-                }
-            }
-        } while (Process32NextW(snapshot, &entry));
-    }
+      - name: Download VC++ Redistributable
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "build/Release/vc_redist.x64.exe"
 
-    CloseHandle(snapshot);
-    return terminated;
-}
+      - name: Archive Build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path bin | Out-Null
+          $ver = (Get-Content VERSION).Trim()
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /dAppVer=$ver installer.iss
 
-static bool RemoveFileIfExists(const fs::path& path) {
-    std::error_code ec;
-    if (!fs::exists(path, ec)) {
-        return true;
-    }
+      - name: Upload uninstaller artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: uninstaller
+          path: build/Release/uninstaller.exe
 
-    ClearReadOnlyAttribute(path);
-    fs::remove(path, ec);
-    return !ec;
-}
+      - name: Get Version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $ver = (Get-Content VERSION).Trim()
+          echo "VERSION=$ver" >> $env:GITHUB_ENV
+          echo "TAG=v$ver" >> $env:GITHUB_ENV
 
-static bool RemoveDirectoryIfExists(const fs::path& dir) {
-    std::error_code ec;
-    if (!fs::exists(dir, ec)) {
-        return true;
-    }
+      - name: Extract Latest Release Notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $lines = Get-Content RELEASE_NOTES.md
+          $outLines = @()
+          $seenFirst = $false
+          foreach ($line in $lines) {
+              if ($line.StartsWith("### ")) {
+                  if ($seenFirst) { break }
+                  $seenFirst = $true
+              }
+              if ($seenFirst) { $outLines += $line }
+          }
+          $outLines | Out-File CURRENT_RELEASE_NOTES.md -Encoding utf8
 
-    for (fs::recursive_directory_iterator it(dir, fs::directory_options::skip_permission_denied, ec), end;
-         it != end;
-         it.increment(ec)) {
-        if (ec) {
-            break;
-        }
-        ClearReadOnlyAttribute(it->path());
-    }
-
-    ec.clear();
-    fs::remove_all(dir, ec);
-    return !ec;
-}
-
-static void RemoveNamedFilesRecursively(const fs::path& root, const std::vector<std::wstring>& names) {
-    std::error_code ec;
-    if (!fs::exists(root, ec) || !fs::is_directory(root, ec)) {
-        return;
-    }
-
-    for (fs::recursive_directory_iterator it(root, fs::directory_options::skip_permission_denied, ec), end;
-         it != end;
-         it.increment(ec)) {
-        if (ec) {
-            break;
-        }
-
-        const std::wstring filename = it->path().filename().wstring();
-        for (const auto& name : names) {
-            if (EqualsIgnoreCase(filename, name)) {
-                RemoveFileIfExists(it->path());
-                break;
-            }
-        }
-    }
-}
-
-int wmain() {
-    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-
-    KillProcessByName(L"BetterAngle.exe");
-
-    const std::wstring localAppData = GetKnownFolder(FOLDERID_LocalAppData);
-    const std::wstring roamingAppData = GetKnownFolder(FOLDERID_RoamingAppData);
-    const std::wstring programData = GetKnownFolder(FOLDERID_ProgramData);
-    const std::wstring desktop = GetKnownFolder(FOLDERID_Desktop);
-    const std::wstring startMenu = GetKnownFolder(FOLDERID_Programs);
-    const std::wstring programFiles = GetEnvVar(L"ProgramFiles");
-    const std::wstring programFilesX86 = GetEnvVar(L"ProgramFiles(x86)");
-
-    std::vector<fs::path> filesToRemove;
-    std::vector<fs::path> directoriesToRemove;
-
-    if (!programFiles.empty()) {
-        filesToRemove.emplace_back(fs::path(programFiles) / L"BetterAngle.exe");
-        directoriesToRemove.emplace_back(fs::path(programFiles) / L"BetterAngle");
-    }
-
-    if (!programFilesX86.empty()) {
-        filesToRemove.emplace_back(fs::path(programFilesX86) / L"BetterAngle.exe");
-        directoriesToRemove.emplace_back(fs::path(programFilesX86) / L"BetterAngle");
-    }
-
-    if (!localAppData.empty()) {
-        directoriesToRemove.emplace_back(fs::path(localAppData) / L"BetterAngle");
-    }
-
-    if (!roamingAppData.empty()) {
-        directoriesToRemove.emplace_back(fs::path(roamingAppData) / L"BetterAngle");
-    }
-
-    if (!programData.empty()) {
-        directoriesToRemove.emplace_back(fs::path(programData) / L"BetterAngle");
-    }
-
-    if (!desktop.empty()) {
-        filesToRemove.emplace_back(fs::path(desktop) / L"BetterAngle.lnk");
-    }
-
-    if (!startMenu.empty()) {
-        filesToRemove.emplace_back(fs::path(startMenu) / L"BetterAngle.lnk");
-        directoriesToRemove.emplace_back(fs::path(startMenu) / L"BetterAngle");
-    }
-
-    const std::vector<std::wstring> likelyDataFiles = {
-        L"roi.json",
-        L"roi.txt",
-        L"position.json",
-        L"color.json",
-        L"settings.json",
-        L"config.json",
-        L"state.json",
-        L"overlay.json",
-        L"BetterAngle.exe"
-    };
-
-    bool ok = true;
-
-    for (const auto& dir : directoriesToRemove) {
-        RemoveNamedFilesRecursively(dir, likelyDataFiles);
-    }
-
-    for (const auto& file : filesToRemove) {
-        if (!RemoveFileIfExists(file)) {
-            ok = false;
-        }
-    }
-
-    for (const auto& dir : directoriesToRemove) {
-        if (!RemoveDirectoryIfExists(dir)) {
-            ok = false;
-        }
-    }
-
-    std::wcout << (ok ? L"BetterAngle uninstall completed.\n"
-                      : L"BetterAngle uninstall completed with some errors.\n");
-
-    CoUninitialize();
-    return ok ? 0 : 1;
-}
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bin/BetterAngle_Setup.exe
+            build/Release/uninstaller.exe
+          tag_name: ${{ env.TAG }}
+          name: BetterAngle Pro ${{ env.TAG }}
+          body_path: CURRENT_RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
