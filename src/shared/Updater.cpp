@@ -57,6 +57,16 @@ bool DownloadFile(const std::wstring &url, const std::wstring &dest) {
 
 static std::wstring g_dynamicDownloadUrl = DOWNLOAD_URL;
 
+static bool IsLikelyWindowsExecutable(const std::wstring &path) {
+  std::ifstream ifs(path, std::ios::binary);
+  if (!ifs.is_open())
+    return false;
+
+  char mz[2] = {0, 0};
+  ifs.read(mz, 2);
+  return ifs.gcount() == 2 && mz[0] == 'M' && mz[1] == 'Z';
+}
+
 static std::wstring EscapePowerShellSingleQuoted(const std::wstring &value) {
   std::wstring escaped;
   escaped.reserve(value.size());
@@ -147,8 +157,14 @@ void UpdateApp() {
   g_isDownloadingUpdate = true;
   std::thread([]() {
     std::wstring dest = GetAppRootPath() + L"BetterAngle_Setup_update.exe";
-    if (DownloadFile(g_dynamicDownloadUrl, dest)) {
+    if (DownloadFile(g_dynamicDownloadUrl, dest) &&
+        IsLikelyWindowsExecutable(dest)) {
       g_downloadComplete = true;
+    } else {
+      DeleteFileW(dest.c_str());
+      g_downloadComplete = false;
+      g_updateAvailable = true;
+      g_updateHistory = "Downloaded update was invalid";
     }
     g_isDownloadingUpdate = false;
   }).detach();

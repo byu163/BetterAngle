@@ -18,7 +18,7 @@ extern AngleLogic g_logic;
 static double g_pendingSetupSensX = 0.05;
 static double g_pendingSetupSensY = 0.05;
 
-static BetterAngleBackend* s_backendInstance = nullptr;
+static BetterAngleBackend *s_backendInstance = nullptr;
 
 void NotifyBackendCrosshairChanged() {
   if (s_backendInstance) {
@@ -266,11 +266,13 @@ QString BetterAngleBackend::updateStatus() const {
   if (g_isCheckingForUpdates)
     return "Checking for updates...";
   if (g_hasCheckedForUpdates) {
-    if (g_updateAvailable)
-      return "New update available!";
-    // Check if update check failed
+    if (g_updateHistory.find("Downloaded update was invalid") !=
+        std::string::npos)
+      return "Downloaded update was invalid. Click to retry.";
     if (g_updateHistory.find("Update check failed") != std::string::npos)
       return "Update check failed";
+    if (g_updateAvailable)
+      return "New update available!";
     return "Application is up to date.";
   }
   return "";
@@ -296,6 +298,10 @@ void BetterAngleBackend::downloadUpdate() {
     ApplyUpdateAndRestart();
     return;
   }
+
+  g_updateHistory.clear();
+  g_downloadComplete = false;
+  emit updateStatusChanged();
   UpdateApp();
 }
 

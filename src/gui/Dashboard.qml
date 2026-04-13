@@ -740,6 +740,7 @@ Item {
                     text: {
                         if (backend.isDownloading) return "DOWNLOADING INSTALLER..."
                         if (backend.downloadComplete) return "INSTALL UPDATE"
+                        if (backend.updateStatus === "Downloaded update was invalid. Click to retry.") return "RETRY DOWNLOAD"
                         if (backend.updateAvailable) return "UPDATE NOW"
                         return "CHECK FOR UPDATES"
                     }

@@ -192,6 +192,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
     goto render_done;
   }
 
+  {
   // ROI box visualizer
   if (g_showROIBox && !g_allProfiles.empty()) {
     auto &p = g_allProfiles[g_selectedProfileIdx];
@@ -453,6 +454,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
         graphics.FillEllipse(ledCol, dx + dw - 20, (int)yPos + 4, 6, 6);
       }
     }
+  }
   }
 
 render_done:
