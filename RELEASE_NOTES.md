@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.92
+- **Tolerance Default Fix**: Set the no-profile tolerance fallback to `2` in [`BetterAngleBackend::tolerance()`](src/shared/BetterAngleBackend.cpp:94), aligning runtime defaults with the direct-boot profile default in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:388).
+- **Detection Consistency**: This keeps fresh launches and uninitialized UI states on the same tighter detection threshold intended for improved performance.
+
 ### BetterAngle Pro v4.27.90
 - **Keybind Capture Rewrite**: Reworked hotkey handling in [`src/shared/BetterAngleBackend.cpp`](src/shared/BetterAngleBackend.cpp) so custom binds can reliably use modifier combos such as `Ctrl + R`, `Shift + F10`, and `Alt + G`.
 - **Hotkey UI Fix**: Replaced fragile free-text editing in [`src/gui/Dashboard.qml`](src/gui/Dashboard.qml) with press-to-capture fields and explicit save/apply feedback.
