@@ -20,6 +20,7 @@
 #include "shared/Profile.h"
 #include "shared/Tray.h"
 #include "shared/Updater.h"
+#include "shared/FirstTimeSetup.h"
 #include <QCoreApplication>
 #include <QGuiApplication>
 
@@ -380,6 +381,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   LoadSettings();
   CleanupUpdateJunk();
 
+  bool ranSetup = false;
+  if (!g_setupComplete) {
+      ShowFirstTimeSetup(hInstance);
+      LoadSettings(); // Reload after setup to sync settings flags
+      ranSetup = true;
+  }
+
   g_allProfiles = GetProfiles(GetProfilesPath());
   if (g_allProfiles.empty()) {
     Profile p;
@@ -395,6 +403,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     p.Save(GetProfilesPath() + L"Default.json");
 
     g_allProfiles.push_back(p);
+  }
+
+  // Cache the profiles set by setup (have correct sens in memory)
+  std::vector<Profile> setupProfiles = g_allProfiles;
+  // If setup just ran, trust its in-memory sensitivityX/Y values over what was read from disk
+  if (ranSetup && !setupProfiles.empty() && !g_allProfiles.empty()) {
+      g_allProfiles[0].sensitivityX = setupProfiles[0].sensitivityX;
+      g_allProfiles[0].sensitivityY = setupProfiles[0].sensitivityY;
+  }
+
+  if (g_allProfiles.empty()) {
+      MessageBoxW(NULL, L"Setup failed to create a profile. Please restart.", L"BetterAngle Setup Error", MB_OK | MB_ICONERROR);
+      return 1;
   }
 
   // Sensitivity is loaded from the JSON profile; Do not blindly overwrite it
