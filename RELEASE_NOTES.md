@@ -4,6 +4,8 @@
 - **Hotkey Interface Overhaul**: Updated hotkey capture fields in [`src/gui/Dashboard.qml`](src/gui/Dashboard.qml:183) to show "Listening for keys..." with bold focus highlighting and hand cursors, improving interactive feedback for keybind recording.
 - **Branding Refinement**: Standardized the application logo across the UI ([`src/gui/main.qml`](src/gui/main.qml:47)) and generated a multi-resolution [`assets/icon.ico`](assets/icon.ico) from the refined transparent logo for Windows shortcuts and system tray.
 - **Labeling Fix**: Renamed the "SAVED POSITIONS" section to "SAVED CONFIG" in the crosshair management UI for better clarity.
+- **ROI Selection Save Fix**: Save the selected ROI rectangle when the user cancels selection via hotkey, preventing loss of manually selected region.
+- **Updater UI Fix**: Ensure update check failure is displayed in the UI and the check status is properly reported.
 
 ### BetterAngle Pro v4.27.104
 - **Updater Payload Fix**: Switched the updater in [`src/shared/Updater.cpp`](src/shared/Updater.cpp:15) from downloading/replacing a raw [`BetterAngle.exe`](src/main_app/BetterAngle.cpp) to downloading the shipped installer asset [`BetterAngle_Setup.exe`](src/shared/Updater.cpp:17), preventing the corrupted restart path behind the Windows “Unsupported 16-Bit Application” error.

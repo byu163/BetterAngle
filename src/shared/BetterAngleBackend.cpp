@@ -253,6 +253,9 @@ QString BetterAngleBackend::updateStatus() const {
   if (g_hasCheckedForUpdates) {
     if (g_updateAvailable)
       return "New update available!";
+    // Check if update check failed
+    if (g_updateHistory.find("Update check failed") != std::string::npos)
+      return "Update check failed";
     return "Application is up to date.";
   }
   return "";
