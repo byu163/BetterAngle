@@ -449,6 +449,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   g_crossOffsetY = g_currentProfile.crossOffsetY;
   g_crossAngle = g_currentProfile.crossAngle;
   g_crossPulse = g_currentProfile.crossPulse;
+  g_showCrosshair = g_currentProfile.showCrosshair;
+
+  // Sync Trigger Calibration from Profile to Global State
+  g_selectionRect.left = g_currentProfile.roi_x;
+  g_selectionRect.top = g_currentProfile.roi_y;
+  g_selectionRect.right = g_currentProfile.roi_x + g_currentProfile.roi_w;
+  g_selectionRect.bottom = g_currentProfile.roi_y + g_currentProfile.roi_h;
+  g_targetColor = g_currentProfile.target_color;
 
   g_logic.LoadProfile(g_currentProfile.sensitivityX);
 

@@ -108,11 +108,6 @@ void LoadSettings() {
     g_hudX = eInt("hudX", 40);
     g_hudY = eInt("hudY", 40);
 
-    g_crossThickness = eFloat("crossThickness", 1.0f);
-    g_crossColor = (COLORREF)eFloat("crossColor", (float)RGB(255, 0, 0));
-    g_crossOffsetX = eFloat("crossOffsetX", 0.0f);
-    g_crossOffsetY = eFloat("crossOffsetY", 0.0f);
-    g_crossAngle = eFloat("crossAngle", 0.0f);
     g_crossPulse = eFloat("crossPulse", 0.0f) > 0.5f;
     g_setupComplete = eFloat("setupComplete", 0.0f) > 0.5f;
 
@@ -174,12 +169,6 @@ void SaveSettings() {
   oss << "  \"freefallThreshold\": " << g_freefallThreshold << ",\n";
   oss << "  \"hudX\": " << g_hudX << ",\n";
   oss << "  \"hudY\": " << g_hudY << ",\n";
-  oss << "  \"crossThickness\": " << g_crossThickness << ",\n";
-  oss << "  \"crossColor\": " << (float)g_crossColor << ",\n";
-  oss << "  \"crossOffsetX\": " << g_crossOffsetX << ",\n";
-  oss << "  \"crossOffsetY\": " << g_crossOffsetY << ",\n";
-  oss << "  \"crossAngle\": " << g_crossAngle << ",\n";
-  oss << "  \"crossPulse\": " << (g_crossPulse ? 1 : 0) << ",\n";
   oss << "  \"setupComplete\": " << (g_setupComplete ? 1 : 0) << ",\n";
   oss << "  \"showCrosshair\": " << (g_showCrosshair ? 1 : 0) << ",\n";
   oss << "  \"debugMode\": " << (g_debugMode ? 1 : 0) << ",\n";
