@@ -11,7 +11,6 @@
 #include <vector>
 #include <windows.h>
 
-
 #include "shared/ControlPanel.h"
 #include "shared/Detector.h"
 #include "shared/Input.h"
@@ -20,10 +19,8 @@
 #include "shared/Profile.h"
 #include "shared/Tray.h"
 #include "shared/Updater.h"
-#include "shared/FirstTimeSetup.h"
 #include <QCoreApplication>
 #include <QGuiApplication>
-
 
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "gdiplus.lib")
@@ -37,8 +34,6 @@ using namespace Gdiplus;
 ULONG_PTR g_gdiplusToken;
 std::atomic<bool> g_running(true);
 FovDetector g_detector;
-
-
 
 // FOV Detector Thread
 void DetectorThread() {
@@ -92,21 +87,26 @@ void CaptureDesktop() {
 }
 
 // Refreshes all global hotkeys for the HUD window
-void RefreshHotkeys(HWND hWnd) {
+bool RefreshHotkeys(HWND hWnd) {
   if (!hWnd)
-    return;
+    return false;
+
   for (int i = 1; i <= 6; i++)
     UnregisterHotKey(hWnd, i);
 
-  if (!g_allProfiles.empty()) {
-    Profile &p = g_allProfiles[g_selectedProfileIdx];
-    // Use standard registration without MOD_NOREPEAT for maximum compatibility
-    RegisterHotKey(hWnd, 1, p.keybinds.toggleMod, p.keybinds.toggleKey);
-    RegisterHotKey(hWnd, 2, p.keybinds.roiMod, p.keybinds.roiKey);
-    RegisterHotKey(hWnd, 3, p.keybinds.crossMod, p.keybinds.crossKey);
-    RegisterHotKey(hWnd, 4, p.keybinds.zeroMod, p.keybinds.zeroKey);
-    RegisterHotKey(hWnd, 5, p.keybinds.debugMod, p.keybinds.debugKey);
-  }
+  if (g_allProfiles.empty())
+    return false;
+
+  Profile &p = g_allProfiles[g_selectedProfileIdx];
+  // Use standard registration without MOD_NOREPEAT for maximum compatibility
+  bool ok = true;
+  ok &=
+      RegisterHotKey(hWnd, 1, p.keybinds.toggleMod, p.keybinds.toggleKey) != 0;
+  ok &= RegisterHotKey(hWnd, 2, p.keybinds.roiMod, p.keybinds.roiKey) != 0;
+  ok &= RegisterHotKey(hWnd, 3, p.keybinds.crossMod, p.keybinds.crossKey) != 0;
+  ok &= RegisterHotKey(hWnd, 4, p.keybinds.zeroMod, p.keybinds.zeroKey) != 0;
+  ok &= RegisterHotKey(hWnd, 5, p.keybinds.debugMod, p.keybinds.debugKey) != 0;
+  return ok;
 }
 
 // Message-Only Window for Bullet-Proof Raw Input
@@ -381,13 +381,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   LoadSettings();
   CleanupUpdateJunk();
 
-  bool ranSetup = false;
-  if (!g_setupComplete) {
-      ShowFirstTimeSetup(hInstance);
-      LoadSettings(); // Reload after setup to sync settings flags
-      ranSetup = true;
-  }
-
   g_allProfiles = GetProfiles(GetProfilesPath());
   if (g_allProfiles.empty()) {
     Profile p;
@@ -403,19 +396,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     p.Save(GetProfilesPath() + L"Default.json");
 
     g_allProfiles.push_back(p);
-  }
-
-  // Cache the profiles set by setup (have correct sens in memory)
-  std::vector<Profile> setupProfiles = g_allProfiles;
-  // If setup just ran, trust its in-memory sensitivityX/Y values over what was read from disk
-  if (ranSetup && !setupProfiles.empty() && !g_allProfiles.empty()) {
-      g_allProfiles[0].sensitivityX = setupProfiles[0].sensitivityX;
-      g_allProfiles[0].sensitivityY = setupProfiles[0].sensitivityY;
-  }
-
-  if (g_allProfiles.empty()) {
-      MessageBoxW(NULL, L"Setup failed to create a profile. Please restart.", L"BetterAngle Setup Error", MB_OK | MB_ICONERROR);
-      return 1;
   }
 
   // Sensitivity is loaded from the JSON profile; Do not blindly overwrite it
@@ -454,9 +434,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   g_crossAngle = g_currentProfile.crossAngle;
   g_crossPulse = g_currentProfile.crossPulse;
 
-  g_logic.LoadProfile(
-      g_currentProfile
-          .sensitivityX);
+  g_logic.LoadProfile(g_currentProfile.sensitivityX);
 
   // Hotkeys are registered exclusively in HUDWndProc WM_CREATE.
   // NULL-window registration would steal WM_HOTKEY messages before HUD can

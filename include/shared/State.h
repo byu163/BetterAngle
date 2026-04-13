@@ -10,7 +10,6 @@
 
 std::wstring GetAppRootPath();
 std::wstring GetProfilesPath();
-extern bool g_setupComplete;
 
 // Versioning system
 #define APP_STR_Z(x) #x
@@ -21,9 +20,8 @@ extern bool g_setupComplete;
 #ifndef V_MAJ
 #define V_MAJ 4
 #define V_MIN 27
-#define V_PAT 83
+#define V_PAT 88
 #endif
-extern bool g_setupComplete;
 extern std::string g_lastVersionRun;
 
 #define VERSION_STR APP_STR_Y(V_MAJ) "." APP_STR_Y(V_MIN) "." APP_STR_Y(V_PAT)

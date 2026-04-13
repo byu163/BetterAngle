@@ -136,7 +136,6 @@ void LoadSettings() {
         g_lastLoadedProfileName = std::wstring(n.begin(), n.end());
       }
     }
-    g_setupComplete = true;
   } else {
     // Migration: Check if it exists in the OLD path (profiles/settings.json)
     std::wstring oldPath = GetProfilesPath() + L"settings.json";
@@ -228,4 +227,3 @@ POINT g_dragStartHUD = {0, 0};
 POINT g_dragStartMouse = {0, 0};
 HWND g_hHUD = NULL;
 HWND g_hPanel = NULL;
-bool g_setupComplete = false;
