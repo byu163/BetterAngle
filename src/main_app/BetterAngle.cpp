@@ -40,7 +40,8 @@ FovDetector g_detector;
 // FOV Detector Thread
 void DetectorThread() {
   while (g_running) {
-    if (!g_allProfiles.empty() && g_currentSelection == NONE) {
+    if (!g_allProfiles.empty() && g_currentSelection == NONE &&
+        IsFortniteForeground()) {
       Profile &p = g_allProfiles[g_selectedProfileIdx];
       g_logic.LoadProfile(p.sensitivityX);
 

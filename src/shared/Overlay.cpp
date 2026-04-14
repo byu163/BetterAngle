@@ -9,7 +9,6 @@
 #include <sstream>
 #include <string>
 
-
 using namespace Gdiplus;
 
 void AddRoundedRect(GraphicsPath &path, int x, int y, int width, int height,
@@ -248,14 +247,14 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
       Matrix rot;
       rot.RotateAt(g_crossAngle, PointF(cx, cy));
       graphics.SetTransform(&rot);
-      
+
       // Critical for sub-pixel thickness (< 1.0px) rendering
       PixelOffsetMode oldOffset = graphics.GetPixelOffsetMode();
       graphics.SetPixelOffsetMode(PixelOffsetModeHalf);
-      
+
       graphics.DrawLine(&cPen, cx - hw, cy, cx + hw, cy);
       graphics.DrawLine(&cPen, cx, cy - hh, cx, cy + hh);
-      
+
       graphics.SetPixelOffsetMode(oldOffset);
       graphics.ResetTransform();
     }
@@ -404,6 +403,9 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
                        g_forceDetection ? &colWarn : &colVal}});
       rows.push_back({L"System Cursor",
                       {g_isCursorVisible ? L"VISIBLE" : L"HIDDEN", &colVal}});
+      rows.push_back({L"Fortnite Focus",
+                      {IsFortniteForeground() ? L"ON" : L"OFF",
+                       IsFortniteForeground() ? &colGood : &colBad}});
 
       const wchar_t *selStr = (g_currentSelection == NONE) ? L"IDLE"
                               : (g_currentSelection == SELECTING_ROI)
