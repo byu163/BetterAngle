@@ -211,6 +211,7 @@ void BetterAngleBackend::setCrossColor(const QColor &c) {
 bool BetterAngleBackend::debugMode() const { return g_debugMode; }
 void BetterAngleBackend::setDebugMode(bool v) {
   g_debugMode = v;
+  g_forceRedraw = true;
   SaveSettings();
   emit debugChanged();
 }
@@ -218,6 +219,7 @@ void BetterAngleBackend::setDebugMode(bool v) {
 bool BetterAngleBackend::forceDiving() const { return g_forceDiving; }
 void BetterAngleBackend::setForceDiving(bool v) {
   g_forceDiving = v;
+  g_forceRedraw = true;
   SaveSettings();
   emit debugChanged();
 }
@@ -225,6 +227,7 @@ void BetterAngleBackend::setForceDiving(bool v) {
 bool BetterAngleBackend::forceDetection() const { return g_forceDetection; }
 void BetterAngleBackend::setForceDetection(bool v) {
   g_forceDetection = v;
+  g_forceRedraw = true;
   SaveSettings();
   emit debugChanged();
 }

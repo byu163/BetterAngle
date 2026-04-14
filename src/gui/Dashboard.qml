@@ -845,7 +845,7 @@ Item {
                 CheckBox {
                     text: "Debug Overlay (Ctrl+9)"
                     checked: backend.debugMode
-                    onToggled: backend.debugMode = checked
+                    onClicked: backend.debugMode = checked
                     contentItem: Text { text: parent.text; color: "white"; leftPadding: parent.indicator.width + 10 }
                 }
                 CheckBox {
