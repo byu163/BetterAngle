@@ -742,10 +742,17 @@ Item {
                             background: Rectangle { color: parent.hovered ? "#555" : "#333"; radius: 4 }
                             onClicked: backend.crossOffsetY = backend.crossOffsetY + 0.5 }
                     }
-                    Button { text: "RESET CENTER"; width: parent.width; height: 30
+                    Button { text: "RESET CROSSHAIR"; width: parent.width; height: 30
                         contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
                         background: Rectangle { color: parent.hovered ? "#6644aa" : "#4a3080"; radius: 4 }
-                        onClicked: { backend.crossOffsetX = 0; backend.crossOffsetY = 0 } }
+                        onClicked: {
+                            backend.crosshairOn = false;
+                            backend.crossThickness = 1.0;
+                            backend.crossColor = Qt.rgba(1, 0, 0, 1);
+                            backend.crossOffsetX = 0;
+                            backend.crossOffsetY = 0;
+                            backend.crossPulse = false;
+                        } }
 
                     // Saved Config
                     Text { text: "SAVED CONFIG"; color: "#666"; font.pixelSize: 11; font.bold: true }
