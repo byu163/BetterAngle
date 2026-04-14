@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.224..HEAD ### BetterAngle Pro v4.27.226
+- feat: Implement 'Breathing' pulse animation with 0.3s pause (v4.27.223)
+
 Generating release notes from commit range: v4.27.222..HEAD
 
 ### BetterAngle Pro v4.27.225
