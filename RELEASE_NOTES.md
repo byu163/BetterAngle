@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.152
+- **Visual Standardization**: Unified the styling of all hotkey configuration fields. Resolved an inconsistency where some fields (Zero Counter, Debug Overlay) used different colors and border behaviors compared to the rest of the dashboard.
+- **Improved UX Feedback**: Applied the "Cyan Glow" logic consistently across all inputs to clearly indicate when the software is listening for new key combinations.
+
 ### BetterAngle Pro v4.27.151
 - **Sub-Pixel Precision Locked**: Switched the crosshair rendering from Pen-lines to **Geometric Rectangles** (`FillRectangle`). This bypasses driver-level pixel snapping, achieving absolute 0.5px and 0.1px visual clarity with smooth anti-aliasing.
 - **Improved Compositing Quality**: Enabled `CompositingQualityHighQuality` for perfect alpha blending on the overlay.

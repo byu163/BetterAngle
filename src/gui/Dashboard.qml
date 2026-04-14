@@ -389,9 +389,14 @@ Item {
                                 readOnly: true
                                 selectByMouse: false
                                 activeFocusOnTab: true
-                                text: activeFocus ? "Press keys..." : backend.keyZero
-                                color: activeFocus ? "white" : "#00cca3"
-                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: keyZeroField.activeFocus ? "#00cca3" : "#333"; border.width: 1 }
+                                text: activeFocus ? "Listening for keys..." : backend.keyZero
+                                color: activeFocus ? "#00ffa3" : "white"
+                                font.bold: activeFocus
+                                background: Rectangle { 
+                                    color: "#1c1c2e"; radius: 4 
+                                    border.color: keyZeroField.activeFocus ? "#00cca3" : "#333"
+                                    border.width: keyZeroField.activeFocus ? 2 : 1 
+                                }
                                 MouseArea {
                                     anchors.fill: parent
                                     acceptedButtons: Qt.AllButtons
@@ -417,9 +422,14 @@ Item {
                                 readOnly: true
                                 selectByMouse: false
                                 activeFocusOnTab: true
-                                text: activeFocus ? "Press keys..." : backend.keyDebug
-                                color: activeFocus ? "white" : "#00cca3"
-                                background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: keyDebugField.activeFocus ? "#00cca3" : "#333"; border.width: 1 }
+                                text: activeFocus ? "Listening for keys..." : backend.keyDebug
+                                color: activeFocus ? "#00ffa3" : "white"
+                                font.bold: activeFocus
+                                background: Rectangle { 
+                                    color: "#1c1c2e"; radius: 4 
+                                    border.color: keyDebugField.activeFocus ? "#00cca3" : "#333"
+                                    border.width: keyDebugField.activeFocus ? 2 : 1 
+                                }
                                 MouseArea {
                                     anchors.fill: parent
                                     acceptedButtons: Qt.AllButtons
