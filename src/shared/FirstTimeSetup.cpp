@@ -1,209 +1,561 @@
-#include "shared/FirstTimeSetup.h"
-#include <windows.h>
-#include <windowsx.h>
-#include <string>
-#include <fstream>
-#include <shlobj.h>
-#include <vector>
 #include <algorithm>
-#include <cwctype>
-#include "shared/Profile.h"
-#include "shared/State.h"
+#include <atomic>
+#include <cmath>
+#include <dwmapi.h>
+#include <fstream>
 #include <gdiplus.h>
+#include <iostream>
+#include <shlobj.h>
+#include <string>
+#include <thread>
+#include <vector>
+#include <windows.h>
+
+#include "shared/ControlPanel.h"
+#include "shared/Detector.h"
+#include "shared/Input.h"
+#include "shared/Logic.h"
+#include "shared/Overlay.h"
+#include "shared/Profile.h"
+#include "shared/Tray.h"
+#include "shared/Updater.h"
+#include <QCoreApplication>
+#include <QGuiApplication>
+
+#pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "gdiplus.lib")
 
 using namespace Gdiplus;
 
-// Use persistent state from shared/State.h
-static std::wstring g_setupSensX = L"0.05";
-static std::wstring g_setupSensY = L"0.05";
-static bool g_isEditingManual    = true; 
-static int  g_focusedInput       = 1;
+#include "shared/State.h"
 
-extern std::vector<Profile> g_allProfiles;
-extern int g_selectedProfileIdx;
+// Global State
+// Global handles defined in State.h/cpp
+ULONG_PTR g_gdiplusToken;
+std::atomic<bool> g_running(true);
+FovDetector g_detector;
 
-void FinishSetup() {
+// FOV Detector Thread
+void DetectorThread() {
+  while (g_running) {
+    if (!g_allProfiles.empty() && g_currentSelection == NONE) {
+      Profile &p = g_allProfiles[g_selectedProfileIdx];
+      g_logic.LoadProfile(p.sensitivityX);
+
+      // Only scan and change angle scale when in debug mode or if always active
+      RoiConfig cfg = {p.roi_x, p.roi_y,        p.roi_w,
+                       p.roi_h, p.target_color, p.tolerance};
+      g_detectionRatio = g_detector.Scan(cfg);
+      if (g_forceDetection)
+        g_detectionRatio = 1.0f;
+
+      if (g_forceDiving) {
+        g_isDiving = true;
+        g_logic.SetDivingState(true);
+      } else if (g_detectionRatio >= g_freefallThreshold) {
+        g_isDiving = true;
+        g_logic.SetDivingState(true);
+      } else if (g_detectionRatio <= g_glideThreshold) {
+        g_isDiving = false;
+        g_logic.SetDivingState(false);
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+}
+
+// Screen Snapshot for Flicker-Free Selection (v4.9.15)
+void CaptureDesktop() {
+  int sw = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+  int sh = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+  int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+  int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+
+  HDC hdcScreen = GetDC(NULL);
+  HDC hdcMem = CreateCompatibleDC(hdcScreen);
+  if (g_screenSnapshot)
+    DeleteObject(g_screenSnapshot);
+  g_screenSnapshot = CreateCompatibleBitmap(hdcScreen, sw, sh);
+  HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
+
+  // Capture the entire virtual desktop
+  BitBlt(hdcMem, 0, 0, sw, sh, hdcScreen, sx, sy, SRCCOPY);
+
+  SelectObject(hdcMem, hOld);
+  ReleaseDC(NULL, hdcScreen);
+  DeleteDC(hdcMem);
+}
+
+static void SetHudInteractiveMode(HWND hWnd, bool interactive) {
+  long exStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+
+  if (interactive) {
+    exStyle &= ~WS_EX_TRANSPARENT;
+  } else {
+    exStyle |= WS_EX_TRANSPARENT;
+  }
+
+  SetWindowLong(hWnd, GWL_EXSTYLE, exStyle);
+  SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+               SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+  InvalidateRect(hWnd, NULL, FALSE);
+  UpdateWindow(hWnd);
+}
+
+// Refreshes all global hotkeys for the HUD window
+bool RefreshHotkeys(HWND hWnd) {
+  if (!hWnd)
+    return false;
+
+  for (int i = 1; i <= 6; i++)
+    UnregisterHotKey(hWnd, i);
+
+  if (g_allProfiles.empty())
+    return false;
+
+  Profile &p = g_allProfiles[g_selectedProfileIdx];
+  // Use standard registration without MOD_NOREPEAT for maximum compatibility
+  bool ok = true;
+  ok &=
+      RegisterHotKey(hWnd, 1, p.keybinds.toggleMod, p.keybinds.toggleKey) != 0;
+  ok &= RegisterHotKey(hWnd, 2, p.keybinds.roiMod, p.keybinds.roiKey) != 0;
+  ok &= RegisterHotKey(hWnd, 3, p.keybinds.crossMod, p.keybinds.crossKey) != 0;
+  ok &= RegisterHotKey(hWnd, 4, p.keybinds.zeroMod, p.keybinds.zeroKey) != 0;
+  ok &= RegisterHotKey(hWnd, 5, p.keybinds.debugMod, p.keybinds.debugKey) != 0;
+  return ok;
+}
+
+// Message-Only Window for Bullet-Proof Raw Input
+LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
+                            LPARAM lParam) {
+  if (message == WM_INPUT) {
+    int dx = GetRawInputDeltaX(lParam);
+    g_isCursorVisible = IsCursorCurrentlyVisible();
+
+    const bool allowAngleUpdate =
+        g_debugMode || (IsFortniteForeground() && !g_isCursorVisible);
+    if (allowAngleUpdate) {
+      // Update angle accumulation (the decimal) based on raw input
+      g_logic.Update(dx);
+    }
+    return 0;
+  }
+  return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+// HUD Window Procedure
+LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
+                            LPARAM lParam) {
+  switch (message) {
+  case WM_CREATE:
+    RefreshHotkeys(hWnd);
+    return 0;
+
+  case WM_HOTKEY:
+    switch (wParam) {
+    case 1: // Toggle Panel
+      ShowControlPanel();
+      break;
+    case 2: // ROI Select Toggle
+      if (g_currentSelection == NONE) {
+        CaptureDesktop(); // Capture before dimming
+        g_currentSelection = SELECTING_ROI;
+        g_isSelectionActive = true;
+        g_selectionRect = {0, 0, 0, 0};
+        g_startPoint = {0, 0};
+        SetHudInteractiveMode(hWnd, true);
+        SetForegroundWindow(hWnd);
+      } else {
+        // Save the current ROI rectangle if valid before exiting selection
+        if (!g_allProfiles.empty() &&
+            g_selectionRect.right > g_selectionRect.left &&
+            g_selectionRect.bottom > g_selectionRect.top) {
+          Profile &p = g_allProfiles[g_selectedProfileIdx];
+          p.roi_x = g_selectionRect.left;
+          p.roi_y = g_selectionRect.top;
+          p.roi_w = g_selectionRect.right - g_selectionRect.left;
+          p.roi_h = g_selectionRect.bottom - g_selectionRect.top;
+          // Keep existing target_color unchanged
+          p.Save(GetProfilesPath() + p.name + L".json");
+          p.Save(GetProfilesPath() + L"last_calibrated.json");
+        }
+        g_currentSelection = NONE;
+        g_isSelectionActive = false;
+        if (g_screenSnapshot) {
+          DeleteObject(g_screenSnapshot);
+          g_screenSnapshot = NULL;
+        }
+        SetHudInteractiveMode(hWnd, false);
+      }
+      break;
+    case 3:
+      g_showCrosshair = !g_showCrosshair;
+      g_forceRedraw = true;
+      if (!g_allProfiles.empty()) {
+        g_allProfiles[g_selectedProfileIdx].showCrosshair = g_showCrosshair;
+        g_allProfiles[g_selectedProfileIdx].Save(GetProfilesPath() + g_allProfiles[g_selectedProfileIdx].name + L".json");
+      }
+      SaveSettings();
+      NotifyBackendCrosshairChanged();
+      break;
+    case 4:
+      g_currentAngle = 0.0f;
+      g_logic.SetZero();
+      break;
+    case 5:
+      g_debugMode = !g_debugMode;
+      InvalidateRect(hWnd, NULL, FALSE);
+      UpdateWindow(hWnd);
+      break;
+    }
+    return 0;
+
+  case WM_TRAYICON:
+    if (lParam == WM_RBUTTONUP) {
+      ShowTrayContextMenu(hWnd);
+    } else if (lParam == WM_LBUTTONDBLCLK) {
+      ShowControlPanel();
+    }
+    return 0;
+
+  case WM_COMMAND:
+    if (LOWORD(wParam) == ID_TRAY_EXIT) {
+      SendMessage(hWnd, WM_CLOSE, 0, 0);
+    }
+    return 0;
+  case WM_LBUTTONDOWN:
+    if (g_currentSelection == SELECTING_ROI) {
+      POINT cur;
+      GetCursorPos(&cur);
+      g_startPoint = cur;
+      g_selectionRect = {cur.x, cur.y, cur.x, cur.y};
+    } else if (g_currentSelection == SELECTING_COLOR) {
+      // STAGE 2: PRECISION COLOR PICK (Snap-Shot Bypass)
+      if (g_screenSnapshot) {
+        HDC hdcScreen = GetDC(NULL);
+        HDC hdcMem = CreateCompatibleDC(hdcScreen);
+        HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
+
+        int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+        int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+
+        POINT cur;
+        GetCursorPos(&cur);
+        // Adjust color sample coord by the same virtual screen offset used in
+        // CaptureDesktop
+        COLORREF pixel = GetPixel(hdcMem, cur.x - sx, cur.y - sy);
+
+        g_pickedColor = pixel;
+        g_targetColor = pixel;
+        SelectObject(hdcMem, hOld);
+        DeleteDC(hdcMem);
+        ReleaseDC(NULL, hdcScreen);
+      }
+
+      // Finalize and Exit Selection
+      g_currentSelection = NONE;
+      g_isSelectionActive = false;
+      if (g_screenSnapshot) {
+        DeleteObject(g_screenSnapshot);
+        g_screenSnapshot = NULL;
+      }
+      SetHudInteractiveMode(hWnd, false);
+
+      if (!g_allProfiles.empty()) {
+        Profile &p = g_allProfiles[g_selectedProfileIdx];
+        p.target_color = g_pickedColor;
+        p.roi_x = g_selectionRect.left;
+        p.roi_y = g_selectionRect.top;
+        p.roi_w = g_selectionRect.right - g_selectionRect.left;
+        p.roi_h = g_selectionRect.bottom - g_selectionRect.top;
+
+        // Save to the actual profile path
+        std::wstring profilePath = GetProfilesPath() + p.name + L".json";
+        p.Save(profilePath);
+
+        // Also maintain the legacy 'last_calibrated' for quick-load logic if
+        // needed
+        p.Save(GetProfilesPath() + L"last_calibrated.json");
+      }
+    }
+    return 0;
+
+  case WM_MOUSEMOVE:
+    if (g_currentSelection != NONE) {
+      if (g_currentSelection == SELECTING_ROI && (wParam & MK_LBUTTON)) {
+        POINT cur;
+        GetCursorPos(&cur);
+        g_selectionRect.left = (std::min)(g_startPoint.x, cur.x);
+        g_selectionRect.right = (std::max)(g_startPoint.x, cur.x);
+        g_selectionRect.top = (std::min)(g_startPoint.y, cur.y);
+        g_selectionRect.bottom = (std::max)(g_startPoint.y, cur.y);
+      }
+      InvalidateRect(hWnd, NULL, FALSE);
+    }
+    return 0;
+
+  case WM_LBUTTONUP:
+    if (g_currentSelection == SELECTING_ROI) {
+      if (g_selectionRect.right > g_selectionRect.left &&
+          g_selectionRect.bottom > g_selectionRect.top) {
+        g_currentSelection = SELECTING_COLOR;
+      } else {
+        g_currentSelection = NONE;
+        g_isSelectionActive = false;
+        if (g_screenSnapshot) {
+          DeleteObject(g_screenSnapshot);
+          g_screenSnapshot = NULL;
+        }
+        SetHudInteractiveMode(hWnd, false);
+      }
+      InvalidateRect(hWnd, NULL, FALSE);
+    }
+    return 0;
+
+  case WM_TIMER: {
+    if (wParam == 1) { // 60fps HUD / Input processing timer
+      if (g_currentSelection == NONE) {
+        bool lDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+        POINT pt;
+        GetCursorPos(&pt);
+        if (lDown && !g_isDraggingHUD) {
+          if (pt.x >= g_hudX && pt.x <= g_hudX + 260 && pt.y >= g_hudY &&
+              pt.y <= g_hudY + 150) {
+            g_isDraggingHUD = true;
+            g_dragStartMouse = pt;
+            g_dragStartHUD.x = g_hudX;
+            g_dragStartHUD.y = g_hudY;
+          }
+        } else if (!lDown && g_isDraggingHUD) {
+          g_isDraggingHUD = false;
+          SaveSettings();
+        }
+
+        if (g_isDraggingHUD && lDown) {
+          g_hudX = g_dragStartHUD.x + (pt.x - g_dragStartMouse.x);
+          g_hudY = g_dragStartHUD.y + (pt.y - g_dragStartMouse.y);
+          InvalidateRect(hWnd, NULL, FALSE);
+        }
+
+        // SAFETY GUARD: Enforce Click-Through
+        long ex = GetWindowLong(hWnd, GWL_EXSTYLE);
+        if (!(ex & WS_EX_TRANSPARENT)) {
+          SetWindowLong(hWnd, GWL_EXSTYLE, ex | WS_EX_TRANSPARENT);
+        }
+      }
+
+      static float lastAngle = -9999.0f;
+      static bool lastDiving = false;
+      static bool lastCursor = false;
+      g_isCursorVisible = IsCursorCurrentlyVisible();
+      float ang = g_logic.GetAngle();
+
+      bool pulseActive = (g_showCrosshair && g_crossPulse);
+
+      if (ang != lastAngle || g_isDiving != lastDiving ||
+          g_isCursorVisible != lastCursor || g_currentSelection != NONE ||
+          g_showCrosshair || pulseActive || g_forceRedraw.load()) {
+        lastAngle = ang;
+        lastDiving = g_isDiving;
+        lastCursor = g_isCursorVisible;
+        g_forceRedraw.store(false);
+        DrawOverlay(hWnd, ang, g_detectionRatio, g_showCrosshair);
+      }
+    } else if (wParam == 2) { // 30s Auto-Save Periodic Timer
+      SaveSettings();
+      if (!g_allProfiles.empty() &&
+          g_selectedProfileIdx < (int)g_allProfiles.size()) {
+        g_allProfiles[g_selectedProfileIdx].Save(
+            GetProfilesPath() + g_allProfiles[g_selectedProfileIdx].name +
+            L".json");
+      }
+    }
+    return 0;
+  }
+
+  case WM_SYSCOMMAND:
+    // Block F10 from opening the system menu (interferes with Fn+F10 keybind)
+    if ((wParam & 0xFFF0) == SC_KEYMENU)
+      return 0;
+    break;
+
+  case WM_CLOSE:
+    g_running = false;
+    PostQuitMessage(0);
+    QCoreApplication::quit();
+    return 0;
+
+  case WM_DESTROY:
+    g_running = false;
+    RemoveSystrayIcon(hWnd);
+    QCoreApplication::exit(0);
+    PostQuitMessage(0);
+    return 0;
+
+  default:
+    return DefWindowProc(hWnd, message, wParam, lParam);
+  }
+  return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+// WinMain...
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                   LPSTR lpCmdLine, int nCmdShow) {
+  SetProcessDPIAware();
+  int argc = 1;
+  char *argv[] = {(char *)"BetterAngle.exe", nullptr};
+  QGuiApplication app(argc, argv);
+  app.setQuitOnLastWindowClosed(
+      false); // Prevent premature exit if windows are still initializing
+
+  // Phase 0: Kick off version check in background — never blocks startup.
+  // g_updateAvailable will be set when done; the control panel UPDATES tab
+  // shows it.
+  std::thread([]() { CheckForUpdates(); }).detach();
+
+  GdiplusStartupInput gdiplusStartupInput;
+  GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
+
+  LoadSettings();
+  CleanupUpdateJunk();
+
+  g_currentSelection = NONE;
+  g_isSelectionActive = false;
+  if (g_screenSnapshot) {
+    DeleteObject(g_screenSnapshot);
+    g_screenSnapshot = NULL;
+  }
+
+  g_allProfiles = GetProfiles(GetProfilesPath());
+  if (g_allProfiles.empty()) {
     Profile p;
-    p.name = L"Default"; 
+    p.name = L"Default";
     p.tolerance = 2;
-    p.roi_x = 760; p.roi_y = 640; p.roi_w = 400; p.roi_h = 70;
+    p.sensitivityX = 0.1; // Default Standard
+    p.sensitivityY = 0.1;
+    p.roi_x = 760;
+    p.roi_y = 640;
+    p.roi_w = 400;
+    p.roi_h = 70;
     p.target_color = RGB(150, 150, 150);
-    p.fov = 80.0f;
-    p.resolutionWidth  = GetSystemMetrics(SM_CXSCREEN);
-    p.resolutionHeight = GetSystemMetrics(SM_CYSCREEN);
-    p.renderScale = 100.0f;
+    p.crossThickness = 1.0f;
+    p.crossColor = RGB(255, 0, 0);
+    p.Save(GetProfilesPath() + L"Default.json");
 
-    double sensX = 0.05, sensY = 0.05;
-    try { if (!g_setupSensX.empty()) sensX  = std::stod(g_setupSensX); } catch(...) {}
-    try { if (!g_setupSensY.empty()) sensY  = std::stod(g_setupSensY); } catch(...) {}
-    
-    p.sensitivityX = (std::max)(0.0001, std::round(sensX * 10.0) / 10.0);
-    p.sensitivityY = (std::max)(0.0001, std::round(sensY * 10.0) / 10.0);
+    g_allProfiles.push_back(p);
+  }
 
-    if (g_allProfiles.empty()) {
-        p.Save(GetProfilesPath() + L"Default.json");
-        g_allProfiles.push_back(p);
-        g_selectedProfileIdx = 0;
-    } else {
-        if (g_selectedProfileIdx < 0 || g_selectedProfileIdx >= (int)g_allProfiles.size()) {
-            g_selectedProfileIdx = 0;
-        }
-        Profile& e = g_allProfiles[g_selectedProfileIdx];
-        e.sensitivityX = p.sensitivityX;
-        e.sensitivityY = p.sensitivityY;
-        e.Save(GetProfilesPath() + e.name + L".json");
+  // Sensitivity is loaded from the JSON profile; Do not blindly overwrite it
+  // here.
+  g_currentProfile = g_allProfiles[g_selectedProfileIdx];
+
+  g_selectedProfileIdx = 0;
+  bool foundProfile = false;
+  for (size_t i = 0; i < g_allProfiles.size(); i++) {
+    if (g_allProfiles[i].name == g_lastLoadedProfileName) {
+      g_selectedProfileIdx = i;
+      foundProfile = true;
+      break;
     }
+  }
 
-    g_setupComplete = true; 
-    SaveSettings(); // Force atomic save now
+  // Safety: If last profile not found, fall back to what was in settings.json
+  // index if that index is valid.
+  if (!foundProfile && g_selectedProfileIdx < (int)g_allProfiles.size()) {
+    // Keep original g_selectedProfileIdx loaded from settings.json
+  } else if (!foundProfile) {
+    g_selectedProfileIdx = 0;
+  }
 
-    // Create a hidden marker file for absolute persistence (even if JSON is lost)
-    std::wstring marker = GetAppRootPath() + L".setup_done";
-    HANDLE h = CreateFileW(marker.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
-    if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
-}
+  if (g_lastLoadedProfileName.empty() && !g_allProfiles.empty()) {
+    g_lastLoadedProfileName = g_allProfiles[0].name;
+  }
 
-static void PaintSetup(HWND hWnd) {
-    PAINTSTRUCT ps;
-    HDC hdc = BeginPaint(hWnd, &ps);
-    RECT rc; GetClientRect(hWnd, &rc);
-    int W = rc.right, H = rc.bottom;
+  g_currentProfile = g_allProfiles[g_selectedProfileIdx];
 
-    HDC hdcMem = CreateCompatibleDC(hdc);
-    HBITMAP hbmMem = CreateCompatibleBitmap(hdc, W, H);
-    HGDIOBJ hOld = SelectObject(hdcMem, hbmMem);
+  // Sync Crosshair Settings from Profile to Global State
+  g_crossThickness = g_currentProfile.crossThickness;
+  g_crossColor = g_currentProfile.crossColor;
+  g_crossOffsetX = g_currentProfile.crossOffsetX;
+  g_crossOffsetY = g_currentProfile.crossOffsetY;
+  g_crossAngle = g_currentProfile.crossAngle;
+  g_crossPulse = g_currentProfile.crossPulse;
+  g_showCrosshair = g_currentProfile.showCrosshair;
 
-    Graphics graphics(hdcMem);
-    graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-    graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+  // Sync Trigger Calibration from Profile to Global State
+  g_selectionRect.left = g_currentProfile.roi_x;
+  g_selectionRect.top = g_currentProfile.roi_y;
+  g_selectionRect.right = g_currentProfile.roi_x + g_currentProfile.roi_w;
+  g_selectionRect.bottom = g_currentProfile.roi_y + g_currentProfile.roi_h;
+  g_targetColor = g_currentProfile.target_color;
 
-    // Modern Background
-    LinearGradientBrush bgBrush(Point(0,0), Point(0, H), Color(255, 10, 12, 20), Color(255, 5, 5, 10));
-    graphics.FillRectangle(&bgBrush, 0, 0, W, H);
+  g_logic.LoadProfile(g_currentProfile.sensitivityX);
 
-    FontFamily ff(L"Segoe UI");
-    Font fTit(&ff, 24, FontStyleBold, UnitPixel);
-    Font fSub(&ff, 11, FontStyleRegular, UnitPixel);
-    Font fInp(&ff, 18, FontStyleBold, UnitPixel);
-    Font fBod(&ff, 13, FontStyleRegular, UnitPixel);
+  // Hotkeys are registered exclusively in HUDWndProc WM_CREATE.
+  // NULL-window registration would steal WM_HOTKEY messages before HUD can
+  // handle them.
 
-    SolidBrush bWhite(Color(255, 255, 255, 255));
-    SolidBrush bAccent(Color(255, 0, 204, 204)); // Cyan
-    SolidBrush bDim(Color(255, 100, 110, 130));
+  // Message Window for Raw Input (Bypasses Layered Window UI Bugs)
+  WNDCLASS wcMsg = {0};
+  wcMsg.lpfnWndProc = MsgWndProc;
+  wcMsg.hInstance = hInstance;
+  wcMsg.lpszClassName = L"BetterAngleMsgWnd";
+  RegisterClass(&wcMsg);
+  HWND hMsgWnd = CreateWindowEx(0, L"BetterAngleMsgWnd", NULL, 0, 0, 0, 0, 0,
+                                HWND_MESSAGE, NULL, hInstance, NULL);
+  RegisterRawMouse(hMsgWnd);
 
-    StringFormat fmtC; fmtC.SetAlignment(StringAlignmentCenter); fmtC.SetLineAlignment(StringAlignmentCenter);
-    StringFormat fmtL; fmtL.SetAlignment(StringAlignmentNear);   fmtL.SetLineAlignment(StringAlignmentCenter);
+  // Phase 2: Create Control Panel (Interactive) via Qt
+  g_hPanel = CreateControlPanel(hInstance);
 
-    graphics.DrawString(L"CALIBRATION WIZARD", -1, &fSub, RectF(0, 30, (float)W, 18), &fmtC, &bAccent);
-    graphics.DrawString(L"Set In-Game Sensitivity", -1, &fTit, RectF(0, 60, (float)W, 34), &fmtC, &bWhite);
-    graphics.DrawString(L"Enter your Fortnite sensitivity below to ensure accuracy.", -1, &fBod, RectF(0, 100, (float)W, 20), &fmtC, &bDim);
+  // Phase 3: Create HUD Window (Transparent Overlay)
+  WNDCLASS wc = {0};
+  wc.lpfnWndProc = HUDWndProc;
+  wc.hInstance = hInstance;
+  wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
+  wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+  wc.lpszClassName = L"BetterAngleHUD";
+  RegisterClass(&wc);
 
-    // Inputs
-    int fw = 180, fxA = (W/2) - fw - 10, fxB = (W/2) + 10, fy = 150, fh = 40;
+  int screenW = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+  int screenH = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+  int screenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+  int screenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
 
-    auto field = [&](float fx, int foc, const wchar_t* lab, const std::wstring& val) {
-        graphics.DrawString(lab, -1, &fSub, RectF(fx, (float)fy-20, (float)fw, 18), &fmtL, &bDim);
-        SolidBrush inBg(Color(255, 20, 25, 35));
-        graphics.FillRectangle(&inBg, fx, (float)fy, (float)fw, (float)fh);
-        Pen border(g_focusedInput == foc ? Color(255, 0, 204, 204) : Color(255, 50, 60, 80), 1.0f);
-        graphics.DrawRectangle(&border, fx, (float)fy, (float)fw, (float)fh);
-        
-        std::wstring d = val + (g_focusedInput==foc ? L"|" : L"");
-        graphics.DrawString(d.c_str(), -1, &fInp, RectF(fx+10, (float)fy, (float)fw-20, (float)fh), &fmtL, &bWhite);
-    };
-    field((float)fxA, 1, L"SENSITIVITY X", g_setupSensX);
-    field((float)fxB, 2, L"SENSITIVITY Y", g_setupSensY);
+  g_hHUD = CreateWindowEx(
+      WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW,
+      L"BetterAngleHUD", L"BetterAngle HUD", WS_POPUP, screenX, screenY,
+      screenW, screenH, NULL, NULL, hInstance, NULL);
 
-    // Save Button
-    int bx = (W-180)/2, by = H-70, bw = 180, bh = 40;
-    SolidBrush btnBg(Color(255, 0, 163, 163));
-    graphics.FillRectangle(&btnBg, bx, by, bw, bh);
-    graphics.DrawString(L"FINISH SETUP", -1, &fBod, RectF((float)bx, (float)by, (float)bw, (float)bh), &fmtC, &bWhite);
+  AddSystrayIcon(g_hHUD);
+  ShowControlPanel(); // Force Dashboard to show on startup
+  ShowWindow(g_hHUD, SW_SHOW);
+  SetWindowPos(g_hHUD, HWND_TOPMOST, 0, 0, 0, 0,
+               SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+  UpdateWindow(g_hHUD);
+  SetTimer(g_hHUD, 1, 16, NULL);    // 60fps (~16ms) Repaint Timer
+  SetTimer(g_hHUD, 2, 30000, NULL); // 30s Auto-Save Timer
 
-    BitBlt(hdc, 0, 0, W, H, hdcMem, 0, 0, SRCCOPY);
-    SelectObject(hdcMem, hOld); DeleteObject(hbmMem); DeleteDC(hdcMem);
-    EndPaint(hWnd, &ps);
-}
+  std::thread detThread(DetectorThread);
 
-LRESULT CALLBACK FirstTimeSetupProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    switch (msg) {
-    case WM_NCHITTEST: {
-        LRESULT hit = DefWindowProc(hWnd, msg, wParam, lParam);
-        if (hit == HTCLIENT) {
-            POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-            ScreenToClient(hWnd, &pt);
-            if (pt.y < 50) return HTCAPTION;
-        }
-        return hit;
-    }
-    case WM_KEYDOWN:
-        if (wParam == VK_TAB) {
-            g_focusedInput = (g_focusedInput == 1) ? 2 : 1;
-            InvalidateRect(hWnd, NULL, FALSE);
-            return 0;
-        }
-        if (wParam == VK_RETURN) {
-            FinishSetup(); 
-            DestroyWindow(hWnd);
-            return 0;
-        }
-        break;
+  // Run Qt Event Loop
+  int exitCode = app.exec();
 
-    case WM_CHAR: {
-        std::wstring* cur = (g_focusedInput == 1) ? &g_setupSensX : &g_setupSensY;
-        if (wParam == VK_BACK) {
-            if (!cur->empty()) cur->pop_back();
-        } else if (iswdigit((wchar_t)wParam) || (wchar_t)wParam == L'.') {
-             if ((wchar_t)wParam == L'.' && cur->find(L'.') != std::wstring::npos) return 0;
-             if (cur->length() < 10) cur->push_back((wchar_t)wParam);
-        }
-        InvalidateRect(hWnd, NULL, FALSE);
-        return 0;
-    }
+  g_running = false;
+  if (detThread.joinable())
+    detThread.join();
 
-    case WM_LBUTTONDOWN: {
-        int mx = GET_X_LPARAM(lParam), my = GET_Y_LPARAM(lParam);
-        RECT rc; GetClientRect(hWnd, &rc);
-        int W = rc.right, H = rc.bottom;
-        int fw = 180, fxA = (W/2) - fw - 10, fxB = (W/2) + 10, fy = 150, fh = 40;
-        if (my >= fy && my <= fy+fh) {
-            if      (mx>=fxA && mx<=fxA+fw) g_focusedInput=1;
-            else if (mx>=fxB && mx<=fxB+fw) g_focusedInput=2;
-        }
-        int bx=(W-180)/2, by=H-70;
-        if (mx>=bx && mx<=bx+180 && my>=by && my<=by+40) {
-            FinishSetup(); DestroyWindow(hWnd);
-        }
-        InvalidateRect(hWnd, NULL, FALSE);
-        return 0;
-    }
-    case WM_PAINT: PaintSetup(hWnd); return 0;
-    case WM_CLOSE: DestroyWindow(hWnd); return 0;
-    case WM_DESTROY: return 0; // Don't call PostQuitMessage(0) here as it kills the main app thread
-    }
-    return DefWindowProc(hWnd, msg, wParam, lParam);
-}
+  // Final Save on Exit
+  if (!g_allProfiles.empty()) {
+    Profile &p = g_allProfiles[g_selectedProfileIdx];
+    p.crossPulse = g_crossPulse;
+    p.Save(GetProfilesPath() + p.name + L".json");
+  }
 
-void ShowFirstTimeSetup(HINSTANCE hInstance) {
-    WNDCLASS wc = { 0 };
-    if (!GetClassInfo(hInstance, L"FTSWindowClass", &wc)) {
-        wc.lpfnWndProc = FirstTimeSetupProc;
-        wc.hInstance = hInstance;
-        wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-        wc.lpszClassName = L"FTSWindowClass";
-        RegisterClass(&wc);
-    }
+  SaveSettings();
 
-    int W = 500, H = 320;
-    HWND hWnd = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TOOLWINDOW, L"FTSWindowClass", L"BetterAngle Setup", WS_POPUP,
-        GetSystemMetrics(SM_CXSCREEN)/2 - W/2, GetSystemMetrics(SM_CYSCREEN)/2 - H/2, W, H, NULL, NULL, hInstance, NULL);
-
-    ShowWindow(hWnd, SW_SHOW);
-    UpdateWindow(hWnd);
-
-    MSG msg;
-    while (IsWindow(hWnd) && GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+  RemoveSystrayIcon(g_hHUD);
+  GdiplusShutdown(g_gdiplusToken);
+  return exitCode;
 }
