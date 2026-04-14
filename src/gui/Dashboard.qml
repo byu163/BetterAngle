@@ -117,6 +117,10 @@ Item {
                         }
                         Text { text: Math.round(backend.diveGlideMatch).toString() + "%"; color: "#aaa" }
                     }
+                    Text { 
+                        text: ""; 
+                        color: "#666"; font.pixelSize: 11; font.italic: true 
+                    }
 
                     Text { text: "TARGET COLOR SETTINGS"; color: "#666"; font.pixelSize: 12; topPadding: 15 }
                     RowLayout {
