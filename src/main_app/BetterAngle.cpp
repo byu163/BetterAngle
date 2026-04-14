@@ -358,6 +358,14 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       // Capture mouse to continue receiving messages even outside window
       SetCapture(hWnd);
     } else if (g_currentSelection == SELECTING_COLOR) {
+      // PRE-SAVE CLEANUP: Restore live HUD state immediately to prevent "Frozen Screen" visual hang
+      SetWindowLong(hWnd, GWL_EXSTYLE,
+                    GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
+      
+      if (GetCapture() == hWnd) {
+        ReleaseCapture();
+      }
+
       // STAGE 2: PRECISION COLOR PICK (Snap-Shot Bypass)
       if (g_screenSnapshot) {
         HDC hdcMem = CreateCompatibleDC(NULL);
@@ -384,23 +392,16 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         DeleteDC(hdcMem);
       }
 
-      // Restore click-through immediately
-      SetWindowLong(hWnd, GWL_EXSTYLE,
-                    GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
-      
-      // Release mouse capture to prevent input lockouts
-      if (GetCapture() == hWnd) {
-        ReleaseCapture();
-      }
-
-      // Finalize and Exit Selection
+      // Finalize and Exit Selection state
       g_currentSelection = NONE;
       g_isSelectionActive = false;
       if (g_screenSnapshot) {
         DeleteObject(g_screenSnapshot);
         g_screenSnapshot = NULL;
       }
+      
       InvalidateRect(hWnd, NULL, FALSE);
+      UpdateWindow(hWnd); // Force immediate redraw of live HUD
 
       if (!g_allProfiles.empty()) {
         Profile &p = g_allProfiles[g_selectedProfileIdx];

@@ -107,6 +107,22 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
 
   // Two-stage selection overlay
   if (g_currentSelection != NONE) {
+    if (g_screenSnapshot) {
+      // Use a static-cached bitmap to avoid performance drops (PC Freeze fix)
+      static Gdiplus::Bitmap* s_cachedBmp = nullptr;
+      static HBITMAP s_lastHbm = NULL;
+
+      if (g_screenSnapshot != s_lastHbm) {
+        if (s_cachedBmp) delete s_cachedBmp;
+        s_cachedBmp = new Gdiplus::Bitmap(g_screenSnapshot, NULL);
+        s_lastHbm = g_screenSnapshot;
+      }
+
+      if (s_cachedBmp) {
+        graphics.DrawImage(s_cachedBmp, 0, 0, sw, sh);
+      }
+    }
+
     SolidBrush dimBrush(Color(120, 0, 0, 0));
     graphics.FillRectangle(&dimBrush, 0, 0, sw, sh);
 
