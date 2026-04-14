@@ -243,12 +243,22 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 
         int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
         int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+        int sw = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        int sh = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
         POINT cur;
         GetCursorPos(&cur);
         // Adjust color sample coord by the same virtual screen offset used in
         // CaptureDesktop
-        COLORREF pixel = GetPixel(hdcMem, cur.x - sx, cur.y - sy);
+        int sampleX = cur.x - sx;
+        int sampleY = cur.y - sy;
+
+        COLORREF pixel;
+        if (sampleX >= 0 && sampleX < sw && sampleY >= 0 && sampleY < sh) {
+          pixel = GetPixel(hdcMem, sampleX, sampleY);
+        } else {
+          pixel = RGB(255, 0, 0); // fallback to red if out of bounds
+        }
 
         g_pickedColor = pixel;
         g_targetColor = pixel;
