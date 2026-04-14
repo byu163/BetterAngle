@@ -1,18 +1,18 @@
 #include "shared/BetterAngleBackend.h"
+#include "shared/Input.h"
 #include "shared/Logic.h"
 #include "shared/Profile.h"
 #include "shared/State.h"
 #include "shared/Updater.h"
-#include "shared/Input.h"
 #include <QGuiApplication>
-#include <QTimer>
-#include <tlhelp32.h>
 #include <QTimer>
 #include <algorithm>
 #include <cmath>
 #include <shlobj.h>
 #include <thread>
+#include <tlhelp32.h>
 #include <windows.h>
+
 
 extern std::vector<Profile> g_allProfiles;
 extern int g_selectedProfileIdx;
@@ -28,8 +28,6 @@ void NotifyBackendCrosshairChanged() {
     emit s_backendInstance->crosshairChanged();
   }
 }
-
-
 
 BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
   s_backendInstance = this;
@@ -138,7 +136,8 @@ double BetterAngleBackend::diveGlideMatch() const {
 void BetterAngleBackend::setDiveGlideMatch(double v) {
   if (g_allProfiles.empty())
     return;
-  if (v < 1.0) v = 1.0;
+  if (v < 1.0)
+    v = 1.0;
   Profile &p = g_allProfiles[g_selectedProfileIdx];
   p.diveGlideMatch = (float)v;
   p.Save(GetProfilesPath() + p.name + L".json");
@@ -161,6 +160,12 @@ void BetterAngleBackend::setCrosshairOn(bool v) {
 
 float BetterAngleBackend::crossThickness() const { return g_crossThickness; }
 void BetterAngleBackend::setCrossThickness(float v) {
+  // Clamp to valid range (0.1 to 10.0) to match UI slider
+  if (v < 0.1f)
+    v = 0.1f;
+  if (v > 10.0f)
+    v = 10.0f;
+
   g_crossThickness = v;
   g_forceRedraw = true;
   if (!g_allProfiles.empty()) {
@@ -246,8 +251,6 @@ QString BetterAngleBackend::updateHistory() const {
   return QString::fromStdString(g_updateHistory);
 }
 
-
-
 QString BetterAngleBackend::updateStatus() const {
   if (g_isDownloadingUpdate)
     return "Downloading installer...";
@@ -299,13 +302,9 @@ void BetterAngleBackend::downloadUpdate() {
   UpdateApp();
 }
 
-
-
 void BetterAngleBackend::requestShowControlPanel() {
   emit showControlPanelRequested();
 }
-
-
 
 QStringList BetterAngleBackend::crosshairPresetNames() const {
   QStringList list;
@@ -791,8 +790,6 @@ void BetterAngleBackend::setKeyZero(const QString &s) {
   }
 }
 
-
-
 void BetterAngleBackend::saveKeybinds() {
   if (g_allProfiles.empty())
     return;
@@ -808,7 +805,8 @@ void NotifyBackendUpdateStatusChanged() {
 }
 
 static bool IsFortniteExe(const wchar_t *processName) {
-  if (!processName || !processName[0]) return false;
+  if (!processName || !processName[0])
+    return false;
   return (_wcsnicmp(processName, L"FortniteClient-Win64-Shipping", 29) == 0 ||
           _wcsnicmp(processName, L"FortniteLauncher", 16) == 0 ||
           _wcsnicmp(processName, L"FortniteClient", 14) == 0);
@@ -816,7 +814,8 @@ static bool IsFortniteExe(const wchar_t *processName) {
 
 bool BetterAngleBackend::fnRunning() const {
   HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-  if (hSnap == INVALID_HANDLE_VALUE) return false;
+  if (hSnap == INVALID_HANDLE_VALUE)
+    return false;
   PROCESSENTRY32W pe;
   pe.dwSize = sizeof(pe);
   if (Process32FirstW(hSnap, &pe)) {
@@ -831,17 +830,13 @@ bool BetterAngleBackend::fnRunning() const {
   return false;
 }
 
-bool BetterAngleBackend::fnFocused() const {
-  return IsFortniteForeground();
-}
+bool BetterAngleBackend::fnFocused() const { return IsFortniteForeground(); }
 
 bool BetterAngleBackend::fnMouseHidden() const {
   return !IsCursorCurrentlyVisible();
 }
 
-bool BetterAngleBackend::showDebugOverlay() const {
-  return g_showDebugOverlay;
-}
+bool BetterAngleBackend::showDebugOverlay() const { return g_showDebugOverlay; }
 
 void BetterAngleBackend::setShowDebugOverlay(bool v) {
   if (g_showDebugOverlay != v) {
@@ -850,6 +845,4 @@ void BetterAngleBackend::setShowDebugOverlay(bool v) {
   }
 }
 
-void BetterAngleBackend::refreshDebugData() {
-  emit debugDataChanged();
-}
+void BetterAngleBackend::refreshDebugData() { emit debugDataChanged(); }
