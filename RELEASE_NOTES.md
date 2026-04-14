@@ -1,3 +1,13 @@
+### BetterAngle Pro v4.27.146
+- **Full-State Crosshair Presets**: Presets now save and restore all visual attributes, including **Thickness**, **Color**, and **Pulse state**. 
+- **Dynamic UI Sync**: Loading a preset now automatically synchronizes the Dashboard sliders and color pickers.
+- **Enhanced Persistence**: Upgraded the JSON engine to support deep configuration of visual presets with legacy compatibility.
+
+### BetterAngle Pro v4.27.145
+- **Simple Icon Restoration**: Reverted the branding to the user-preferred simple cyan orb design, removing the complex iris/text elements.
+- **Hard Transparency Masking**: Applied a mathematically rigorous "Hard Mask" to the icon asset, ensuring absolute 100% transparency outside the orb and eliminating all black ring/border artifacts.
+- **Branding Consolidation**: Standardized the simple, transparent aesthetic across all system levels (Taskbar, Desktop, Installer).
+
 ### BetterAngle Pro v4.27.144
 - **Simple Icon Restoration**: Reverted the branding to the user-preferred simple cyan orb design, removing the complex iris/text elements.
 - **Hard Transparency Masking**: Applied a mathematically rigorous "Hard Mask" to the icon asset, ensuring absolute 100% transparency outside the orb and eliminating all black ring/border artifacts.

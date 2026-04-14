@@ -23,6 +23,9 @@ struct CrosshairPreset {
   float offsetX;
   float offsetY;
   float angle;
+  float thickness;
+  COLORREF color;
+  bool pulse;
 };
 
 struct Profile {

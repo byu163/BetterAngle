@@ -409,6 +409,9 @@ void BetterAngleBackend::saveCrosshairPreset(const QString &name) {
   cp.offsetX = g_crossOffsetX;
   cp.offsetY = g_crossOffsetY;
   cp.angle = g_crossAngle;
+  cp.thickness = g_crossThickness;
+  cp.color = g_crossColor;
+  cp.pulse = g_crossPulse;
   // Replace existing with same name, otherwise append
   for (auto &existing : p.crosshairPresets) {
     if (existing.name == cp.name) {
@@ -430,14 +433,26 @@ void BetterAngleBackend::loadCrosshairPreset(int index) {
   Profile &p = g_allProfiles[g_selectedProfileIdx];
   if (index < 0 || index >= (int)p.crosshairPresets.size())
     return;
-  const CrosshairPreset &cp = p.crosshairPresets[index];
+  const auto &cp = p.crosshairPresets[index];
   g_crossOffsetX = cp.offsetX;
   g_crossOffsetY = cp.offsetY;
   g_crossAngle = cp.angle;
+  g_crossThickness = cp.thickness;
+  g_crossColor = cp.color;
+  g_crossPulse = cp.pulse;
+
   p.crossOffsetX = cp.offsetX;
   p.crossOffsetY = cp.offsetY;
   p.crossAngle = cp.angle;
+  p.crossThickness = cp.thickness;
+  p.crossColor = cp.color;
+  p.crossPulse = cp.pulse;
+
   p.Save(GetProfilesPath() + p.name + L".json");
+  g_forceRedraw = true;
+  SaveSettings();
+
+  emit crosshairPresetsChanged();
   emit crosshairChanged();
 }
 
