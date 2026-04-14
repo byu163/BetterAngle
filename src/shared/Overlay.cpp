@@ -225,10 +225,11 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
     float pulse = 1.0f;
     if (g_crossPulse) {
       ULONGLONG t = GetTickCount64();
-      pulse = 0.6f + 0.4f * sinf(float(t) * 0.005f);
+      pulse = 0.75f + 0.25f * sinf(float(t) * 0.003f);
     }
 
-    BYTE alpha = BYTE(200 * pulse);
+    BYTE alpha = BYTE(255 * pulse);
+
     COLORREF cc = g_crossColor;
     Pen cPen(Color(alpha, GetRValue(cc), GetGValue(cc), GetBValue(cc)),
              g_crossThickness);
