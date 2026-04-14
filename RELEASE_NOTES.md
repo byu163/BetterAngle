@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.122
+- **LogWindowInfo Signature Fix**: Updated the two [`LogWindowInfo()`](include/shared/EnhancedLogging.h:35) call sites in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:620) to pass the required `label` parameter matching the two-argument signature, fixing the last CI compile failure.
+- **Diagnostic Logging Preserved**: The input-gate state logging in [`MsgWndProc()`](src/main_app/BetterAngle.cpp:222) remains intact for root-cause confirmation once CI is green.
+
 ### BetterAngle Pro v4.27.121
 - **Final Diagnostic Build Fix**: Updated the remaining [`LogWindowInfo()`](include/shared/EnhancedLogging.h:35) call sites in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:619) and [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:642) to pass the required label parameter, fixing the last CI compile failure in the diagnostic branch.
 - **Diagnostic Logging Preserved**: The input-gate state logging in [`MsgWndProc()`](src/main_app/BetterAngle.cpp:222) remains intact so the next green release can finally produce the evidence needed to isolate the broken normal-mode gate.

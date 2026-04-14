@@ -617,7 +617,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   // Phase 2: Create Control Panel (Interactive) via Qt
   g_hPanel = CreateControlPanel(hInstance);
   LOG_INFO("Control panel created: hwnd=0x%p", g_hPanel);
-  LogWindowInfo(g_hPanel);
+  LogWindowInfo(L"Control panel handle", g_hPanel);
 
   // Phase 3: Create HUD Window (Transparent Overlay)
   WNDCLASS wc = {0};
@@ -640,7 +640,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
   AddSystrayIcon(g_hHUD);
   LOG_INFO("HUD created: hwnd=0x%p", g_hHUD);
-  LogWindowInfo(g_hHUD);
+  LogWindowInfo(L"HUD handle", g_hHUD);
   ShowControlPanel(); // Force Dashboard to show on startup
   ShowWindow(g_hHUD, SW_SHOW);
   SetWindowPos(g_hHUD, HWND_TOPMOST, 0, 0, 0, 0,
