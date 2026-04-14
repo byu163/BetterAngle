@@ -2,6 +2,7 @@
 // All comments use ASCII only to avoid encoding issues across contributors.
 #include "shared/Logic.h"
 #include "shared/State.h"
+#include "shared/Input.h"
 #include <gdiplus.h>
 #include <iomanip>
 #include <iostream>
@@ -380,6 +381,10 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
                      g_forceDetection ? &colWarn : &colVal}});
     rows.push_back({L"System Cursor",
                     {g_isCursorVisible ? L"VISIBLE" : L"HIDDEN", &colVal}});
+    bool fnRunning = IsFortniteForeground();
+    rows.push_back({L"Fortnite Process",
+                    {fnRunning ? L"DETECTED" : L"NOT FOUND",
+                     fnRunning ? &colGood : &colVal}});
 
     const wchar_t *selStr = (g_currentSelection == NONE) ? L"IDLE"
                             : (g_currentSelection == SELECTING_ROI)
@@ -445,9 +450,11 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
 
       // LED indicator for states
       if (rows[i].first == L"Diving State" ||
-          rows[i].first == L"Force Diving") {
+          rows[i].first == L"Force Diving" ||
+          rows[i].first == L"Fortnite Process") {
         SolidBrush *ledCol =
             rows[i].second.first.find(L"ACTIVE") != std::wstring::npos ||
+                    rows[i].second.first.find(L"DETECTED") != std::wstring::npos ||
                     rows[i].second.first == L"ON"
                 ? &colGood
                 : &colBad;
