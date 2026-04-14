@@ -523,7 +523,8 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 
       static float lastAngle = -9999.0f;
       static bool lastDiving = false;
-      static bool lastCursor = false;\n      static bool lastDebug = false;
+      static bool lastCursor = false;
+      static bool lastDebug = false;
       g_isCursorVisible = IsCursorCurrentlyVisible();
       float ang = g_logic.GetAngle();
 
@@ -534,7 +535,8 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
           g_showCrosshair || pulseActive || g_forceRedraw.load()) {
         lastAngle = ang;
         lastDiving = g_isDiving;
-        lastCursor = g_isCursorVisible;\n        lastDebug = g_debugMode;
+        lastCursor = g_isCursorVisible;
+        lastDebug = g_debugMode;
         g_forceRedraw.store(false);
         DrawOverlay(hWnd, ang, g_detectionRatio, g_showCrosshair);
       }
