@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.120
+- **Qt Package Fix for GitHub Actions**: Corrected [`find_package()`](CMakeLists.txt:11) and [`target_link_libraries()`](CMakeLists.txt:32) to use Qt6 `QuickControls2` instead of the nonexistent `Controls2` package/target names, fixing the CI configure failure.
+- **Diagnostic Build Continuation**: This preserves the input-gate diagnostic logging in [`MsgWndProc()`](src/main_app/BetterAngle.cpp:222) while restoring a green GitHub Actions release path.
+
 ### BetterAngle Pro v4.27.119
 - **Diagnostic Input-Gate Logging**: Added state-change logging in [`MsgWndProc()`](src/main_app/BetterAngle.cpp:222) to report whether normal angle accumulation is being blocked by [`IsFortniteForeground()`](src/shared/Input.cpp:120), [`IsCursorCurrentlyVisible()`](src/shared/Input.cpp:127), or [`g_debugMode`](src/main_app/BetterAngle.cpp:229).
 - **Diagnostic Build Fix**: Corrected the new gate log call in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:241) to use the current narrow-string [`LogMessage()`](include/shared/EnhancedLogging.h:52) signature so the diagnostic release compiles in GitHub Actions.

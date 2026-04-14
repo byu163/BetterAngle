@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(BetterAngle VERSION 4.27.119 LANGUAGES CXX)
+project(BetterAngle VERSION 4.27.120 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Controls2 Widgets Gui)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Widgets Gui)
 
 set(PROJECT_SOURCES
     src/main_app/BetterAngle.cpp
@@ -29,6 +29,6 @@ set(PROJECT_SOURCES
 
 add_executable(BetterAngle WIN32 ${PROJECT_SOURCES})
 
-target_link_libraries(BetterAngle PRIVATE Qt6::Quick Qt6::Controls2 Qt6::Widgets Qt6::Gui gdi32 user32 shell32 ole32)
+target_link_libraries(BetterAngle PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Widgets Qt6::Gui gdi32 user32 shell32 ole32)
 
 target_include_directories(BetterAngle PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
