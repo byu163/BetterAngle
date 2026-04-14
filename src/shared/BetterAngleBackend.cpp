@@ -908,3 +908,9 @@ void BetterAngleBackend::saveKeybinds() {
   p.Save(GetProfilesPath() + p.name + L".json");
   RefreshHotkeys(g_hHUD);
 }
+
+void NotifyBackendUpdateStatusChanged() {
+  if (g_pBackend) {
+    emit g_pBackend->updateStatusChanged();
+  }
+}

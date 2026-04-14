@@ -91,5 +91,6 @@ bool RefreshHotkeys(HWND hWnd);
 extern std::atomic<bool> g_forceRedraw;
 void NotifyBackendCrosshairChanged();
 void NotifyBackendDebugChanged();
+void NotifyBackendUpdateStatusChanged();
 
 #endif // STATE_H
