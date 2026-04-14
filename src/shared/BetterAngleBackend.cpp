@@ -239,6 +239,19 @@ void BetterAngleBackend::setFreefallThreshold(float v) {
   emit debugChanged();
 }
 
+int BetterAngleBackend::diveGlideMatch() const {
+  return static_cast<int>(g_glideThreshold * 100.0f + 0.5f);
+}
+
+void BetterAngleBackend::setDiveGlideMatch(int v) {
+  float threshold = v / 100.0f;
+  g_glideThreshold = threshold;
+  g_freefallThreshold = threshold;
+  SaveSettings();
+  emit diveGlideMatchChanged();
+  emit debugChanged();
+}
+
 QString BetterAngleBackend::versionStr() const {
   return QString::fromLatin1(VERSION_STR);
 }
@@ -614,6 +627,18 @@ static QString vkToString(UINT vk) {
       {VK_F10, "F10"},
       {VK_F11, "F11"},
       {VK_F12, "F12"},
+      {0x7C, "F13"},
+      {0x7D, "F14"},
+      {0x7E, "F15"},
+      {0x7F, "F16"},
+      {0x80, "F17"},
+      {0x81, "F18"},
+      {0x82, "F19"},
+      {0x83, "F20"},
+      {0x84, "F21"},
+      {0x85, "F22"},
+      {0x86, "F23"},
+      {0x87, "F24"},
       {VK_TAB, "TAB"},
       {VK_SPACE, "SPACE"},
       {VK_ESCAPE, "ESC"},
@@ -644,6 +669,37 @@ static QString vkToString(UINT vk) {
       {VK_SCROLL, "SCROLLLOCK"},
       {VK_SNAPSHOT, "PRINTSCREEN"},
       {VK_PAUSE, "PAUSE"},
+      // Multimedia keys
+      {0xAD, "VOLUME_MUTE"},
+      {0xAE, "VOLUME_DOWN"},
+      {0xAF, "VOLUME_UP"},
+      {0xB0, "MEDIA_NEXT"},
+      {0xB1, "MEDIA_PREV"},
+      {0xB2, "MEDIA_STOP"},
+      {0xB3, "MEDIA_PLAY_PAUSE"},
+      // Browser keys
+      {0xA6, "BROWSER_BACK"},
+      {0xA7, "BROWSER_FORWARD"},
+      {0xA8, "BROWSER_REFRESH"},
+      {0xA9, "BROWSER_STOP"},
+      {0xAA, "BROWSER_SEARCH"},
+      {0xAB, "BROWSER_FAVORITES"},
+      {0xAC, "BROWSER_HOME"},
+      // Application key
+      {0x5D, "APP"},
+      // OEM keys
+      {0xBA, "OEM_1"},      // ;/:
+      {0xBB, "OEM_PLUS"},   // =/+
+      {0xBC, "OEM_COMMA"},  // ,/<
+      {0xBD, "OEM_MINUS"},  // -/_
+      {0xBE, "OEM_PERIOD"}, // ./>
+      {0xBF, "OEM_2"},      // /?
+      {0xC0, "OEM_3"},      // `/~
+      {0xDB, "OEM_4"},      // [/{
+      {0xDC, "OEM_5"},      // \/|
+      {0xDD, "OEM_6"},      // ]/}
+      {0xDE, "OEM_7"},      // '/"
+      {0xDF, "OEM_8"},
       {0x01, "MOUSE1"},
       {0x02, "MOUSE2"},
       {0x04, "MOUSE3"},

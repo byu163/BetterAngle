@@ -31,6 +31,8 @@ class BetterAngleBackend : public QObject {
                  debugChanged)
   Q_PROPERTY(bool forceDetection READ forceDetection WRITE setForceDetection
                  NOTIFY debugChanged)
+  Q_PROPERTY(int diveGlideMatch READ diveGlideMatch WRITE setDiveGlideMatch NOTIFY
+                 diveGlideMatchChanged)
   Q_PROPERTY(float glideThreshold READ glideThreshold WRITE setGlideThreshold
                  NOTIFY debugChanged)
   Q_PROPERTY(float freefallThreshold READ freefallThreshold WRITE
@@ -109,6 +111,9 @@ public:
   float freefallThreshold() const;
   void setFreefallThreshold(float v);
 
+  int diveGlideMatch() const;
+  void setDiveGlideMatch(int v);
+
   QString versionStr() const;
   QString latestVersion() const;
   bool updateAvailable() const;
@@ -149,6 +154,7 @@ signals:
   void profileChanged();
   void crosshairChanged();
   void debugChanged();
+  void diveGlideMatchChanged();
   void updateStatusChanged();
   void crosshairPresetsChanged();
   void showControlPanelRequested();

@@ -1,3 +1,9 @@
+### BetterAngle Pro v4.27.130
+- **Trigger Calibration Consolidation**: Replaced individual Glide and Freefall threshold sliders with a unified "Dive/Glide Match" control.
+- **Auto-Save Sensitivity**: Sensitivity changes are now saved instantly to user settings for a smoother configuration experience.
+- **UI Streamlining**: Reduced visual clutter by removing legacy threshold controls from the Debug tab.
+- **Enhanced Keybind Support**: Integrated user-contributed expansion for F13-F24, Multimedia, and OEM keys.
+
 ### BetterAngle Pro v4.27.129
 - **Release Payload Optimization**: Removed the standalone `uninstaller.exe` from GitHub Releases to streamline the distribution. All uninstallation logic is now handled internally by the main setup.
 - **Deep Uninstall Implementation**: Re-configured the uninstaller to perform a comprehensive system purge. Orchestrated the recursive deletion of both the installation directory and the `%LOCALAPPDATA%\BetterAngle` configuration folder.

@@ -107,20 +107,12 @@ Item {
 
                     Text { text: "TRIGGER CALIBRATION (%)"; color: "#666"; font.pixelSize: 12; topPadding: 10 }
                     RowLayout {
-                        Text { text: "Glide if match <"; color: "white"; Layout.preferredWidth: 100 }
+                        Text { text: "Dive/Glide Match"; color: "white"; Layout.preferredWidth: 100 }
                         Slider { 
-                            from: 1; to: 100; value: backend.glideThreshold * 100
-                            onValueChanged: backend.glideThreshold = value / 100.0
+                            from: 1; to: 20; value: backend.diveGlideMatch
+                            onValueChanged: backend.diveGlideMatch = value
                         }
-                        Text { text: Math.round(backend.glideThreshold * 100).toString() + "%"; color: "#aaa" }
-                    }
-                    RowLayout {
-                        Text { text: "Dive if match >"; color: "white"; Layout.preferredWidth: 100 }
-                        Slider { 
-                            from: 1; to: 100; value: backend.freefallThreshold * 100
-                            onValueChanged: backend.freefallThreshold = value / 100.0
-                        }
-                        Text { text: Math.round(backend.freefallThreshold * 100).toString() + "%"; color: "#aaa" }
+                        Text { text: Math.round(backend.diveGlideMatch).toString() + "%"; color: "#aaa" }
                     }
 
                     Text { text: "HOTKEY CONFIGURATION"; color: "#666"; font.pixelSize: 11; font.bold: true; topPadding: 10 }
@@ -835,22 +827,6 @@ Item {
                     contentItem: Text { text: parent.text; color: "white"; leftPadding: parent.indicator.width + 10 }
                 }
 
-                Text { text: "DIVE THRESHOLDS"; color: "#666"; font.pixelSize: 12; topPadding: 10 }
-                
-                Text { text: "Glide Threshold"; color: "white" }
-                Slider { width: parent.width; from: 0.01; to: 0.5; value: backend.glideThreshold; onValueChanged: backend.glideThreshold = value }
-
-                Text { text: "Freefall Threshold"; color: "white" }
-                Slider { width: parent.width; from: 0.01; to: 0.5; value: backend.freefallThreshold; onValueChanged: backend.freefallThreshold = value }
-
-                Button {
-                    text: "SAVE THRESHOLDS"
-                    width: parent.width
-                    height: 40
-                    contentItem: Text { text: parent.text; color: "white"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
-                    background: Rectangle { color: parent.hovered ? "#444" : "#222"; radius: 4 }
-                    onClicked: backend.saveThresholds()
-                }
             }
         }
 
