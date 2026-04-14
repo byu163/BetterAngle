@@ -230,14 +230,14 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
         ULONGLONG t = GetTickCount64();
         float period = 3500.0f;
         float phase = fmodf(float(t), period);
-        if (phase < 400.0f) {
-          pulse = 1.0f - (phase / 400.0f); // Rapid fade out
-        } else if (phase < 1900.0f) {
-          pulse = 0.0f; // Hold at transparent (1.5 seconds)
-        } else if (phase < 2300.0f) {
-          pulse = (phase - 1900.0f) / 400.0f; // Rapid fade in
+        if (phase < 1200.0f) {
+          pulse = 1.0f - (phase / 1200.0f); // Progressive fade out (1.2s)
+        } else if (phase < 1500.0f) {
+          pulse = 0.0f; // Hold at transparent (0.3s - as requested)
+        } else if (phase < 2700.0f) {
+          pulse = (phase - 1500.0f) / 1200.0f; // Progressive fade in (1.2s)
         } else {
-          pulse = 1.0f; // Hold at opaque
+          pulse = 1.0f; // Hold at opaque (0.8s)
         }
       }
 
