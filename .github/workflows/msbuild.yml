@@ -37,7 +37,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
           # Commit version changes
-          git add VERSION CMakeLists.txt include/shared/State.h
+          git add VERSION CMakeLists.txt include/shared/State.h RELEASE_NOTES.md
           git commit -m "chore: auto-increment version for release"
           git pull --rebase origin main
           git push

@@ -26,11 +26,7 @@ void NotifyBackendCrosshairChanged() {
   }
 }
 
-void NotifyBackendDebugChanged() {
-  if (s_backendInstance) {
-    emit s_backendInstance->debugChanged();
-  }
-}
+
 
 BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
   s_backendInstance = this;
@@ -39,7 +35,6 @@ BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
   // loaded from disk).
   QTimer::singleShot(0, this, [this]() {
     emit profileChanged();
-    emit debugChanged();
     emit crosshairChanged();
     emit hotkeysChanged();
   });
@@ -777,11 +772,7 @@ void BetterAngleBackend::setKeyZero(const QString &s) {
   }
 }
 
-QString BetterAngleBackend::keyDebug() const {
-  return "Disabled";
-}
-void BetterAngleBackend::setKeyDebug(const QString &s) {
-}
+
 
 void BetterAngleBackend::saveKeybinds() {
   if (g_allProfiles.empty())

@@ -88,6 +88,27 @@ function Generate-ReleaseNotes {
     return ($notes -join "`n")
 }
 
+# Function to update RELEASE_NOTES.md file
+function Update-ReleaseNotesFile {
+    param([string]$NewReleaseNotes, [hashtable]$NewVersion)
+    
+    Write-Output "Updating RELEASE_NOTES.md with new release v$($NewVersion.Full)"
+    
+    # Read existing content
+    $existingContent = ""
+    if (Test-Path "RELEASE_NOTES.md") {
+        $existingContent = Get-Content -Path "RELEASE_NOTES.md" -Raw
+    }
+    
+    # Prepend new release notes
+    $newContent = $NewReleaseNotes + "`n`n" + $existingContent
+    
+    # Write back to file
+    Set-Content -Path "RELEASE_NOTES.md" -Value $newContent -Encoding utf8 -NoNewline
+    
+    Write-Output "Updated RELEASE_NOTES.md successfully"
+}
+
 # Main execution
 try {
     Write-Output "Starting version bump process..."
@@ -108,6 +129,9 @@ try {
     
     # Generate release notes
     $releaseNotes = Generate-ReleaseNotes -CommitRange $CommitRange -NewVersion $newVersion
+    
+    # Update RELEASE_NOTES.md file
+    Update-ReleaseNotesFile -NewReleaseNotes $releaseNotes -NewVersion $newVersion
     
     # Write release notes to temporary file for GitHub Actions
     $releaseNotes | Out-File -FilePath "NEW_RELEASE_NOTES.md" -Encoding utf8

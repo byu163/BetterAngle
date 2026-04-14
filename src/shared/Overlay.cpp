@@ -96,10 +96,11 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
 
   Bitmap bmp(sw, sh, sw * 4, PixelFormat32bppPARGB, (BYTE*)pBits);
   Graphics graphics(&bmp);
-  graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+  graphics.SetSmoothingMode(SmoothingModeHighQuality);
   graphics.SetInterpolationMode(InterpolationModeHighQuality);
-  graphics.SetPixelOffsetMode(PixelOffsetModeHighQuality);
+  graphics.SetPixelOffsetMode(PixelOffsetModeHalf);
   graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
+
 
   // Two-stage selection overlay
   if (g_currentSelection != NONE) {

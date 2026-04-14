@@ -100,8 +100,9 @@ bool Profile::Load(const std::wstring &path) {
 
   // Load Crosshair (with defaults for legacy files)
   crossThickness = (float)extractDouble("crossThickness");
-  if (crossThickness <= 0)
+  if (crossThickness < 0.01f)
     crossThickness = 1.0f;
+
   crossColor = (COLORREF)extractDouble("crossColor");
   if (crossColor == 0)
     crossColor = RGB(255, 0, 0); // Default Red
