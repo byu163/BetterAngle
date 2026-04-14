@@ -80,8 +80,16 @@ static std::wstring EscapePowerShellSingleQuoted(const std::wstring &value) {
 }
 
 bool CheckForUpdates() {
+  struct UpdateCheckGuard {
+    ~UpdateCheckGuard() {
+      g_isCheckingForUpdates = false;
+      NotifyBackendUpdateStatusChanged();
+    }
+  } guard;
+
   g_isCheckingForUpdates = true;
   bool success = false;
+  // ... rest of logic
 
   std::wstring tempRes = GetAppRootPath() + L"latest_release.json";
   if (DownloadFile(VERSION_URL, tempRes)) {
@@ -142,7 +150,6 @@ bool CheckForUpdates() {
     DeleteFileW(tempRes.c_str());
   }
 
-  g_isCheckingForUpdates = false;
   g_hasCheckedForUpdates = true; // Always true after attempt, even if failed
   if (!success) {
     g_updateHistory =

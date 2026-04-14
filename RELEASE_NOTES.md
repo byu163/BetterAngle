@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.169
+- **Update Concurrency Guard**: Implemented robust lock guards in the UI and backend to prevent "double processing" or redundant update threads.
+- **RAII Thread Safety**: Added an RAII guard to the update cycle to ensure that progress flags are always cleared and the UI is notified, even if network requests fail.
+
 ### BetterAngle Pro v4.27.166
 - **ROI Selection Hotfix**: Fixed critical bug where "Select prompt stage 1" (ROI selection) was completely broken after ESC key implementation. The issue was caused by a "SAFETY GUARD" timer that forcibly re-enabled window transparency every 16.7ms, preventing mouse interaction during ROI drag.
 - **Window Transparency Logic**: Modified the safety guard to skip transparency enforcement when in ROI/Color selection mode, allowing proper mouse capture and drag functionality.
