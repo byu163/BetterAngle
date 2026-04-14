@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.226..HEAD ### BetterAngle Pro v4.27.228
+- fix: Crosshair sub-pixel thickness and reset button behavior
+
 Generating release notes from commit range: v4.27.224..HEAD
 
 ### BetterAngle Pro v4.27.227
