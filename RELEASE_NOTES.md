@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.125
+- **Universal Branding Enforcement**: Explicitly set the application-wide icon in the core C++ code, forcing the Windows taskbar and window title bars to show the correct, new branding.
+- **High-Resolution Asset Sweep**: Verified and enforced the new blue circular logo across all platform entry points (Installer, Desktop Shortcut, System Tray).
+
 ### BetterAngle Pro v4.27.124
 - **CI/CD Automation Overhaul**: Integrated `bump_version.ps1` into the GitHub Actions pipeline. The system now automatically increments the patch version and generates release notes from commit logs on every push to `main`.
 - **Infrastructure Synchronization**: Updated `.github/workflows/msbuild.yml` with full history fetching (`fetch-depth: 0`) and automated commit-back logic.

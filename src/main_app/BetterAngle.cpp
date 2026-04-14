@@ -22,6 +22,7 @@
 #include "shared/Updater.h"
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QIcon>
 
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "gdiplus.lib")
@@ -520,6 +521,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   int argc = 1;
   char *argv[] = {(char *)"BetterAngle.exe", nullptr};
   QGuiApplication app(argc, argv);
+  app.setWindowIcon(QIcon(":/assets/logo.png"));
   app.setQuitOnLastWindowClosed(
       false); // Prevent premature exit if windows are still initializing
 
