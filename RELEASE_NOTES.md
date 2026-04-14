@@ -1,3 +1,10 @@
+### BetterAngle Pro v4.27.116
+- **Logging System Restoration**: Completely rebuilt the `EnhancedLogging` system to resolve the v4.27.115 build failure.
+  - Restored `InitEnhancedLogging`, `LogStartup`, and `LogWindowInfo` functions.
+  - Re-implemented `LOG_INFO`, `LOG_DEBUG`, and other diagnostic macros.
+  - Resolved the Windows `ERROR` macro collision by using a scoped `LogLevel` enum and careful `#undef` management.
+- **CI Build Recovery**: Verified all symbols in `BetterAngle.cpp` now align with the restored logging header.
+
 ### BetterAngle Pro v4.27.115
 - **Cartesian Coordinate Migration**: Re-engineered the crosshair offset logic to follow standard Cartesian coordinates.
     - **Y-Axis**: Positive values now move the crosshair **UP**, and negative values move it **DOWN**.
