@@ -144,8 +144,8 @@ bool RefreshHotkeys(HWND hWnd) {
     return true;
   }
 
-  // Unregister all hotkeys first
-  for (int i = 1; i <= 6; i++) {
+  // Unregister all hotkeys first (we register IDs 1-5)
+  for (int i = 1; i <= 5; i++) {
     UnregisterHotKey(hWnd, i);
   }
 
@@ -209,9 +209,11 @@ bool RefreshHotkeys(HWND hWnd) {
     // Try to register at least some hotkeys (fallback to defaults for failed
     // ones) This ensures the app remains somewhat functional even if some
     // hotkeys conflict
+    // Use less common keys: Ctrl+Shift+1 through Ctrl+Shift+5
     for (int i = 1; i <= 5; i++) {
-      RegisterHotKey(hWnd, i, MOD_CONTROL | 0x4000,
-                     'A' + i - 1); // Ctrl+A, Ctrl+B, etc. as fallback
+      RegisterHotKey(hWnd, i, MOD_CONTROL | MOD_SHIFT | 0x4000,
+                     '1' + i -
+                         1); // Ctrl+Shift+1, Ctrl+Shift+2, etc. as fallback
     }
   }
 
