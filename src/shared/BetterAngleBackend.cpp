@@ -846,3 +846,8 @@ void BetterAngleBackend::setShowDebugOverlay(bool v) {
 }
 
 void BetterAngleBackend::refreshDebugData() { emit debugDataChanged(); }
+
+long long BetterAngleBackend::detectionDelayMs() const { return (long long)g_detectionDelayMs; }
+int BetterAngleBackend::detectionRatioPct() const { return (int)(g_detectionRatio * 100.0f); }
+bool BetterAngleBackend::inputLocked() const { return g_mouseSuspendedUntil > 0 && GetTickCount64() < g_mouseSuspendedUntil; }
+bool BetterAngleBackend::isDiving() const { return g_isDiving; }

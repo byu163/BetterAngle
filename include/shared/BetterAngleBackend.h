@@ -47,6 +47,10 @@ class BetterAngleBackend : public QObject {
   Q_PROPERTY(bool fnFocused READ fnFocused NOTIFY debugDataChanged)
   Q_PROPERTY(bool fnMouseHidden READ fnMouseHidden NOTIFY debugDataChanged)
   Q_PROPERTY(bool showDebugOverlay READ showDebugOverlay WRITE setShowDebugOverlay NOTIFY debugDataChanged)
+  Q_PROPERTY(long long detectionDelayMs READ detectionDelayMs NOTIFY debugDataChanged)
+  Q_PROPERTY(int detectionRatioPct READ detectionRatioPct NOTIFY debugDataChanged)
+  Q_PROPERTY(bool inputLocked READ inputLocked NOTIFY debugDataChanged)
+  Q_PROPERTY(bool isDiving READ isDiving NOTIFY debugDataChanged)
 
   // Custom Keybinds
   Q_PROPERTY(
@@ -106,6 +110,10 @@ public:
   bool fnMouseHidden() const;
   bool showDebugOverlay() const;
   void setShowDebugOverlay(bool v);
+  long long detectionDelayMs() const;
+  int detectionRatioPct() const;
+  bool inputLocked() const;
+  bool isDiving() const;
   Q_INVOKABLE void refreshDebugData();
 
 

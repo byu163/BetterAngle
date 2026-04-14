@@ -23,8 +23,15 @@ extern std::atomic<ULONGLONG> g_mouseSuspendedUntil;
 
 extern std::string g_lastVersionRun;
 
+// Version numbers — updated by scripts/bump_version.ps1
+#ifndef V_MAJ
+#define V_MAJ 4
+#define V_MIN 27
+#define V_PAT 233
+#endif
+
 #define VERSION_STR APP_STR_Y(V_MAJ) "." APP_STR_Y(V_MIN) "." APP_STR_Y(V_PAT)
-#define VERSION_WSTR                                                           \
+#define VERSION_WSTR \
   APP_WSTR_Y(V_MAJ) L"." APP_WSTR_Y(V_MIN) L"." APP_WSTR_Y(V_PAT)
 
 // Global Profile Management

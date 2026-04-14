@@ -218,23 +218,42 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
   }
 
   {
-  // ROI box visualizer
+  // ROI box visualizer — only when user has configured an ROI
   if (g_showROIBox && !g_allProfiles.empty()) {
     auto &p = g_allProfiles[g_selectedProfileIdx];
     if (p.roi_w > 0 && p.roi_h > 0) {
-      Color roiCol =
-          g_isDiving ? Color(200, 255, 60, 60) : Color(200, 60, 220, 80);
+      // Purple during focus-steal suspend, red when diving, green when gliding
+      bool suspended = (g_mouseSuspendedUntil > 0 && GetTickCount64() < g_mouseSuspendedUntil);
+      Color roiCol = suspended
+          ? Color(200, 180, 60, 220)     // purple
+          : g_isDiving
+              ? Color(200, 255, 60, 60)  // red
+              : Color(200, 60, 220, 80); // green
       Pen roiPen(roiCol, 2.0f);
       REAL dash[] = {8.0f, 4.0f};
       roiPen.SetDashPattern(dash, 2);
       graphics.DrawRectangle(&roiPen, p.roi_x, p.roi_y, p.roi_w, p.roi_h);
 
+      // Build keybind string for label
+      std::wstring kb;
+      if (p.keybinds.roiMod & MOD_CONTROL) kb += L"Ctrl+";
+      if (p.keybinds.roiMod & MOD_ALT)     kb += L"Alt+";
+      if (p.keybinds.roiMod & MOD_SHIFT)   kb += L"Shift+";
+      wchar_t keyName[32] = {};
+      UINT sc = MapVirtualKeyW(p.keybinds.roiKey, MAPVK_VK_TO_VSC);
+      GetKeyNameTextW((LONG)(sc << 16), keyName, 32);
+      kb += keyName;
+
+      std::wstring stateLabel = suspended ? L"LOCKING"
+                              : g_isDiving ? L"DIVING" : L"GLIDING";
+      std::wstring label = L"[" + kb + L"] " + stateLabel;
+
       FontFamily roiFF(L"Segoe UI");
       Font roiFont(&roiFF, 10, FontStyleBold, UnitPixel);
-      SolidBrush roiLabel(roiCol);
-      graphics.DrawString(g_isDiving ? L"DIVING" : L"GLIDING", -1, &roiFont,
+      SolidBrush roiLabelBrush(roiCol);
+      graphics.DrawString(label.c_str(), -1, &roiFont,
                           PointF(float(p.roi_x + 4), float(p.roi_y + 4)),
-                          &roiLabel);
+                          &roiLabelBrush);
     }
   }
 
@@ -369,14 +388,17 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
                       &sfCenter, &tinyBrush);
 
   // DEBUG Overlay Box
-  if (g_showDebugOverlay) {
+  if (g_showDebugOverlay && !g_allProfiles.empty()) {
+    auto &dbgP = g_allProfiles[g_selectedProfileIdx];
+    bool suspended = (g_mouseSuspendedUntil > 0 && GetTickCount64() < g_mouseSuspendedUntil);
+
     int dx = rx;
     int dy = ry + rh + 8;
     int dw = rw;
-    int dh = 112;
+    int dh = 178;  // 10 rows * 16px + padding
 
     LinearGradientBrush dbgBrush(Point(dx, dy), Point(dx, dy + dh),
-                                 Color(170, 8, 10, 14), Color(170, 3, 5, 8));
+                                 Color(175, 8, 10, 14), Color(175, 3, 5, 8));
     GraphicsPath dPath;
     AddRoundedRect(dPath, dx, dy, dw, dh, 6);
     graphics.FillPath(&dbgBrush, &dPath);
@@ -384,26 +406,41 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
     Pen dBorder(Color(100, 0, 204, 153), 1.0f);
     graphics.DrawPath(&dBorder, &dPath);
 
-    Font dbgFont(&ff, 11, FontStyleRegular, UnitPixel);
-    SolidBrush dbgTextL(Color(255, 170, 170, 170));
-    
+    Font dbgFont(&ff, 10, FontStyleRegular, UnitPixel);
+    SolidBrush dbgTextL(Color(255, 160, 160, 160));
+
     auto DrawRow = [&](int row, const wchar_t* label, const std::wstring& val, bool isGood = true) {
         float yPos = float(dy + 8 + (row * 16));
-        graphics.DrawString(label, -1, &dbgFont, PointF(float(dx + 12), yPos), &dbgTextL);
-        SolidBrush valBrush(isGood ? Color(255, 0, 255, 204) : Color(255, 255, 80, 80));
-        graphics.DrawString(val.c_str(), -1, &dbgFont, PointF(float(dx + dw - 70), yPos), &valBrush);
+        graphics.DrawString(label, -1, &dbgFont, PointF(float(dx + 10), yPos), &dbgTextL);
+        SolidBrush valBrush(isGood ? Color(255, 0, 220, 170) : Color(255, 255, 80, 80));
+        graphics.DrawString(val.c_str(), -1, &dbgFont, PointF(float(dx + dw - 74), yPos), &valBrush);
     };
 
     bool fnRun = CheckFortniteProcessFast();
     bool fnFoc = IsFortniteForeground();
     bool msHdd = !IsCursorCurrentlyVisible();
 
-    DrawRow(0, L"Engine FPS:", std::to_wstring((int)std::round(s_fps)));
-    DrawRow(1, L"Scanner Delay:", std::to_wstring((long long)g_detectionDelayMs) + L" ms", g_detectionDelayMs < 15);
-    DrawRow(2, L"Current Match Ratio:", std::to_wstring((int)(detectionRatio * 100)) + L"%", true);
-    DrawRow(3, L"Fortnite Running:", fnRun ? L"YES" : L"NO", fnRun);
-    DrawRow(4, L"Fortnite Focused:", fnFoc ? L"YES" : L"NO", fnFoc);
-    DrawRow(5, L"Mouse Attached:", msHdd ? L"YES" : L"NO", msHdd);
+    // Compute remaining suspension ms
+    std::wstring suspStr = L"NO";
+    if (suspended) {
+      long long rem = (long long)g_mouseSuspendedUntil - (long long)GetTickCount64();
+      suspStr = std::to_wstring(rem) + L" ms";
+    }
+
+    // Convert profile name for display (first 12 chars)
+    std::wstring profDisplay = dbgP.name.substr(0, 12);
+
+    DrawRow(0,  L"Engine FPS:",       std::to_wstring((int)std::round(s_fps)));
+    DrawRow(1,  L"Scanner Delay:",    std::to_wstring((long long)g_detectionDelayMs) + L" ms",
+                                      g_detectionDelayMs < 15);
+    DrawRow(2,  L"Match Ratio:",      std::to_wstring((int)(detectionRatio * 100)) + L"%");
+    DrawRow(3,  L"Threshold:",        std::to_wstring((int)dbgP.diveGlideMatch) + L"%");
+    DrawRow(4,  L"State:",            g_isDiving ? L"DIVING" : L"GLIDING", !g_isDiving);
+    DrawRow(5,  L"Input Locked:",     suspended ? suspStr : L"NO", !suspended);
+    DrawRow(6,  L"Fortnite Running:", fnRun ? L"YES" : L"NO", fnRun);
+    DrawRow(7,  L"Fortnite Focused:", fnFoc ? L"YES" : L"NO", fnFoc);
+    DrawRow(8,  L"Mouse Attached:",   msHdd ? L"YES" : L"NO", msHdd);
+    DrawRow(9,  L"Profile:",          profDisplay);
   }
 
   }

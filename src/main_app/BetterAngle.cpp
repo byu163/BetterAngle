@@ -578,14 +578,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   if (g_allProfiles.empty()) {
     Profile p;
     p.name = L"Default";
-    p.tolerance = 2;
-    p.sensitivityX = 0.1; // Default Standard
+    p.tolerance = 1;
+    p.sensitivityX = 0.1;
     p.sensitivityY = 0.1;
-    p.roi_x = 760;
-    p.roi_y = 640;
-    p.roi_w = 400;
-    p.roi_h = 70;
-    p.target_color = RGB(150, 150, 150);
+    // roi_x/y/w/h left at 0: user must run the ROI selector before
+    // the detection zone is shown. This avoids a confusing default box.
     p.crossThickness = 1.0f;
     p.crossColor = RGB(255, 0, 0);
     p.Save(GetProfilesPath() + L"Default.json");
