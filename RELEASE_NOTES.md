@@ -1,3 +1,9 @@
+### BetterAngle Pro v4.27.137
+- **Bulletproof Logging Engine**: Implemented atomic log rotation (5MB threshold) with a 5-file retention policy to protect user disk space.
+- **Crash-Resilient Diagnostics**: Introduced "Panic Flushing" for Error and Fatal log levels, ensuring critical failure data is committed to disk immediately.
+- **Dynamic Version Tracing**: The logging system now automatically includes the correct build version, system architecture, and processor counts in every log header.
+- **Enterprise-Grade Pathing**: Hardened the log directory initialization within the `%LOCALAPPDATA%` hierarchy.
+
 ### BetterAngle Pro v4.27.136
 - **Animation Polish**: Slowed the crosshair pulse effect by 50% for a smoother, more premium visual experience.
 - **Deep Diagnostics**: Overhauled the Debug tab with a "Live Diagnostics" console. It now displays real-time match ratios and active logic states (Diving/Gliding).
