@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.27.181
+- **Decimal UI Dragging Fix**: Fixed bug where decimal UI could not be dragged when Fortnite is out of focus. The issue was caused by the "SAFETY GUARD" that enforced window transparency (`WS_EX_TRANSPARENT`) even when Fortnite was not in focus, preventing mouse clicks from being detected. Modified the safety guard to only make the window transparent when Fortnite IS in focus, and make it interactive (not transparent) when Fortnite is NOT in focus, allowing proper dragging of the decimal UI.
+
 ### BetterAngle Pro v4.27.176
 - **Stage 2 Freezing Fix (Final)**: Applied comprehensive bounds checking for `GetPixel()` calls in Stage 2 color selection to prevent screen freezing when clicking prompt color. The fix ensures coordinates are validated against virtual screen dimensions before pixel sampling, with fallback to default color if out of bounds. This resolves the "completely freezes my whole screen" issue reported by users.
 

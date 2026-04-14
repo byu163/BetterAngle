@@ -5,12 +5,13 @@
 #include <fstream>
 #include <gdiplus.h>
 #include <iostream>
+#include <shellapi.h>
 #include <shlobj.h>
 #include <string>
 #include <thread>
 #include <vector>
 #include <windows.h>
-#include <shellapi.h>
+
 
 #include "shared/ControlPanel.h"
 #include "shared/Detector.h"
@@ -499,13 +500,22 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
           InvalidateRect(hWnd, NULL, FALSE);
         }
 
-        // SAFETY GUARD: Enforce Click-Through
-        // BUT skip when we're in ROI/Color selection mode (window needs to be
-        // interactive)
+        // SAFETY GUARD: Enforce Click-Through when Fortnite is in focus
+        // Window should be interactive (not transparent) when Fortnite is out
+        // of focus to allow dragging the decimal UI
         if (g_currentSelection == NONE) {
           long ex = GetWindowLong(hWnd, GWL_EXSTYLE);
-          if (!(ex & WS_EX_TRANSPARENT)) {
-            SetWindowLong(hWnd, GWL_EXSTYLE, ex | WS_EX_TRANSPARENT);
+          if (fortniteInFocus) {
+            // Fortnite is in focus: make window transparent (click-through)
+            if (!(ex & WS_EX_TRANSPARENT)) {
+              SetWindowLong(hWnd, GWL_EXSTYLE, ex | WS_EX_TRANSPARENT);
+            }
+          } else {
+            // Fortnite is NOT in focus: make window interactive (not
+            // transparent) to allow dragging the decimal UI
+            if (ex & WS_EX_TRANSPARENT) {
+              SetWindowLong(hWnd, GWL_EXSTYLE, ex & ~WS_EX_TRANSPARENT);
+            }
           }
         }
       }
@@ -573,11 +583,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   LOG_INFO("WinMain entered");
 
   int nArgs;
-  LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+  LPWSTR *szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
   bool forceDebug = false;
   if (szArglist) {
     for (int i = 0; i < nArgs; i++) {
-      if (wcscmp(szArglist[i], L"--debug") == 0 || wcscmp(szArglist[i], L"-d") == 0) {
+      if (wcscmp(szArglist[i], L"--debug") == 0 ||
+          wcscmp(szArglist[i], L"-d") == 0) {
         forceDebug = true;
       }
     }
