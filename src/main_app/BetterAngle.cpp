@@ -545,10 +545,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     p.tolerance = 2;
     p.sensitivityX = 0.1; // Default Standard
     p.sensitivityY = 0.1;
-    p.roi_x = 760;
-    p.roi_y = 640;
-    p.roi_w = 400;
-    p.roi_h = 70;
+    p.roi_x = 0;
+    p.roi_y = 0;
+    p.roi_w = 0;
+    p.roi_h = 0;
     p.target_color = RGB(150, 150, 150);
     p.crossThickness = 1.0f;
     p.crossColor = RGB(255, 0, 0);
