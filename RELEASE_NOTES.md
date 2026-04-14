@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.27.123
+- **MOC Linker Fix**: Added [`include/shared/BetterAngleBackend.h`](include/shared/BetterAngleBackend.h) to [`PROJECT_SOURCES`](CMakeLists.txt:13) so CMake's AUTOMOC processes the `Q_OBJECT` macro and generates the required `moc_BetterAngleBackend.cpp`, resolving 10 unresolved external symbol linker errors.
+
 ### BetterAngle Pro v4.27.122
 - **LogWindowInfo Signature Fix**: Updated the two [`LogWindowInfo()`](include/shared/EnhancedLogging.h:35) call sites in [`src/main_app/BetterAngle.cpp`](src/main_app/BetterAngle.cpp:620) to pass the required `label` parameter matching the two-argument signature, fixing the last CI compile failure.
 - **Diagnostic Logging Preserved**: The input-gate state logging in [`MsgWndProc()`](src/main_app/BetterAngle.cpp:222) remains intact for root-cause confirmation once CI is green.
