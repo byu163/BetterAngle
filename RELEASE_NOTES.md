@@ -1,3 +1,10 @@
+### BetterAngle Pro v4.27.129
+- **Release Payload Optimization**: Removed the standalone `uninstaller.exe` from GitHub Releases to streamline the distribution. All uninstallation logic is now handled internally by the main setup.
+- **Deep Uninstall Implementation**: Re-configured the uninstaller to perform a comprehensive system purge. Orchestrated the recursive deletion of both the installation directory and the `%LOCALAPPDATA%\BetterAngle` configuration folder.
+
+### BetterAngle Pro v4.27.128
+- **Maintenance**: Automated technical version alignment and synchronization.
+
 ### BetterAngle Pro v4.27.127
 - **Full Reset on Update**: The application now automatically purges all settings, profiles, and logs from `AppData` when an update is applied. This ensures a clean state and prevents legacy configuration issues from affecting new installs.
 - **Improved Update Automation**: Refined the post-update PowerShell script to handle high-reliability directory cleanup.

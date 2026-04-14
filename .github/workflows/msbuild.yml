@@ -174,7 +174,6 @@ jobs:
         with:
           files: |
             bin/BetterAngle_Setup.exe
-            build/Release/uninstaller.exe
           tag_name: ${{ env.RELEASE_TAG }}
           name: ${{ env.RELEASE_NAME }}
           body_path: CURRENT_RELEASE_NOTES.md

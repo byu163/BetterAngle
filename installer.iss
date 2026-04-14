@@ -28,6 +28,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "{localappdata}\BetterAngle"; Permissions: users-modify
 Name: "{app}"; Permissions: users-modify
 
+[UninstallDelete]
+Type: filesandordirs; Name: "{localappdata}\BetterAngle"
+Type: filesandordirs; Name: "{app}"
+
 [Files]
 Source: "build\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
