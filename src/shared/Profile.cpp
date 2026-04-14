@@ -99,10 +99,6 @@ bool Profile::Load(const std::wstring &path) {
     keybinds.zeroMod = MOD_CONTROL;
     keybinds.zeroKey = 'G';
   }
-  if (keybinds.debugKey == 0) {
-    keybinds.debugMod = MOD_CONTROL;
-    keybinds.debugKey = '9';
-  }
 
   // Load Crosshair (with defaults for legacy files)
   crossThickness = (float)extractDouble("crossThickness");

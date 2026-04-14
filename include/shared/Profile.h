@@ -14,8 +14,6 @@ struct Keybinds {
   UINT crossKey = VK_F10;
   UINT zeroMod = MOD_CONTROL;
   UINT zeroKey = 'G';
-  UINT debugMod = MOD_CONTROL;
-  UINT debugKey = '9';
 };
 
 struct CrosshairPreset {

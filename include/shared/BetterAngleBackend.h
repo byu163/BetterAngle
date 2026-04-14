@@ -25,19 +25,6 @@ class BetterAngleBackend : public QObject {
   Q_PROPERTY(QColor crossColor READ crossColor WRITE setCrossColor NOTIFY
                  crosshairChanged)
 
-  Q_PROPERTY(
-      bool debugMode READ debugMode WRITE setDebugMode NOTIFY debugChanged)
-  Q_PROPERTY(bool forceDiving READ forceDiving WRITE setForceDiving NOTIFY
-                 debugChanged)
-  Q_PROPERTY(bool forceDetection READ forceDetection WRITE setForceDetection
-                 NOTIFY debugChanged)
-  Q_PROPERTY(int diveGlideMatch READ diveGlideMatch WRITE setDiveGlideMatch NOTIFY
-                 diveGlideMatchChanged)
-  Q_PROPERTY(float glideThreshold READ glideThreshold WRITE setGlideThreshold
-                 NOTIFY debugChanged)
-  Q_PROPERTY(float freefallThreshold READ freefallThreshold WRITE
-                 setFreefallThreshold NOTIFY debugChanged)
-
   Q_PROPERTY(QString versionStr READ versionStr CONSTANT)
   Q_PROPERTY(
       QString latestVersion READ latestVersion NOTIFY updateStatusChanged)
@@ -62,10 +49,6 @@ class BetterAngleBackend : public QObject {
       QString keyCross READ keyCross WRITE setKeyCross NOTIFY hotkeysChanged)
   Q_PROPERTY(
       QString keyZero READ keyZero WRITE setKeyZero NOTIFY hotkeysChanged)
-  Q_PROPERTY(
-      QString keyDebug READ keyDebug WRITE setKeyDebug NOTIFY hotkeysChanged)
-  Q_PROPERTY(float detectionRatio READ detectionRatio NOTIFY debugDataChanged)
-  Q_PROPERTY(bool isDiving READ isDiving NOTIFY debugDataChanged)
 
 public:
   explicit BetterAngleBackend(QObject *parent = nullptr);
@@ -152,19 +135,14 @@ public:
   QString keyZero() const;
   void setKeyZero(const QString &s);
   QString keyDebug() const;
-  void setKeyDebug(const QString &s);
   Q_INVOKABLE void saveKeybinds();
 
 signals:
   void profileChanged();
   void crosshairChanged();
-  void debugChanged();
-  void diveGlideMatchChanged();
-  void updateStatusChanged();
-  void crosshairPresetsChanged();
-  void showControlPanelRequested();
-  void debugDataChanged();
   void hotkeysChanged();
+  void updateStatusChanged();
+  void showControlPanelRequested();
 
 private:
 };

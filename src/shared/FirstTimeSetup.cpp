@@ -133,7 +133,7 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
     int dx = GetRawInputDeltaX(lParam);
     g_isCursorVisible = IsCursorCurrentlyVisible();
 
-    const bool allowAngleUpdate = g_debugMode || IsFortniteForeground();
+    const bool allowAngleUpdate = IsFortniteForeground();
     if (allowAngleUpdate) {
       // Update angle accumulation (the decimal) based on raw input
       g_logic.Update(dx);
@@ -203,13 +203,6 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
     case 4:
       g_currentAngle = 0.0f;
       g_logic.SetZero();
-      break;
-    case 5:
-      g_debugMode = !g_debugMode;
-      SaveSettings();
-      NotifyBackendDebugChanged();
-      InvalidateRect(hWnd, NULL, FALSE);
-      UpdateWindow(hWnd);
       break;
     }
     return 0;

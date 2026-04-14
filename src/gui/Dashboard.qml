@@ -35,11 +35,6 @@ Item {
             background: Rectangle { color: parent.checked ? "#1a1a2e" : "transparent" }
         }
         TabButton {
-            text: qsTr("DEBUG")
-            contentItem: Text { text: parent.text; color: parent.checked ? "#00ffcc" : "#888"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
-            background: Rectangle { color: parent.checked ? "#1a1a2e" : "transparent" }
-        }
-        TabButton {
             text: qsTr("UPDATES")
             contentItem: Text { text: parent.text; color: parent.checked ? "#00ffcc" : "#888"; font.bold: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
             background: Rectangle { color: parent.checked ? "#1a1a2e" : "transparent" }
@@ -414,39 +409,7 @@ Item {
                                 }
                             }
                         }
-                        RowLayout {
-                            Text { text: "Debug Overlay:"; color: "white"; Layout.preferredWidth: 150 }
-                            TextField {
-                                id: keyDebugField
-                                Layout.fillWidth: true
-                                readOnly: true
-                                selectByMouse: false
-                                activeFocusOnTab: true
-                                text: activeFocus ? "Listening for keys..." : backend.keyDebug
-                                color: activeFocus ? "#00ffa3" : "white"
-                                font.bold: activeFocus
-                                background: Rectangle { 
-                                    color: "#1c1c2e"; radius: 4 
-                                    border.color: keyDebugField.activeFocus ? "#00cca3" : "#333"
-                                    border.width: keyDebugField.activeFocus ? 2 : 1 
-                                }
-                                MouseArea {
-                                    anchors.fill: parent
-                                    acceptedButtons: Qt.AllButtons
-                                    cursorShape: Qt.PointingHandCursor
-                                    onPressed: function(mouse) {
-                                        if (keyDebugField.activeFocus)
-                                            hotkeyColumn.captureMouseHotkey(mouse, function(bind) { backend.keyDebug = bind })
-                                        else
-                                            keyDebugField.forceActiveFocus()
-                                    }
-                                }
-                                Keys.priority: Keys.BeforeItem
-                                Keys.onPressed: function(event) {
-                                    hotkeyColumn.captureHotkey(event, function(bind) { backend.keyDebug = bind })
-                                }
-                            }
-                        }
+
 
                         Text {
                             text: "Click a bind, then press the combo. Changes apply immediately."
@@ -834,58 +797,7 @@ Item {
         }
 
 
-        // ─── DEBUG ──────────────────────────────────────────────────
-        Rectangle {
-            color: "#0d0d12"
-            Column {
-                anchors.fill: parent
-                anchors.margins: 20
-                spacing: 10
 
-                CheckBox {
-                    text: "Debug Overlay (Ctrl+9)"
-                    checked: backend.debugMode
-                    onClicked: backend.debugMode = checked
-                    contentItem: Text { text: parent.text; color: "white"; leftPadding: parent.indicator.width + 10 }
-                }
-                CheckBox {
-                    text: "Force Diving State"
-                    checked: backend.forceDiving
-                    onToggled: backend.forceDiving = checked
-                    contentItem: Text { text: parent.text; color: "white"; leftPadding: parent.indicator.width + 10 }
-                }
-
-                Text { text: "LIVE DIAGNOSTICS"; color: "#666"; font.pixelSize: 12; topPadding: 15 }
-                
-                Rectangle {
-                    width: parent.width
-                    height: 80
-                    color: "#1a1a24"
-                    radius: 6
-                    
-                    Column {
-                        anchors.centerIn: parent
-                        spacing: 8
-                        
-                        Text {
-                            text: "Match Ratio: " + (backend.detectionRatio * 100).toFixed(1) + "%"
-                            color: "white"
-                            font.pixelSize: 18
-                            font.bold: true
-                            horizontalAlignment: Text.AlignHCenter
-                        }
-                        
-                        Text {
-                            text: backend.isDiving ? "STATE: DIVING" : "STATE: GLIDING"
-                            color: backend.isDiving ? "#ff4d4d" : "#4d94ff"
-                            font.pixelSize: 14
-                            font.bold: true
-                            horizontalAlignment: Text.AlignHCenter
-                        }
-                    }
-                }
-            }
-        }
 
         // ─── UPDATES ────────────────────────────────────────────────
         Rectangle {

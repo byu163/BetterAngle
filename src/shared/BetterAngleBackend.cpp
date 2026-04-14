@@ -213,57 +213,11 @@ void BetterAngleBackend::setCrossColor(const QColor &c) {
   emit crosshairChanged();
 }
 
-bool BetterAngleBackend::debugMode() const { return g_debugMode; }
-void BetterAngleBackend::setDebugMode(bool v) {
-  g_debugMode = v;
-  g_forceRedraw = true;
-  SaveSettings();
-  emit debugChanged();
-}
-
-bool BetterAngleBackend::forceDiving() const { return g_forceDiving; }
-void BetterAngleBackend::setForceDiving(bool v) {
-  g_forceDiving = v;
-  g_forceRedraw = true;
-  SaveSettings();
-  emit debugChanged();
-}
-
-bool BetterAngleBackend::forceDetection() const { return g_forceDetection; }
-void BetterAngleBackend::setForceDetection(bool v) {
-  g_forceDetection = v;
-  g_forceRedraw = true;
-  SaveSettings();
-  emit debugChanged();
-}
-
-float BetterAngleBackend::glideThreshold() const { return g_glideThreshold; }
-void BetterAngleBackend::setGlideThreshold(float v) {
-  g_glideThreshold = v;
-  SaveSettings();
-  emit debugChanged();
-}
-
-float BetterAngleBackend::freefallThreshold() const {
-  return g_freefallThreshold;
-}
-void BetterAngleBackend::setFreefallThreshold(float v) {
-  g_freefallThreshold = v;
-  SaveSettings();
-  emit debugChanged();
-}
-
 int BetterAngleBackend::diveGlideMatch() const {
-  return static_cast<int>(g_glideThreshold * 100.0f + 0.5f);
+  return 10; // Fixed default
 }
 
 void BetterAngleBackend::setDiveGlideMatch(int v) {
-  float threshold = v / 100.0f;
-  g_glideThreshold = threshold;
-  g_freefallThreshold = threshold;
-  SaveSettings();
-  emit diveGlideMatchChanged();
-  emit debugChanged();
 }
 
 QString BetterAngleBackend::versionStr() const {
@@ -285,8 +239,8 @@ QString BetterAngleBackend::updateHistory() const {
   return QString::fromStdString(g_updateHistory);
 }
 
-float BetterAngleBackend::detectionRatio() const { return g_detectionRatio; }
-bool BetterAngleBackend::isDiving() const { return g_isDiving; }
+float BetterAngleBackend::detectionRatio() const { return 0.0f; }
+bool BetterAngleBackend::isDiving() const { return false; }
 
 QString BetterAngleBackend::updateStatus() const {
   if (g_isDownloadingUpdate)
@@ -891,19 +845,9 @@ void BetterAngleBackend::setKeyZero(const QString &s) {
 }
 
 QString BetterAngleBackend::keyDebug() const {
-  if (g_allProfiles.empty())
-    return "Ctrl + 9";
-  const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
-  return fullKeyToString(k.debugMod, k.debugKey);
+  return "Disabled";
 }
 void BetterAngleBackend::setKeyDebug(const QString &s) {
-  if (!g_allProfiles.empty()) {
-    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.debugMod,
-                 g_allProfiles[g_selectedProfileIdx].keybinds.debugKey);
-    saveKeybinds();
-    SaveSettings();
-    emit hotkeysChanged();
-  }
 }
 
 void BetterAngleBackend::saveKeybinds() {

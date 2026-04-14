@@ -190,11 +190,9 @@ bool RefreshHotkeys(HWND hWnd) {
                                L"Crosshair Toggle");
   ok &= registerWithErrorCheck(4, p.keybinds.zeroMod, p.keybinds.zeroKey,
                                L"Zero Angle");
-  ok &= registerWithErrorCheck(5, p.keybinds.debugMod, p.keybinds.debugKey,
-                               L"Debug Mode");
 
-  // Log any failures (in debug mode)
-  if (!failedHotkeys.empty() && g_debugMode) {
+  // Log failures
+  if (!failedHotkeys.empty()) {
     for (const auto &failure : failedHotkeys) {
       OutputDebugStringW((L"BetterAngle: " + failure.second + L"\n").c_str());
     }
@@ -211,7 +209,7 @@ bool RefreshHotkeys(HWND hWnd) {
     // Try to register at least some hotkeys (fallback to defaults for failed
     // ones) This ensures the app remains somewhat functional even if some
     // hotkeys conflict
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 1; i <= 4; i++) {
       RegisterHotKey(hWnd, i, MOD_CONTROL | 0x4000,
                      'A' + i - 1); // Ctrl+A, Ctrl+B, etc. as fallback
     }
@@ -228,26 +226,22 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
     g_isCursorVisible = IsCursorCurrentlyVisible();
     const bool isFortniteForeground = IsFortniteForeground();
 
-    const bool allowAngleUpdate =
-        g_debugMode || (isFortniteForeground && !g_isCursorVisible);
+    const bool allowAngleUpdate = (isFortniteForeground && !g_isCursorVisible);
 
     static bool lastAllowAngleUpdate = true;
     static bool lastIsFortniteForeground = false;
     static bool lastCursorVisible = false;
-    static bool lastDebugMode = false;
 
     if (allowAngleUpdate != lastAllowAngleUpdate ||
         isFortniteForeground != lastIsFortniteForeground ||
-        g_isCursorVisible != lastCursorVisible ||
-        g_debugMode != lastDebugMode) {
-      LOG_INFO("Input gate changed: debug=%d fortnite=%d cursorVisible=%d "
+        g_isCursorVisible != lastCursorVisible) {
+      LOG_INFO("Input gate changed: fortnite=%d cursorVisible=%d "
                "allow=%d dx=%d",
-               g_debugMode ? 1 : 0, isFortniteForeground ? 1 : 0,
-               g_isCursorVisible ? 1 : 0, allowAngleUpdate ? 1 : 0, dx);
+               isFortniteForeground ? 1 : 0, g_isCursorVisible ? 1 : 0,
+               allowAngleUpdate ? 1 : 0, dx);
       lastAllowAngleUpdate = allowAngleUpdate;
       lastIsFortniteForeground = isFortniteForeground;
       lastCursorVisible = g_isCursorVisible;
-      lastDebugMode = g_debugMode;
     }
 
     if (allowAngleUpdate) {
@@ -322,11 +316,6 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
     case 4:
       g_currentAngle = 0.0f;
       g_logic.SetZero();
-      break;
-    case 5:
-      g_debugMode = !g_debugMode;
-      InvalidateRect(hWnd, NULL, FALSE);
-      UpdateWindow(hWnd);
       break;
     }
     return 0;
@@ -559,7 +548,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
 
   LoadSettings();
-  SetLogLevel(g_debugMode ? LogLevel::Trace : LogLevel::Info);
+  SetLogLevel(LogLevel::Info);
   LogStartup();
   CleanupUpdateJunk();
 

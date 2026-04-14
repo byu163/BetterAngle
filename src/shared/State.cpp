@@ -118,9 +118,6 @@ void LoadSettings() {
       g_setupComplete = true;
     }
     g_showCrosshair = eFloat("showCrosshair", 1.0f) > 0.5f;
-    g_debugMode = eFloat("debugMode", 0.0f) > 0.5f;
-    g_forceDiving = eFloat("forceDiving", 0.0f) > 0.5f;
-    g_forceDetection = eFloat("forceDetection", 0.0f) > 0.5f;
     g_selectedProfileIdx = eInt("selectedProfileIdx", 0);
 
     size_t vp = content.find("\"lastVersionRun\":\"");
@@ -166,15 +163,10 @@ void SaveSettings() {
   oss.imbue(std::locale("C"));
 
   oss << "{\n";
-  oss << "  \"glideThreshold\": " << g_glideThreshold << ",\n";
-  oss << "  \"freefallThreshold\": " << g_freefallThreshold << ",\n";
   oss << "  \"hudX\": " << g_hudX << ",\n";
   oss << "  \"hudY\": " << g_hudY << ",\n";
   oss << "  \"setupComplete\": " << (g_setupComplete ? 1 : 0) << ",\n";
   oss << "  \"showCrosshair\": " << (g_showCrosshair ? 1 : 0) << ",\n";
-  oss << "  \"debugMode\": " << (g_debugMode ? 1 : 0) << ",\n";
-  oss << "  \"forceDiving\": " << (g_forceDiving ? 1 : 0) << ",\n";
-  oss << "  \"forceDetection\": " << (g_forceDetection ? 1 : 0) << ",\n";
   oss << "  \"selectedProfileIdx\": " << g_selectedProfileIdx << ",\n";
 
   oss << "  \"lastVersionRun\":\"" << VERSION_STR << "\",\n";
@@ -213,11 +205,8 @@ POINT g_startPoint = {0};
 
 std::string g_latestVersionOnline = "v" VERSION_STR;
 float g_currentAngle = 0.0f;
-bool g_debugMode = false;
 bool g_isCursorVisible = false;
 AngleLogic g_logic(0.05);
-bool g_forceDiving = false;
-bool g_forceDetection = false;
 
 int g_hudX = 40;
 int g_hudY = 40;
