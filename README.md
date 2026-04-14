@@ -1,6 +1,10 @@
 # BetterAngle - Experimental C++ Version (Not working yet)
 
 A high-performance, low-latency angle tracker and FOV detection overlay for Windows.
+## 🔧 How to use
+- **Step 1:** Input your sensitivity from Fortnite
+- **Step 2:** Hop into a Fortnite match and hit the Select ROI key. Select the area of the screen with the text (Make sure to add some extra room). Select the color you want to track (white)
+- **Step 3:** Change the Percent to Match how much of the area.
 
 ## 🚀 Transition to C++
 We are currently porting the project from Python to **Pure C++** to achieve:
@@ -30,4 +34,4 @@ Check the **[Releases](https://github.com/MahanYTT/BetterAngle/releases)** page 
 2. Open with Visual Studio or compile using `msbuild`.
 
 ---
-*Created by [MahanYTT](https://github.com/MahanYTT) & [itsdolphin](https://github.com/byu163) with ❤️*
+*Created by [Fruss](https://github.com/wavedropmaps) & [MahanYTT](https://github.com/MahanYTT) & [itsdolphin](https://github.com/byu163) with ❤️*
