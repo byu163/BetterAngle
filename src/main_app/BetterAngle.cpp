@@ -46,7 +46,9 @@ void DetectorThread() {
       // Only scan and change angle scale when in debug mode or if always active
       RoiConfig cfg = {p.roi_x, p.roi_y,        p.roi_w,
                        p.roi_h, p.target_color, p.tolerance};
+      LOG_INFO("DetectorThread: Calling g_detector.Scan");
       g_detectionRatio = g_detector.Scan(cfg);
+      LOG_INFO("DetectorThread: Scan complete");
       if (g_forceDetection)
         g_detectionRatio = 1.0f;
 
@@ -475,6 +477,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         lastDiving = g_isDiving;
         lastCursor = g_isCursorVisible;
         g_forceRedraw.store(false);
+        LOG_INFO("WM_TIMER: Calling DrawOverlay");
         DrawOverlay(hWnd, ang, g_detectionRatio, g_showCrosshair);
       }
     } else if (wParam == 2) { // 30s Auto-Save Periodic Timer
