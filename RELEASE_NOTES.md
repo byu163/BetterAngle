@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.27.144
+- **Simple Icon Restoration**: Reverted the branding to the user-preferred simple cyan orb design, removing the complex iris/text elements.
+- **Hard Transparency Masking**: Applied a mathematically rigorous "Hard Mask" to the icon asset, ensuring absolute 100% transparency outside the orb and eliminating all black ring/border artifacts.
+- **Branding Consolidation**: Standardized the simple, transparent aesthetic across all system levels (Taskbar, Desktop, Installer).
+
 ### BetterAngle Pro v4.27.143
 - **Heartbeat Pulse Animation**: Re-engineered the crosshair pulse to trigger a rapid fade-out and a **2-second transparent hold**, reducing visual noise while maintaining timing telemetry.
 - **Sub-Pixel Thickness Fix**: Calibrated the rendering engine to support line thicknesses below 1.0px using `PixelOffsetModeHalf`. Ultra-thin crosshairs now render with crisp anti-aliasing.
