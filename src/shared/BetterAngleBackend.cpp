@@ -441,93 +441,191 @@ static UINT stringToVk(const QString &s) {
   QString upper = s.toUpper().trimmed();
   if (upper.isEmpty())
     return 0;
+
+  // Single character keys
   if (upper.length() == 1) {
-    char c = upper[0].toLatin1();
+    QChar c = upper[0];
     if (c >= 'A' && c <= 'Z')
-      return (UINT)c;
+      return (UINT)c.unicode();
     if (c >= '0' && c <= '9')
-      return (UINT)c;
+      return (UINT)c.unicode();
   }
-  if (upper == "F1")
-    return VK_F1;
-  if (upper == "F2")
-    return VK_F2;
-  if (upper == "F3")
-    return VK_F3;
-  if (upper == "F4")
-    return VK_F4;
-  if (upper == "F5")
-    return VK_F5;
-  if (upper == "F6")
-    return VK_F6;
-  if (upper == "F7")
-    return VK_F7;
-  if (upper == "F8")
-    return VK_F8;
-  if (upper == "F9")
-    return VK_F9;
-  if (upper == "F10")
-    return VK_F10;
-  if (upper == "F11")
-    return VK_F11;
-  if (upper == "F12")
-    return VK_F12;
-  if (upper == "TAB")
-    return VK_TAB;
-  if (upper == "SPACE")
-    return VK_SPACE;
-  if (upper == "ESC")
-    return VK_ESCAPE;
-  if (upper == "CTRL")
-    return VK_CONTROL;
-  if (upper == "SHIFT")
-    return VK_SHIFT;
-  if (upper == "ALT")
-    return VK_MENU;
+
+  // Function keys
+  static const std::pair<const char *, UINT> keyMap[] = {
+      {"F1", VK_F1},
+      {"F2", VK_F2},
+      {"F3", VK_F3},
+      {"F4", VK_F4},
+      {"F5", VK_F5},
+      {"F6", VK_F6},
+      {"F7", VK_F7},
+      {"F8", VK_F8},
+      {"F9", VK_F9},
+      {"F10", VK_F10},
+      {"F11", VK_F11},
+      {"F12", VK_F12},
+      {"TAB", VK_TAB},
+      {"SPACE", VK_SPACE},
+      {"ESC", VK_ESCAPE},
+      {"ESCAPE", VK_ESCAPE},
+      {"CTRL", VK_CONTROL},
+      {"CONTROL", VK_CONTROL},
+      {"SHIFT", VK_SHIFT},
+      {"ALT", VK_MENU},
+      {"MENU", VK_MENU},
+      {"LWIN", VK_LWIN},
+      {"RWIN", VK_RWIN},
+      {"WIN", VK_LWIN},
+      {"LCTRL", VK_LCONTROL},
+      {"RCTRL", VK_RCONTROL},
+      {"LSHIFT", VK_LSHIFT},
+      {"RSHIFT", VK_RSHIFT},
+      {"LALT", VK_LMENU},
+      {"RALT", VK_RMENU},
+      {"ENTER", VK_RETURN},
+      {"RETURN", VK_RETURN},
+      {"CAPSLOCK", VK_CAPITAL},
+      {"CAPITAL", VK_CAPITAL},
+      {"CAPS", VK_CAPITAL},
+      {"INSERT", VK_INSERT},
+      {"INS", VK_INSERT},
+      {"DELETE", VK_DELETE},
+      {"DEL", VK_DELETE},
+      {"HOME", VK_HOME},
+      {"END", VK_END},
+      {"PAGEUP", VK_PRIOR},
+      {"PGUP", VK_PRIOR},
+      {"PAGEDOWN", VK_NEXT},
+      {"PGDN", VK_NEXT},
+      {"PRIOR", VK_PRIOR},
+      {"NEXT", VK_NEXT},
+      {"UP", VK_UP},
+      {"DOWN", VK_DOWN},
+      {"LEFT", VK_LEFT},
+      {"RIGHT", VK_RIGHT},
+      {"NUMLOCK", VK_NUMLOCK},
+      {"SCROLLLOCK", VK_SCROLL},
+      {"SCROLL", VK_SCROLL},
+      {"PRINTSCREEN", VK_SNAPSHOT},
+      {"PRTSC", VK_SNAPSHOT},
+      {"SNAPSHOT", VK_SNAPSHOT},
+      {"PAUSE", VK_PAUSE},
+      {"BREAK", VK_PAUSE},
+      {"MOUSE1", 0x01},
+      {"MOUSE2", 0x02},
+      {"MOUSE3", 0x04},
+      {"MOUSE4", 0x05},
+      {"MOUSE5", 0x06},
+      {"MB1", 0x01},
+      {"MB2", 0x02},
+      {"MB3", 0x04},
+      {"MB4", 0x05},
+      {"MB5", 0x06},
+      {"BACKSPACE", VK_BACK},
+      {"BACK", VK_BACK},
+      {"ADD", VK_ADD},
+      {"SUBTRACT", VK_SUBTRACT},
+      {"MULTIPLY", VK_MULTIPLY},
+      {"DIVIDE", VK_DIVIDE},
+      {"DECIMAL", VK_DECIMAL},
+      {"NUMPAD0", VK_NUMPAD0},
+      {"NUMPAD1", VK_NUMPAD1},
+      {"NUMPAD2", VK_NUMPAD2},
+      {"NUMPAD3", VK_NUMPAD3},
+      {"NUMPAD4", VK_NUMPAD4},
+      {"NUMPAD5", VK_NUMPAD5},
+      {"NUMPAD6", VK_NUMPAD6},
+      {"NUMPAD7", VK_NUMPAD7},
+      {"NUMPAD8", VK_NUMPAD8},
+      {"NUMPAD9", VK_NUMPAD9}};
+
+  for (const auto &pair : keyMap) {
+    if (upper == pair.first)
+      return pair.second;
+  }
+
   return 0;
 }
 
 static QString vkToString(UINT vk) {
+  // Single character keys
   if (vk >= 'A' && vk <= 'Z')
     return QString((char)vk);
   if (vk >= '0' && vk <= '9')
     return QString((char)vk);
-  if (vk == VK_F1)
-    return "F1";
-  if (vk == VK_F2)
-    return "F2";
-  if (vk == VK_F3)
-    return "F3";
-  if (vk == VK_F4)
-    return "F4";
-  if (vk == VK_F5)
-    return "F5";
-  if (vk == VK_F6)
-    return "F6";
-  if (vk == VK_F7)
-    return "F7";
-  if (vk == VK_F8)
-    return "F8";
-  if (vk == VK_F9)
-    return "F9";
-  if (vk == VK_F10)
-    return "F10";
-  if (vk == VK_F11)
-    return "F11";
-  if (vk == VK_F12)
-    return "F12";
-  if (vk == VK_TAB)
-    return "TAB";
-  if (vk == VK_SPACE)
-    return "SPACE";
-  if (vk == VK_ESCAPE)
-    return "ESC";
-  if (vk == VK_CONTROL)
-    return "CTRL";
-  if (vk == VK_SHIFT)
-    return "SHIFT";
-  if (vk == VK_MENU)
-    return "ALT";
+
+  // Map virtual key codes to string names
+  static const std::pair<UINT, const char *> keyMap[] = {
+      {VK_F1, "F1"},
+      {VK_F2, "F2"},
+      {VK_F3, "F3"},
+      {VK_F4, "F4"},
+      {VK_F5, "F5"},
+      {VK_F6, "F6"},
+      {VK_F7, "F7"},
+      {VK_F8, "F8"},
+      {VK_F9, "F9"},
+      {VK_F10, "F10"},
+      {VK_F11, "F11"},
+      {VK_F12, "F12"},
+      {VK_TAB, "TAB"},
+      {VK_SPACE, "SPACE"},
+      {VK_ESCAPE, "ESC"},
+      {VK_CONTROL, "CTRL"},
+      {VK_LCONTROL, "LCTRL"},
+      {VK_RCONTROL, "RCTRL"},
+      {VK_SHIFT, "SHIFT"},
+      {VK_LSHIFT, "LSHIFT"},
+      {VK_RSHIFT, "RSHIFT"},
+      {VK_MENU, "ALT"},
+      {VK_LMENU, "LALT"},
+      {VK_RMENU, "RALT"},
+      {VK_LWIN, "LWIN"},
+      {VK_RWIN, "RWIN"},
+      {VK_RETURN, "ENTER"},
+      {VK_CAPITAL, "CAPSLOCK"},
+      {VK_INSERT, "INSERT"},
+      {VK_DELETE, "DELETE"},
+      {VK_HOME, "HOME"},
+      {VK_END, "END"},
+      {VK_PRIOR, "PAGEUP"},
+      {VK_NEXT, "PAGEDOWN"},
+      {VK_UP, "UP"},
+      {VK_DOWN, "DOWN"},
+      {VK_LEFT, "LEFT"},
+      {VK_RIGHT, "RIGHT"},
+      {VK_NUMLOCK, "NUMLOCK"},
+      {VK_SCROLL, "SCROLLLOCK"},
+      {VK_SNAPSHOT, "PRINTSCREEN"},
+      {VK_PAUSE, "PAUSE"},
+      {0x01, "MOUSE1"},
+      {0x02, "MOUSE2"},
+      {0x04, "MOUSE3"},
+      {0x05, "MOUSE4"},
+      {0x06, "MOUSE5"},
+      {VK_BACK, "BACKSPACE"},
+      {VK_ADD, "ADD"},
+      {VK_SUBTRACT, "SUBTRACT"},
+      {VK_MULTIPLY, "MULTIPLY"},
+      {VK_DIVIDE, "DIVIDE"},
+      {VK_DECIMAL, "DECIMAL"},
+      {VK_NUMPAD0, "NUMPAD0"},
+      {VK_NUMPAD1, "NUMPAD1"},
+      {VK_NUMPAD2, "NUMPAD2"},
+      {VK_NUMPAD3, "NUMPAD3"},
+      {VK_NUMPAD4, "NUMPAD4"},
+      {VK_NUMPAD5, "NUMPAD5"},
+      {VK_NUMPAD6, "NUMPAD6"},
+      {VK_NUMPAD7, "NUMPAD7"},
+      {VK_NUMPAD8, "NUMPAD8"},
+      {VK_NUMPAD9, "NUMPAD9"}};
+
+  for (const auto &pair : keyMap) {
+    if (vk == pair.first)
+      return QString(pair.second);
+  }
+
   return "";
 }
 
@@ -545,19 +643,50 @@ static QString fullKeyToString(UINT mod, UINT vk) {
 
 static void parseFullKey(const QString &s, UINT &outMod, UINT &outKey) {
   outMod = 0;
-  QString lower = s.toLower();
-  if (lower.contains("ctrl"))
-    outMod |= MOD_CONTROL;
-  if (lower.contains("shift"))
-    outMod |= MOD_SHIFT;
-  if (lower.contains("alt"))
-    outMod |= MOD_ALT;
+  outKey = 0;
 
-  QString keyPart = s;
-  if (s.contains("+")) {
-    keyPart = s.split("+").last().trimmed();
+  if (s.isEmpty())
+    return;
+
+  // Split by '+' and handle each part
+  QStringList parts = s.split('+', Qt::SkipEmptyParts);
+  if (parts.isEmpty())
+    return;
+
+  // Process modifiers
+  for (int i = 0; i < parts.size() - 1; ++i) {
+    QString part = parts[i].trimmed().toLower();
+    if (part == "ctrl" || part == "control" || part == "ctl")
+      outMod |= MOD_CONTROL;
+    else if (part == "shift" || part == "shft")
+      outMod |= MOD_SHIFT;
+    else if (part == "alt" || part == "menu")
+      outMod |= MOD_ALT;
+    else if (part == "win" || part == "windows" || part == "meta")
+      outMod |= MOD_WIN;
+    else if (part == "lctrl" || part == "leftctrl")
+      outMod |= MOD_CONTROL; // Windows doesn't distinguish left/right in
+                             // RegisterHotKey
+    else if (part == "rctrl" || part == "rightctrl")
+      outMod |= MOD_CONTROL;
+    else if (part == "lshift" || part == "leftshift")
+      outMod |= MOD_SHIFT;
+    else if (part == "rshift" || part == "rightshift")
+      outMod |= MOD_SHIFT;
+    else if (part == "lalt" || part == "leftalt")
+      outMod |= MOD_ALT;
+    else if (part == "ralt" || part == "rightalt")
+      outMod |= MOD_ALT;
   }
+
+  // Last part is the main key
+  QString keyPart = parts.last().trimmed();
   outKey = stringToVk(keyPart);
+
+  // If no key was found but we have a single part, try to parse it as a key
+  if (outKey == 0 && parts.size() == 1) {
+    outKey = stringToVk(parts[0].trimmed());
+  }
 }
 
 QString BetterAngleBackend::keyToggle() const {
