@@ -328,6 +328,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       break;
     case 5:
       g_debugMode = !g_debugMode;
+      g_forceRedraw = true;
       SaveSettings();
       NotifyBackendDebugChanged();
       InvalidateRect(hWnd, NULL, FALSE);
