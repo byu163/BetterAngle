@@ -154,24 +154,88 @@ static void RemoveNamedFilesRecursively(const fs::path& root, const std::vector<
     }
 }
 
+static bool PathStartsWith(const fs::path& path, const fs::path& base) {
+    std::error_code ecPath;
+    std::error_code ecBase;
+
+    const fs::path normPath = fs::weakly_canonical(path, ecPath);
+    const fs::path normBase = fs::weakly_canonical(base, ecBase);
+
+    if (ecPath || ecBase) {
+        return false;
+    }
+
+    auto itPath = normPath.begin();
+    auto itBase = normBase.begin();
+
+    for (; itBase != normBase.end(); ++itBase, ++itPath) {
+        if (itPath == normPath.end()) {
+            return false;
+        }
+
+        if (!EqualsIgnoreCase(itPath->wstring(), itBase->wstring())) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool IsTrustedInstallBase(const fs::path& candidate) {
+    const std::vector<std::wstring> bases = {
+        GetEnvVar(L"ProgramFiles"),
+        GetEnvVar(L"ProgramFiles(x86)"),
+        GetKnownFolder(FOLDERID_LocalAppData),
+        GetKnownFolder(FOLDERID_ProgramData)
+    };
+
+    for (const auto& base : bases) {
+        if (!base.empty() && PathStartsWith(candidate, fs::path(base))) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool IsSafeInstallDirectory(const fs::path& dir) {
+    std::error_code ec;
+    if (dir.empty() || !fs::exists(dir, ec) || !fs::is_directory(dir, ec)) {
+        return false;
+    }
+
+    if (!EqualsIgnoreCase(dir.filename().wstring(), L"BetterAngle")) {
+        return false;
+    }
+
+    if (!IsTrustedInstallBase(dir)) {
+        return false;
+    }
+
+    const fs::path mainExe = dir / L"BetterAngle.exe";
+    if (!fs::exists(mainExe, ec) || !fs::is_regular_file(mainExe, ec)) {
+        return false;
+    }
+
+    return true;
+}
+
 static fs::path DetectInstallDirFromCurrentExecutable() {
     const fs::path currentExe = GetModulePath();
     if (currentExe.empty()) {
         return {};
     }
 
+    if (!EqualsIgnoreCase(currentExe.filename().wstring(), L"uninstaller.exe")) {
+        return {};
+    }
+
     const fs::path parent = currentExe.parent_path();
-    const std::wstring parentName = parent.filename().wstring();
-
-    if (EqualsIgnoreCase(parentName, L"BetterAngle")) {
+    if (IsSafeInstallDirectory(parent)) {
         return parent;
     }
 
-    if (EqualsIgnoreCase(currentExe.filename().wstring(), L"uninstaller.exe")) {
-        return parent;
-    }
-
-    return parent;
+    return {};
 }
 
 static bool WriteCleanupScript(const fs::path& scriptPath,
