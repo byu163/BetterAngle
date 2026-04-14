@@ -224,9 +224,30 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
   if (message == WM_INPUT) {
     int dx = GetRawInputDeltaX(lParam);
     g_isCursorVisible = IsCursorCurrentlyVisible();
+    const bool isFortniteForeground = IsFortniteForeground();
 
     const bool allowAngleUpdate =
-        g_debugMode || (IsFortniteForeground() && !g_isCursorVisible);
+        g_debugMode || (isFortniteForeground && !g_isCursorVisible);
+
+    static bool lastAllowAngleUpdate = true;
+    static bool lastIsFortniteForeground = false;
+    static bool lastCursorVisible = false;
+    static bool lastDebugMode = false;
+
+    if (allowAngleUpdate != lastAllowAngleUpdate ||
+        isFortniteForeground != lastIsFortniteForeground ||
+        g_isCursorVisible != lastCursorVisible ||
+        g_debugMode != lastDebugMode) {
+      LOG_INFO(L"Input gate changed: debug=%d fortnite=%d cursorVisible=%d "
+               L"allow=%d dx=%d",
+               g_debugMode ? 1 : 0, isFortniteForeground ? 1 : 0,
+               g_isCursorVisible ? 1 : 0, allowAngleUpdate ? 1 : 0, dx);
+      lastAllowAngleUpdate = allowAngleUpdate;
+      lastIsFortniteForeground = isFortniteForeground;
+      lastCursorVisible = g_isCursorVisible;
+      lastDebugMode = g_debugMode;
+    }
+
     if (allowAngleUpdate) {
       // Update angle accumulation (the decimal) based on raw input
       g_logic.Update(dx);
