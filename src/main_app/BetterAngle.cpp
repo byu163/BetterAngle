@@ -86,26 +86,134 @@ void CaptureDesktop() {
   DeleteDC(hdcMem);
 }
 
+// Helper to get error description for GetLastError()
+static std::wstring GetLastErrorString() {
+  DWORD error = GetLastError();
+  if (error == 0)
+    return L"Success";
+
+  wchar_t *buffer = nullptr;
+  size_t size = FormatMessageW(
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+          FORMAT_MESSAGE_IGNORE_INSERTS,
+      NULL, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&buffer,
+      0, NULL);
+
+  std::wstring message(buffer, size);
+  LocalFree(buffer);
+
+  // Remove trailing newlines
+  while (!message.empty() &&
+         (message.back() == L'\n' || message.back() == L'\r')) {
+    message.pop_back();
+  }
+
+  return message;
+}
+
 // Refreshes all global hotkeys for the HUD window
 bool RefreshHotkeys(HWND hWnd) {
   if (!hWnd)
     return false;
 
-  for (int i = 1; i <= 6; i++)
-    UnregisterHotKey(hWnd, i);
+  // Cache the current keybinds to avoid unnecessary re-registration
+  static Profile::Keybinds lastKeybinds = {};
+  static int lastProfileIdx = -1;
 
   if (g_allProfiles.empty())
     return false;
 
   Profile &p = g_allProfiles[g_selectedProfileIdx];
-  // Use standard registration without MOD_NOREPEAT for maximum compatibility
+
+  // Check if keybinds have actually changed
+  bool keybindsChanged = (g_selectedProfileIdx != lastProfileIdx) ||
+                         (p.keybinds.toggleMod != lastKeybinds.toggleMod ||
+                          p.keybinds.toggleKey != lastKeybinds.toggleKey) ||
+                         (p.keybinds.roiMod != lastKeybinds.roiMod ||
+                          p.keybinds.roiKey != lastKeybinds.roiKey) ||
+                         (p.keybinds.crossMod != lastKeybinds.crossMod ||
+                          p.keybinds.crossKey != lastKeybinds.crossKey) ||
+                         (p.keybinds.zeroMod != lastKeybinds.zeroMod ||
+                          p.keybinds.zeroKey != lastKeybinds.zeroKey) ||
+                         (p.keybinds.debugMod != lastKeybinds.debugMod ||
+                          p.keybinds.debugKey != lastKeybinds.debugKey);
+
+  if (!keybindsChanged) {
+    // Keybinds haven't changed, no need to re-register
+    return true;
+  }
+
+  // Unregister all hotkeys first
+  for (int i = 1; i <= 6; i++) {
+    UnregisterHotKey(hWnd, i);
+  }
+
+  // Small delay to allow system to process unregistration (optional but can
+  // help)
+  Sleep(10);
+
+  // Register new hotkeys with MOD_NOREPEAT to prevent key repeat issues
+  // MOD_NOREPEAT (0x4000) prevents the hotkey from firing repeatedly when held
+  // down
   bool ok = true;
-  ok &=
-      RegisterHotKey(hWnd, 1, p.keybinds.toggleMod, p.keybinds.toggleKey) != 0;
-  ok &= RegisterHotKey(hWnd, 2, p.keybinds.roiMod, p.keybinds.roiKey) != 0;
-  ok &= RegisterHotKey(hWnd, 3, p.keybinds.crossMod, p.keybinds.crossKey) != 0;
-  ok &= RegisterHotKey(hWnd, 4, p.keybinds.zeroMod, p.keybinds.zeroKey) != 0;
-  ok &= RegisterHotKey(hWnd, 5, p.keybinds.debugMod, p.keybinds.debugKey) != 0;
+  std::vector<std::pair<int, std::wstring>> failedHotkeys;
+
+  auto registerWithErrorCheck = [&](int id, UINT mod, UINT vk,
+                                    const wchar_t *name) -> bool {
+    if (vk == 0) {
+      // Zero key means hotkey is disabled
+      return true;
+    }
+
+    // Apply MOD_NOREPEAT flag
+    UINT flags = mod | 0x4000;
+
+    if (!RegisterHotKey(hWnd, id, flags, vk)) {
+      DWORD err = GetLastError();
+      std::wstring errorMsg = GetLastErrorString();
+      failedHotkeys.push_back({id, L"Hotkey " + std::wstring(name) +
+                                       L" failed: " + errorMsg + L" (Error " +
+                                       std::to_wstring(err) + L")"});
+      return false;
+    }
+    return true;
+  };
+
+  ok &= registerWithErrorCheck(1, p.keybinds.toggleMod, p.keybinds.toggleKey,
+                               L"Toggle Panel");
+  ok &= registerWithErrorCheck(2, p.keybinds.roiMod, p.keybinds.roiKey,
+                               L"ROI Select");
+  ok &= registerWithErrorCheck(3, p.keybinds.crossMod, p.keybinds.crossKey,
+                               L"Crosshair Toggle");
+  ok &= registerWithErrorCheck(4, p.keybinds.zeroMod, p.keybinds.zeroKey,
+                               L"Zero Angle");
+  ok &= registerWithErrorCheck(5, p.keybinds.debugMod, p.keybinds.debugKey,
+                               L"Debug Mode");
+
+  // Log any failures (in debug mode)
+  if (!failedHotkeys.empty() && g_debugMode) {
+    for (const auto &failure : failedHotkeys) {
+      OutputDebugStringW((L"BetterAngle: " + failure.second + L"\n").c_str());
+    }
+  }
+
+  // Update cache if registration was successful
+  if (ok) {
+    lastKeybinds = p.keybinds;
+    lastProfileIdx = g_selectedProfileIdx;
+  } else {
+    // If registration failed, clear cache to force retry next time
+    lastProfileIdx = -1;
+
+    // Try to register at least some hotkeys (fallback to defaults for failed
+    // ones) This ensures the app remains somewhat functional even if some
+    // hotkeys conflict
+    for (int i = 1; i <= 5; i++) {
+      RegisterHotKey(hWnd, i, MOD_CONTROL | 0x4000,
+                     'A' + i - 1); // Ctrl+A, Ctrl+B, etc. as fallback
+    }
+  }
+
   return ok;
 }
 
@@ -179,7 +287,9 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       g_forceRedraw = true;
       if (!g_allProfiles.empty()) {
         g_allProfiles[g_selectedProfileIdx].showCrosshair = g_showCrosshair;
-        g_allProfiles[g_selectedProfileIdx].Save(GetProfilesPath() + g_allProfiles[g_selectedProfileIdx].name + L".json");
+        g_allProfiles[g_selectedProfileIdx].Save(
+            GetProfilesPath() + g_allProfiles[g_selectedProfileIdx].name +
+            L".json");
       }
       SaveSettings();
       NotifyBackendCrosshairChanged();
