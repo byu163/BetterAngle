@@ -39,6 +39,7 @@ jobs:
           # Commit version changes
           git add VERSION CMakeLists.txt include/shared/State.h
           git commit -m "chore: auto-increment version for release"
+          git pull --rebase origin main
           git push
 
       - name: Set up MSVC

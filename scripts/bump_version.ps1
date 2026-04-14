@@ -113,8 +113,10 @@ try {
     $releaseNotes | Out-File -FilePath "NEW_RELEASE_NOTES.md" -Encoding utf8
     
     # Output new version for GitHub Actions
-    Write-Output "::set-output name=new_version::$($newVersion.Full)"
-    Write-Output "::set-output name=release_notes_file::NEW_RELEASE_NOTES.md"
+    if ($env:GITHUB_OUTPUT) {
+        "new_version=$($newVersion.Full)" | Add-Content -Path $env:GITHUB_OUTPUT
+        "release_notes_file=NEW_RELEASE_NOTES.md" | Add-Content -Path $env:GITHUB_OUTPUT
+    }
     
     Write-Output "Version bump completed successfully!"
     
