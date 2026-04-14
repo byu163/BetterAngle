@@ -360,8 +360,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
     } else if (g_currentSelection == SELECTING_COLOR) {
       // STAGE 2: PRECISION COLOR PICK (Snap-Shot Bypass)
       if (g_screenSnapshot) {
-        HDC hdcScreen = GetDC(NULL);
-        HDC hdcMem = CreateCompatibleDC(hdcScreen);
+        HDC hdcMem = CreateCompatibleDC(NULL);
         HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
 
         int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
@@ -387,7 +386,6 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         g_targetColor = pixel;
         SelectObject(hdcMem, hOld);
         DeleteDC(hdcMem);
-        ReleaseDC(NULL, hdcScreen);
       }
 
       // Finalize and Exit Selection
@@ -396,6 +394,11 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       if (g_screenSnapshot) {
         DeleteObject(g_screenSnapshot);
         g_screenSnapshot = NULL;
+      }
+
+      // CRITICAL: Release mouse capture to prevent whole-PC lockups
+      if (GetCapture() == hWnd) {
+        ReleaseCapture();
       }
       SetWindowLong(hWnd, GWL_EXSTYLE,
                     GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);

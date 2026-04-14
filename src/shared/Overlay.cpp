@@ -157,12 +157,19 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
       ScreenToClient(hwnd, &cur);
 
       int mx = curScr.x - 40, my = curScr.y - 40, mw = 80, mh = 80;
-      HDC hdcScr = GetDC(NULL);
       HDC hdcZoom = CreateCompatibleDC(hdcMem);
       HBITMAP hbmZoom = CreateCompatibleBitmap(hdcMem, mw * 3, mh * 3);
       SelectObject(hdcZoom, hbmZoom);
-      StretchBlt(hdcZoom, 0, 0, mw * 3, mh * 3, hdcScr, mx, my, mw, mh,
-                 SRCCOPY);
+
+      if (g_screenSnapshot) {
+        HDC hdcSnap = CreateCompatibleDC(hdcZoom);
+        SelectObject(hdcSnap, g_screenSnapshot);
+        int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+        int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+        StretchBlt(hdcZoom, 0, 0, mw * 3, mh * 3, hdcSnap, mx - sx, my - sy, mw,
+                   mh, SRCCOPY);
+        DeleteDC(hdcSnap);
+      }
 
       // Position magnifier relative to client cursor
       int zx =
