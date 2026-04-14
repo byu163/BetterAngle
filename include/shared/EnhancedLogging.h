@@ -11,26 +11,26 @@ struct HWND__;
 typedef HWND__ *HWND;
 
 enum class LogLevel {
-  TRACE = 0,
-  DEBUG = 1,
-  INFO = 2,
-  WARN = 3,
-  ERROR = 4,
-  FATAL = 5
+  Trace = 0,
+  Debug = 1,
+  Info = 2,
+  Warn = 3,
+  Error = 4,
+  Fatal = 5
 };
 
 #define LOG_TRACE(...)                                                         \
-  LogMessage(LogLevel::TRACE, __FILE__, __LINE__, __VA_ARGS__)
+  LogMessage(LogLevel::Trace, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_DEBUG(...)                                                         \
-  LogMessage(LogLevel::DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+  LogMessage(LogLevel::Debug, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_INFO(...)                                                          \
-  LogMessage(LogLevel::INFO, __FILE__, __LINE__, __VA_ARGS__)
+  LogMessage(LogLevel::Info, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_WARN(...)                                                          \
-  LogMessage(LogLevel::WARN, __FILE__, __LINE__, __VA_ARGS__)
+  LogMessage(LogLevel::Warn, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_ERROR(...)                                                         \
-  LogMessage(LogLevel::ERROR, __FILE__, __LINE__, __VA_ARGS__)
+  LogMessage(LogLevel::Error, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_FATAL(...)                                                         \
-  LogMessage(LogLevel::FATAL, __FILE__, __LINE__, __VA_ARGS__)
+  LogMessage(LogLevel::Fatal, __FILE__, __LINE__, __VA_ARGS__)
 
 #define LOG_WINDOW_EVENT(hwnd, event, ...)                                     \
   LogWindowEvent(hwnd, event, __FILE__, __LINE__, __VA_ARGS__)

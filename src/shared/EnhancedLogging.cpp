@@ -16,7 +16,7 @@
 
 namespace fs = std::filesystem;
 
-std::atomic<LogLevel> g_logLevel(LogLevel::INFO);
+std::atomic<LogLevel> g_logLevel(LogLevel::Info);
 std::atomic<bool> g_logToFile(true);
 std::atomic<bool> g_logToConsole(false);
 std::wstring g_logFilePath;
@@ -169,17 +169,17 @@ std::string GetCurrentTimeString() {
 
 std::string LogLevelToString(LogLevel level) {
   switch (level) {
-  case LogLevel::TRACE:
+  case LogLevel::Trace:
     return "TRACE";
-  case LogLevel::DEBUG:
+  case LogLevel::Debug:
     return "DEBUG";
-  case LogLevel::INFO:
+  case LogLevel::Info:
     return "INFO";
-  case LogLevel::WARN:
+  case LogLevel::Warn:
     return "WARN";
-  case LogLevel::ERROR:
+  case LogLevel::Error:
     return "ERROR";
-  case LogLevel::FATAL:
+  case LogLevel::Fatal:
     return "FATAL";
   }
   return "UNKNOWN";
@@ -288,7 +288,7 @@ void LogWindowEvent(HWND hwnd, const std::string &event, const char *file,
   std::ostringstream prefix;
   prefix << "[WINDOW event=" << event << " hwnd=0x" << std::hex
          << reinterpret_cast<uintptr_t>(hwnd) << std::dec << "] ";
-  LogWithPrefix(LogLevel::DEBUG, file, line, prefix.str(), message);
+  LogWithPrefix(LogLevel::Debug, file, line, prefix.str(), message);
 }
 
 void LogMouseEvent(int x, int y, const std::string &button,
@@ -302,7 +302,7 @@ void LogMouseEvent(int x, int y, const std::string &button,
   std::ostringstream prefix;
   prefix << "[MOUSE button=" << button << " action=" << action << " x=" << x
          << " y=" << y << "] ";
-  LogWithPrefix(LogLevel::DEBUG, file, line, prefix.str(), message);
+  LogWithPrefix(LogLevel::Debug, file, line, prefix.str(), message);
 }
 
 void LogKeyEvent(int vk, const std::string &action, const char *file, int line,
@@ -314,7 +314,7 @@ void LogKeyEvent(int vk, const std::string &action, const char *file, int line,
 
   std::ostringstream prefix;
   prefix << "[KEY vk=" << vk << " action=" << action << "] ";
-  LogWithPrefix(LogLevel::DEBUG, file, line, prefix.str(), message);
+  LogWithPrefix(LogLevel::Debug, file, line, prefix.str(), message);
 }
 
 void LogWindowDragEvent(HWND hwnd, int x, int y, const std::string &action,
@@ -328,7 +328,7 @@ void LogWindowDragEvent(HWND hwnd, int x, int y, const std::string &action,
   prefix << "[DRAG hwnd=0x" << std::hex << reinterpret_cast<uintptr_t>(hwnd)
          << std::dec << " action=" << action << " x=" << x << " y=" << y
          << "] ";
-  LogWithPrefix(LogLevel::DEBUG, file, line, prefix.str(), message);
+  LogWithPrefix(LogLevel::Debug, file, line, prefix.str(), message);
 }
 
 void LogSystemInfo() {
@@ -342,7 +342,7 @@ void LogSystemInfo() {
   SYSTEM_INFO si{};
   GetSystemInfo(&si);
 
-  LogMessage(LogLevel::INFO, __FILE__, __LINE__,
+  LogMessage(LogLevel::Info, __FILE__, __LINE__,
              "System info: Windows %lu.%lu build %lu, processors=%lu, arch=%u",
              osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber,
              si.dwNumberOfProcessors, si.wProcessorArchitecture);
@@ -352,7 +352,7 @@ void LogMemoryUsage() {
   MEMORYSTATUSEX statex{};
   statex.dwLength = sizeof(statex);
   if (GlobalMemoryStatusEx(&statex)) {
-    LogMessage(LogLevel::INFO, __FILE__, __LINE__,
+    LogMessage(LogLevel::Info, __FILE__, __LINE__,
                "Memory: load=%lu%% totalPhys=%lluMB availPhys=%lluMB",
                statex.dwMemoryLoad,
                static_cast<unsigned long long>(statex.ullTotalPhys /
@@ -363,13 +363,13 @@ void LogMemoryUsage() {
 }
 
 void LogThreadInfo() {
-  LogMessage(LogLevel::INFO, __FILE__, __LINE__, "Thread info: pid=%lu tid=%lu",
+  LogMessage(LogLevel::Info, __FILE__, __LINE__, "Thread info: pid=%lu tid=%lu",
              GetCurrentProcessId(), GetCurrentThreadId());
 }
 
 void LogWindowInfo(HWND hwnd) {
   if (!hwnd) {
-    LogMessage(LogLevel::WARN, __FILE__, __LINE__,
+    LogMessage(LogLevel::Warn, __FILE__, __LINE__,
                "Window info requested for null HWND");
     return;
   }
@@ -379,7 +379,7 @@ void LogWindowInfo(HWND hwnd) {
   const LONG_PTR style = GetWindowLongPtrW(hwnd, GWL_STYLE);
   const LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
 
-  LogMessage(LogLevel::INFO, __FILE__, __LINE__,
+  LogMessage(LogLevel::Info, __FILE__, __LINE__,
              "Window info: hwnd=0x%p rect=(%ld,%ld)-(%ld,%ld) style=0x%llx "
              "exStyle=0x%llx visible=%d enabled=%d",
              hwnd, rc.left, rc.top, rc.right, rc.bottom,
@@ -391,16 +391,16 @@ void LogProcessInfo() {
   wchar_t modulePath[MAX_PATH] = {};
   GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
 
-  LogMessage(LogLevel::INFO, __FILE__, __LINE__, "Process info: pid=%lu exe=%s",
+  LogMessage(LogLevel::Info, __FILE__, __LINE__, "Process info: pid=%lu exe=%s",
              GetCurrentProcessId(), Narrow(modulePath).c_str());
 }
 
 void LogStartup() {
-  LogMessage(LogLevel::INFO, __FILE__, __LINE__,
+  LogMessage(LogLevel::Info, __FILE__, __LINE__,
              "Startup: version=%s debugMode=%d appRoot=%s debugFolder=%s",
              VERSION_STR, g_debugMode ? 1 : 0, Narrow(GetAppRootPath()).c_str(),
              Narrow(GetDebugFolderPath()).c_str());
-  LogMessage(LogLevel::INFO, __FILE__, __LINE__,
+  LogMessage(LogLevel::Info, __FILE__, __LINE__,
              "Runtime state: selectedProfileIdx=%d showCrosshair=%d "
              "forceDiving=%d forceDetection=%d",
              g_selectedProfileIdx, g_showCrosshair ? 1 : 0,
