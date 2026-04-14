@@ -47,13 +47,17 @@ void DetectorThread() {
       RoiConfig cfg = {p.roi_x, p.roi_y,        p.roi_w,
                        p.roi_h, p.target_color, p.tolerance};
       LOG_INFO("DetectorThread: Calling g_detector.Scan");
+      ULONGLONG startMs = GetTickCount64();
       g_detectionRatio = g_detector.Scan(cfg);
+      ULONGLONG endMs = GetTickCount64();
+      g_detectionDelayMs = endMs - startMs;
       LOG_INFO("DetectorThread: Scan complete");
 
-      if (g_detectionRatio >= 0.20f) {
+      float threshold = p.diveGlideMatch / 100.0f;
+      if (g_detectionRatio >= threshold) {
         g_isDiving = true;
         g_logic.SetDivingState(true);
-      } else if (g_detectionRatio <= 0.05f) {
+      } else {
         g_isDiving = false;
         g_logic.SetDivingState(false);
       }

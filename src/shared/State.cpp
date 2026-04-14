@@ -18,6 +18,8 @@ std::string g_updateHistory = "";
 std::atomic<bool> g_fortniteFocusedCache(false);
 std::string g_lastVersionRun = "";
 std::atomic<bool> g_forceRedraw(true);
+std::atomic<long long> g_detectionDelayMs(0);
+std::atomic<bool> g_showDebugOverlay(false);
 
 Profile g_currentProfile;
 std::vector<Profile> g_allProfiles;

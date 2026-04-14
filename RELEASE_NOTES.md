@@ -1,9 +1,6 @@
-### BetterAngle Pro v4.27.221
-- **Angle Wrap Formatting**: Fixed angle calculation UI logic so that the value dynamically formats and correctly resets precisely at the wrap point (359.9 to 0.0), ensuring the angle is faithfully bounded and doesn't display as 360.0.
-- **Debug Diagnostics Tab**: Added a new 'DEBUG' tab to the QML Dashboard providing real-time hardware and operating system hooks to monitor Fortnite process detection, window focus, and mouse hidden states. This operates entirely independently of the core angle calculation logic, ensuring allowAngleUpdate continues to strictly require Fortnite to be focused and the mouse hidden without being bypassed by debug monitoring.
-### BetterAngle Pro v4.27.187
-- **Stage 2 Freezing Fix (Final)**: Applied comprehensive bounds checking for `GetPixel()` calls in Stage 2 color selection to prevent screen freezing when clicking prompt color. The fix ensures coordinates are validated against virtual screen dimensions before pixel sampling, with fallback to default color if out of bounds. This resolves the "completely freezes my whole screen" issue reported by users.
-
+### BetterAngle Pro v4.27.222
+- **Trigger Calibration Restore**: Fixed the 'NaN%' render issue on the Dive-to-Glide Match Limit slider in the frontend. The Qt binding has been fully restored and directly hooks into the master C++ detector logic arrays, bypassing hardcoded magic bounds.
+- **Advanced Diagnostic Sub-Overlay**: Introduced a new toggle in the DEBUG tab allowing users to project an analytics glass sub-panel beneath the master Win32 Angle HUD on-screen. This renders real-time engine tracking metrics including dynamic FPS, algorithmic core thread detection lag bounds, and precision hardware state synchronization (Fortnite context matching).
 ### BetterAngle Pro v4.27.181
 - **Decimal UI Dragging Fix**: Fixed bug where decimal UI could not be dragged when Fortnite is out of focus. The issue was caused by the "SAFETY GUARD" that enforced window transparency (`WS_EX_TRANSPARENT`) even when Fortnite was not in focus, preventing mouse clicks from being detected. Modified the safety guard to only make the window transparent when Fortnite IS in focus, and make it interactive (not transparent) when Fortnite is NOT in focus, allowing proper dragging of the decimal UI.
 
@@ -55,4 +52,5 @@
 - **Branding Transparency Hardened**: Programmatically scrubbed the AI-generated checkerboard patterns from the master logo assets, ensuring 100% pure transparency for the cyan orb.
 - **Icon Cache-Busting**: Implemented a transition to `BetterAngle_v153.ico` (v154 build). This forces the Windows shell to ignore its old cached icons and display the new high-fidelity assets across the desktop, taskbar, and Control Panel immediately.
 - **Universal Asset Injection**: Updated the RC resource script and the Inno Setup configuration to ensure the uninstaller and all program shortcuts use the latest refined branding.
+
 

@@ -933,6 +933,14 @@ Item {
 
                 Text { text: "DEBUG DIAGNOSTICS"; color: "#666"; font.pixelSize: 11; font.bold: true }
 
+                RowLayout {
+                    Switch {
+                        checked: backend.showDebugOverlay
+                        onCheckedChanged: backend.showDebugOverlay = checked
+                    }
+                    Text { text: "Show Debug Overlay on Screen"; color: "white"; font.pixelSize: 13 }
+                }
+
                 Rectangle {
                     width: parent.width; height: 120; radius: 6; color: "#161625"; border.color: "#333"; border.width: 1
                     Column {

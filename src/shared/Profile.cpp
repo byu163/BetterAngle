@@ -69,6 +69,12 @@ bool Profile::Load(const std::wstring &path) {
   roi_h = (int)extractDouble("roi_h");
   target_color = (COLORREF)extractDouble("target_color");
   tolerance = (int)extractDouble("tolerance");
+  
+  if (content.find("\"diveGlideMatch\"") != std::string::npos) {
+    diveGlideMatch = (float)extractDouble("diveGlideMatch");
+  } else {
+    diveGlideMatch = 9.0f;
+  }
 
   // Load Keybinds
   keybinds.toggleMod = (UINT)extractDouble("kb_toggleMod");
@@ -197,6 +203,7 @@ bool Profile::Save(const std::wstring &path) {
   oss << L"  \"roi_h\": " << roi_h << L",\n";
   oss << L"  \"target_color\": " << (float)target_color << L",\n";
   oss << L"  \"tolerance\": " << tolerance << L",\n";
+  oss << L"  \"diveGlideMatch\": " << diveGlideMatch << L",\n";
   oss << L"  \"kb_toggleMod\": " << keybinds.toggleMod << L",\n";
   oss << L"  \"kb_toggleKey\": " << keybinds.toggleKey << L",\n";
   oss << L"  \"kb_roiMod\": " << keybinds.roiMod << L",\n";

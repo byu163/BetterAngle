@@ -11,6 +11,7 @@ class BetterAngleBackend : public QObject {
   Q_PROPERTY(double sensY READ sensY WRITE setSensY NOTIFY profileChanged)
   Q_PROPERTY(
       int tolerance READ tolerance WRITE setTolerance NOTIFY profileChanged)
+  Q_PROPERTY(double diveGlideMatch READ diveGlideMatch WRITE setDiveGlideMatch NOTIFY profileChanged)
 
   Q_PROPERTY(bool crosshairOn READ crosshairOn WRITE setCrosshairOn NOTIFY
                  crosshairChanged)
@@ -45,6 +46,7 @@ class BetterAngleBackend : public QObject {
   Q_PROPERTY(bool fnRunning READ fnRunning NOTIFY debugDataChanged)
   Q_PROPERTY(bool fnFocused READ fnFocused NOTIFY debugDataChanged)
   Q_PROPERTY(bool fnMouseHidden READ fnMouseHidden NOTIFY debugDataChanged)
+  Q_PROPERTY(bool showDebugOverlay READ showDebugOverlay WRITE setShowDebugOverlay NOTIFY debugDataChanged)
 
   // Custom Keybinds
   Q_PROPERTY(
@@ -67,6 +69,8 @@ public:
   int tolerance() const;
   void setTolerance(int v);
 
+  double diveGlideMatch() const;
+  void setDiveGlideMatch(double v);
 
   bool crosshairOn() const;
   void setCrosshairOn(bool v);
@@ -100,6 +104,8 @@ public:
   bool fnRunning() const;
   bool fnFocused() const;
   bool fnMouseHidden() const;
+  bool showDebugOverlay() const;
+  void setShowDebugOverlay(bool v);
   Q_INVOKABLE void refreshDebugData();
 
 

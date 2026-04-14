@@ -7,6 +7,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <tlhelp32.h>
+#include "shared/Input.h"
 
 
 using namespace Gdiplus;
@@ -42,6 +44,32 @@ static void TickFPS() {
     s_frameCount = 0;
     s_fpsTimer = now;
   }
+}
+
+static bool CheckFortniteProcessFast() {
+  static bool lastRunning = false;
+  static ULONGLONG lastCheck = 0;
+  ULONGLONG now = GetTickCount64();
+  if (now - lastCheck < 2000) return lastRunning;
+  lastCheck = now;
+  HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+  if (hSnap == INVALID_HANDLE_VALUE) return lastRunning;
+  PROCESSENTRY32W pe;
+  pe.dwSize = sizeof(pe);
+  bool found = false;
+  if (Process32FirstW(hSnap, &pe)) {
+    do {
+      if (pe.szExeFile[0] && (_wcsnicmp(pe.szExeFile, L"FortniteClient-Win64-Shipping", 29) == 0 ||
+          _wcsnicmp(pe.szExeFile, L"FortniteLauncher", 16) == 0 ||
+          _wcsnicmp(pe.szExeFile, L"FortniteClient", 14) == 0)) {
+        found = true;
+        break;
+      }
+    } while (Process32NextW(hSnap, &pe));
+  }
+  CloseHandle(hSnap);
+  lastRunning = found;
+  return found;
 }
 
 void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
@@ -322,8 +350,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
   Pen swatchP(Color(100, 220, 220, 220), 1.0f);
   graphics.DrawEllipse(&swatchP, swatchX, swatchY, 16, 16);
 
-  // Drag hint (plain ASCII — no special characters to avoid rendering as
-  // squares)
+  // Drag hint
   Font tinyFont(&ff, 9, FontStyleRegular, UnitPixel);
   SolidBrush tinyBrush(Color(g_isDraggingHUD ? 130 : 50, 200, 210, 220));
   StringFormat sfCenter;
@@ -331,6 +358,44 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
   graphics.DrawString(L":: drag", -1, &tinyFont,
                       RectF(float(rx), float(ry + rh - 14), float(rw), 12.0f),
                       &sfCenter, &tinyBrush);
+
+  // DEBUG Overlay Box
+  if (g_showDebugOverlay) {
+    int dx = rx;
+    int dy = ry + rh + 8;
+    int dw = rw;
+    int dh = 112;
+
+    LinearGradientBrush dbgBrush(Point(dx, dy), Point(dx, dy + dh),
+                                 Color(170, 8, 10, 14), Color(170, 3, 5, 8));
+    GraphicsPath dPath;
+    AddRoundedRect(dPath, dx, dy, dw, dh, 6);
+    graphics.FillPath(&dbgBrush, &dPath);
+
+    Pen dBorder(Color(100, 0, 204, 153), 1.0f);
+    graphics.DrawPath(&dBorder, &dPath);
+
+    Font dbgFont(&ff, 11, FontStyleRegular, UnitPixel);
+    SolidBrush dbgTextL(Color(255, 170, 170, 170));
+    
+    auto DrawRow = [&](int row, const wchar_t* label, const std::wstring& val, bool isGood = true) {
+        float yPos = float(dy + 8 + (row * 16));
+        graphics.DrawString(label, -1, &dbgFont, PointF(float(dx + 12), yPos), &dbgTextL);
+        SolidBrush valBrush(isGood ? Color(255, 0, 255, 204) : Color(255, 255, 80, 80));
+        graphics.DrawString(val.c_str(), -1, &dbgFont, PointF(float(dx + dw - 70), yPos), &valBrush);
+    };
+
+    bool fnRun = CheckFortniteProcessFast();
+    bool fnFoc = IsFortniteForeground();
+    bool msHdd = !IsCursorCurrentlyVisible();
+
+    DrawRow(0, L"Engine FPS:", std::to_wstring((int)std::round(s_fps)));
+    DrawRow(1, L"Scanner Delay:", std::to_wstring((long long)g_detectionDelayMs) + L" ms", g_detectionDelayMs < 15);
+    DrawRow(2, L"Current Match Ratio:", std::to_wstring((int)(detectionRatio * 100)) + L"%", true);
+    DrawRow(3, L"Fortnite Running:", fnRun ? L"YES" : L"NO", fnRun);
+    DrawRow(4, L"Fortnite Focused:", fnFoc ? L"YES" : L"NO", fnFoc);
+    DrawRow(5, L"Mouse Attached:", msHdd ? L"YES" : L"NO", msHdd);
+  }
 
   }
 

@@ -17,10 +17,13 @@ std::wstring GetProfilesPath();
 #define APP_WSTR_Z(x) L#x
 #define APP_WSTR_Y(x) APP_WSTR_Z(x)
 
+extern std::atomic<long long> g_detectionDelayMs;
+extern std::atomic<bool> g_showDebugOverlay;
+
 #ifndef V_MAJ
 #define V_MAJ 4
 #define V_MIN 27
-#define V_PAT 221
+#define V_PAT 222
 #endif
 extern std::string g_lastVersionRun;
 

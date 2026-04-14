@@ -130,6 +130,22 @@ void BetterAngleBackend::setTolerance(int v) {
   emit profileChanged();
 }
 
+double BetterAngleBackend::diveGlideMatch() const {
+  if (g_allProfiles.empty())
+    return 9.0;
+  return g_allProfiles[g_selectedProfileIdx].diveGlideMatch;
+}
+void BetterAngleBackend::setDiveGlideMatch(double v) {
+  if (g_allProfiles.empty())
+    return;
+  if (v < 1.0) v = 1.0;
+  Profile &p = g_allProfiles[g_selectedProfileIdx];
+  p.diveGlideMatch = (float)v;
+  p.Save(GetProfilesPath() + p.name + L".json");
+  SaveSettings();
+  emit profileChanged();
+}
+
 bool BetterAngleBackend::crosshairOn() const { return g_showCrosshair; }
 void BetterAngleBackend::setCrosshairOn(bool v) {
   g_showCrosshair = v;
@@ -821,6 +837,17 @@ bool BetterAngleBackend::fnFocused() const {
 
 bool BetterAngleBackend::fnMouseHidden() const {
   return !IsCursorCurrentlyVisible();
+}
+
+bool BetterAngleBackend::showDebugOverlay() const {
+  return g_showDebugOverlay;
+}
+
+void BetterAngleBackend::setShowDebugOverlay(bool v) {
+  if (g_showDebugOverlay != v) {
+    g_showDebugOverlay = v;
+    emit debugDataChanged();
+  }
 }
 
 void BetterAngleBackend::refreshDebugData() {
