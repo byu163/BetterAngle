@@ -47,15 +47,7 @@ HWND CreateControlPanel(HINSTANCE hInstance) {
   return (HWND)1;
 }
 
-void ShowSplashScreen() {
-  EnsureEngineInitialized();
-  g_qmlEngine->load(QUrl(QStringLiteral("qrc:/src/gui/Splash.qml")));
-  if (g_qmlEngine->rootObjects().isEmpty()) {
-    qDebug() << "[ERROR] Splash.qml failed to load.";
-  } else {
-    qDebug() << "[BOOT] Splash.qml loaded successfully.";
-  }
-}
+
 
 void ShowControlPanel() {
   if (g_backend) {

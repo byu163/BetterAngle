@@ -23,7 +23,6 @@ std::wstring GetProfilesPath();
 #define V_PAT 215
 #endif
 extern std::string g_lastVersionRun;
-extern bool g_setupComplete;
 
 #define VERSION_STR APP_STR_Y(V_MAJ) "." APP_STR_Y(V_MIN) "." APP_STR_Y(V_PAT)
 #define VERSION_WSTR                                                           \

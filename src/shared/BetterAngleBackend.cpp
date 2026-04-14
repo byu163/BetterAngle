@@ -345,17 +345,12 @@ void BetterAngleBackend::finishSetup() {
     g_lastLoadedProfileName = p.name;
   }
 
-  g_setupComplete = true;
   SaveSettings();
-
-  std::wstring marker = GetAppRootPath() + L".setup_done";
-  HANDLE h = CreateFileW(marker.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS,
-                         FILE_ATTRIBUTE_HIDDEN, NULL);
-  if (h != INVALID_HANDLE_VALUE)
-    CloseHandle(h);
 
   if (!g_allProfiles.empty())
     g_logic.LoadProfile(g_allProfiles[g_selectedProfileIdx].sensitivityX);
+
+
 
   emit profileChanged();
 }

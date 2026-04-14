@@ -16,7 +16,6 @@ bool g_isDownloadingUpdate = false;
 bool g_downloadComplete = false;
 std::string g_updateHistory = "";
 std::atomic<bool> g_fortniteFocusedCache(false);
-bool g_setupComplete = false;
 std::string g_lastVersionRun = "";
 std::atomic<bool> g_forceRedraw(true);
 
@@ -110,13 +109,6 @@ void LoadSettings() {
     g_hudY = eInt("hudY", 40);
 
     g_crossPulse = eFloat("crossPulse", 0.0f) > 0.5f;
-    g_setupComplete = eFloat("setupComplete", 0.0f) > 0.5f;
-
-    // Reliability Fallback: Check for hidden marker file
-    std::wstring marker = GetAppRootPath() + L".setup_done";
-    if (GetFileAttributesW(marker.c_str()) != INVALID_FILE_ATTRIBUTES) {
-      g_setupComplete = true;
-    }
     g_showCrosshair = eFloat("showCrosshair", 1.0f) > 0.5f;
     g_selectedProfileIdx = eInt("selectedProfileIdx", 0);
 
@@ -165,7 +157,6 @@ void SaveSettings() {
   oss << "{\n";
   oss << "  \"hudX\": " << g_hudX << ",\n";
   oss << "  \"hudY\": " << g_hudY << ",\n";
-  oss << "  \"setupComplete\": " << (g_setupComplete ? 1 : 0) << ",\n";
   oss << "  \"showCrosshair\": " << (g_showCrosshair ? 1 : 0) << ",\n";
   oss << "  \"selectedProfileIdx\": " << g_selectedProfileIdx << ",\n";
 
