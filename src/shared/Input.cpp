@@ -7,7 +7,20 @@ bool IsFortniteProcessName(const wchar_t *processName) {
   if (!processName || !processName[0])
     return false;
 
-  return _wcsnicmp(processName, L"FortniteClient-Win64-Shipping", 31) == 0;
+  const wchar_t *knownPrefixes[] = {
+      L"FortniteClient-Win64-Shipping",
+      L"FortniteLauncher",
+      L"FortniteClient"
+  };
+
+  for (const wchar_t *prefix : knownPrefixes) {
+    const size_t prefixLen = wcslen(prefix);
+    if (_wcsnicmp(processName, prefix, prefixLen) == 0) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 const wchar_t *GetProcessBaseName(HWND hwnd, wchar_t *buffer,
