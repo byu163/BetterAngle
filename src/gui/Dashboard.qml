@@ -905,10 +905,12 @@ Item {
 
                 Button {
                     text: {
-                        if (backend.isDownloading) return "DOWNLOADING INSTALLER..."
+                        if (backend.isDownloading) return "DOWNLOADING..."
                         if (backend.downloadComplete) return "INSTALL UPDATE"
+                        if (backend.isCheckingForUpdates) return "CHECKING..."
                         if (backend.updateStatus === "Downloaded update was invalid. Click to retry.") return "RETRY DOWNLOAD"
-                        if (backend.updateAvailable) return "UPDATE NOW"
+                        if (backend.updateAvailable) return "UPDATE AVAILABLE"
+                        if (backend.hasCheckedForUpdates && !backend.updateAvailable) return "UP TO DATE"
                         return "CHECK FOR UPDATES"
                     }
                     width: parent.width
