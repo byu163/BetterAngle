@@ -1,3 +1,15 @@
+### BetterAngle Pro v4.27.141
+- **True Alpha Branding Refresh**: Mathematically verified circular mask applied to the app icon and logo, permanently resolving the "black border" issues on dark/light themes.
+- **Enhanced ICO Asset**: Re-engineered `icon.ico` with full 32-bit alpha channel support across all resolutions (16x16 to 256x256) for crisp shell rendering.
+
+### BetterAngle Pro v4.27.140
+- **Maintenance**: Automated technical version alignment and synchronization.
+
+### BetterAngle Pro v4.27.139
+- **Maintenance**: Technical stabilization update.
+
+### BetterAngle Pro v4.27.138
+
 ### BetterAngle Pro v4.27.137
 - **Bulletproof Logging Engine**: Implemented atomic log rotation (5MB threshold) with a 5-file retention policy to protect user disk space.
 - **Crash-Resilient Diagnostics**: Introduced "Panic Flushing" for Error and Fatal log levels, ensuring critical failure data is committed to disk immediately.
