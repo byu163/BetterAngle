@@ -197,7 +197,6 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
 
       DeleteObject(hbmZoom);
       DeleteDC(hdcZoom);
-      ReleaseDC(NULL, hdcScr);
     }
 
     goto render_done;
