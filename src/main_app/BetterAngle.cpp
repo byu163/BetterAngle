@@ -10,6 +10,7 @@
 #include <thread>
 #include <vector>
 #include <windows.h>
+#include <shellapi.h>
 
 #include "shared/ControlPanel.h"
 #include "shared/Detector.h"
@@ -571,6 +572,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   InitEnhancedLogging();
   LOG_INFO("WinMain entered");
 
+  int nArgs;
+  LPWSTR* szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+  bool forceDebug = false;
+  if (szArglist) {
+    for (int i = 0; i < nArgs; i++) {
+      if (wcscmp(szArglist[i], L"--debug") == 0 || wcscmp(szArglist[i], L"-d") == 0) {
+        forceDebug = true;
+      }
+    }
+    LocalFree(szArglist);
+  }
+
   int argc = 1;
   char *argv[] = {(char *)"BetterAngle.exe", nullptr};
   QGuiApplication app(argc, argv);
@@ -587,6 +600,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
 
   LoadSettings();
+  if (forceDebug)
+    g_debugMode = true;
   SetLogLevel(g_debugMode ? LogLevel::Trace : LogLevel::Info);
   LogStartup();
   CleanupUpdateJunk();
