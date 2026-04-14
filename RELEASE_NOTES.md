@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.230..HEAD ### BetterAngle Pro v4.27.231
+- feat: Replace BlockInput with focus-steal transition guard, remove admin requirement
+
 ### BetterAngle Pro v4.27.230
 - **Focus-Steal Transition Guard (replaces BlockInput)**: On dive/glide state transitions, BetterAngle now temporarily steals foreground focus to its own transparent HUD window (invisible to the user). Fortnite stops processing camera input for the animation duration (250ms glide→dive, 1000ms dive→glide), then focus is returned instantly. Keyboard input is unaffected throughout.
 - **Admin Requirement Removed**: No longer requires Administrator privileges. The UAC manifest flag and elevation check have been removed since `BlockInput` is no longer used.
