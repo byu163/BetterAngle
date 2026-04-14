@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.124
+- **CI/CD Automation Overhaul**: Integrated `bump_version.ps1` into the GitHub Actions pipeline. The system now automatically increments the patch version and generates release notes from commit logs on every push to `main`.
+- **Infrastructure Synchronization**: Updated `.github/workflows/msbuild.yml` with full history fetching (`fetch-depth: 0`) and automated commit-back logic.
+
 ### BetterAngle Pro v4.27.123
 - **MOC Linker Fix**: Added [`include/shared/BetterAngleBackend.h`](include/shared/BetterAngleBackend.h) to [`PROJECT_SOURCES`](CMakeLists.txt:13) so CMake's AUTOMOC processes the `Q_OBJECT` macro and generates the required `moc_BetterAngleBackend.cpp`, resolving 10 unresolved external symbol linker errors.
 
