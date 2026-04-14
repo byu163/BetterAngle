@@ -1,5 +1,6 @@
 // Overlay.cpp - BetterAngle Pro
 // All comments use ASCII only to avoid encoding issues across contributors.
+#include "shared/Input.h"
 #include "shared/Logic.h"
 #include "shared/State.h"
 #include <gdiplus.h>
@@ -7,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+
 
 using namespace Gdiplus;
 
@@ -226,7 +228,17 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
       float pulse = 1.0f;
       if (g_crossPulse) {
         ULONGLONG t = GetTickCount64();
-        pulse = 0.6f + 0.4f * sinf(float(t) * 0.00125f);
+        float period = 4000.0f;
+        float phase = fmodf(float(t), period);
+        if (phase < 400.0f) {
+          pulse = 1.0f - (phase / 400.0f); // Rapid fade out
+        } else if (phase < 2400.0f) {
+          pulse = 0.0f; // Hold at transparent (2 seconds)
+        } else if (phase < 2800.0f) {
+          pulse = (phase - 2400.0f) / 400.0f; // Rapid fade in
+        } else {
+          pulse = 1.0f; // Hold at opaque
+        }
       }
 
       BYTE alpha = BYTE(200 * pulse);
@@ -236,8 +248,15 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
       Matrix rot;
       rot.RotateAt(g_crossAngle, PointF(cx, cy));
       graphics.SetTransform(&rot);
+      
+      // Critical for sub-pixel thickness (< 1.0px) rendering
+      PixelOffsetMode oldOffset = graphics.GetPixelOffsetMode();
+      graphics.SetPixelOffsetMode(PixelOffsetModeHalf);
+      
       graphics.DrawLine(&cPen, cx - hw, cy, cx + hw, cy);
       graphics.DrawLine(&cPen, cx, cy - hh, cx, cy + hh);
+      
+      graphics.SetPixelOffsetMode(oldOffset);
       graphics.ResetTransform();
     }
 

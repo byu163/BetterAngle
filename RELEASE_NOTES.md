@@ -1,3 +1,11 @@
+### BetterAngle Pro v4.27.143
+- **Heartbeat Pulse Animation**: Re-engineered the crosshair pulse to trigger a rapid fade-out and a **2-second transparent hold**, reducing visual noise while maintaining timing telemetry.
+- **Sub-Pixel Thickness Fix**: Calibrated the rendering engine to support line thicknesses below 1.0px using `PixelOffsetModeHalf`. Ultra-thin crosshairs now render with crisp anti-aliasing.
+- **Optics Polish**: Improved the overall clarity of the crosshair system for high-DPI displays.
+
+### BetterAngle Pro v4.27.142
+- **Maintenance**: Technical version alignment and documentation synchronization.
+
 ### BetterAngle Pro v4.27.141
 - **True Alpha Branding Refresh**: Mathematically verified circular mask applied to the app icon and logo, permanently resolving the "black border" issues on dark/light themes.
 - **Enhanced ICO Asset**: Re-engineered `icon.ico` with full 32-bit alpha channel support across all resolutions (16x16 to 256x256) for crisp shell rendering.
