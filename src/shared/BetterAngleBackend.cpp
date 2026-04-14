@@ -465,6 +465,18 @@ static UINT stringToVk(const QString &s) {
       {"F10", VK_F10},
       {"F11", VK_F11},
       {"F12", VK_F12},
+      {"F13", 0x7C},
+      {"F14", 0x7D},
+      {"F15", 0x7E},
+      {"F16", 0x7F},
+      {"F17", 0x80},
+      {"F18", 0x81},
+      {"F19", 0x82},
+      {"F20", 0x83},
+      {"F21", 0x84},
+      {"F22", 0x85},
+      {"F23", 0x86},
+      {"F24", 0x87},
       {"TAB", VK_TAB},
       {"SPACE", VK_SPACE},
       {"ESC", VK_ESCAPE},
@@ -512,6 +524,39 @@ static UINT stringToVk(const QString &s) {
       {"SNAPSHOT", VK_SNAPSHOT},
       {"PAUSE", VK_PAUSE},
       {"BREAK", VK_PAUSE},
+      // Multimedia keys
+      {"VOLUME_MUTE", 0xAD},
+      {"VOLUME_DOWN", 0xAE},
+      {"VOLUME_UP", 0xAF},
+      {"MEDIA_NEXT", 0xB0},
+      {"MEDIA_PREV", 0xB1},
+      {"MEDIA_STOP", 0xB2},
+      {"MEDIA_PLAY_PAUSE", 0xB3},
+      // Browser keys
+      {"BROWSER_BACK", 0xA6},
+      {"BROWSER_FORWARD", 0xA7},
+      {"BROWSER_REFRESH", 0xA8},
+      {"BROWSER_STOP", 0xA9},
+      {"BROWSER_SEARCH", 0xAA},
+      {"BROWSER_FAVORITES", 0xAB},
+      {"BROWSER_HOME", 0xAC},
+      // Application key
+      {"APP", 0x5D},
+      {"APPLICATION", 0x5D},
+      {"MENUKEY", 0x5D},
+      // OEM keys
+      {"OEM_PLUS", 0xBB},   // =/+
+      {"OEM_COMMA", 0xBC},  // ,/<
+      {"OEM_MINUS", 0xBD},  // -/_
+      {"OEM_PERIOD", 0xBE}, // ./>
+      {"OEM_1", 0xBA},      // ;/:
+      {"OEM_2", 0xBF},      // /?
+      {"OEM_3", 0xC0},      // `/~
+      {"OEM_4", 0xDB},      // [/{
+      {"OEM_5", 0xDC},      // \/|
+      {"OEM_6", 0xDD},      // ]/}
+      {"OEM_7", 0xDE},      // '/"
+      {"OEM_8", 0xDF},
       {"MOUSE1", 0x01},
       {"MOUSE2", 0x02},
       {"MOUSE3", 0x04},
