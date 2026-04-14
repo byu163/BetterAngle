@@ -30,6 +30,8 @@ Name: "{app}"; Permissions: users-modify
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\BetterAngle"
+Type: filesandordirs; Name: "{userappdata}\BetterAngle"
+Type: filesandordirs; Name: "{commonappdata}\BetterAngle"
 Type: filesandordirs; Name: "{app}"
 
 [Files]
