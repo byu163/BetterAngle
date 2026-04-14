@@ -1,3 +1,8 @@
+### BetterAngle Pro v4.27.166
+- **ROI Selection Hotfix**: Fixed critical bug where "Select prompt stage 1" (ROI selection) was completely broken after ESC key implementation. The issue was caused by a "SAFETY GUARD" timer that forcibly re-enabled window transparency every 16.7ms, preventing mouse interaction during ROI drag.
+- **Window Transparency Logic**: Modified the safety guard to skip transparency enforcement when in ROI/Color selection mode, allowing proper mouse capture and drag functionality.
+- **ROI Validation**: Added proper validation in WM_LBUTTONUP handler to check if ROI rectangle is valid (non-zero size) before transitioning to color selection stage.
+
 ### BetterAngle Pro v4.27.164
 - **Default Value Fix**: Changed the default value of "Dive to glide threshold match limit %" slider from 5% to 9% as requested. Both glide and freefall thresholds now default to 9% for new installations.
 
