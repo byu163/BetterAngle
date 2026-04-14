@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.234..HEAD ### BetterAngle Pro v4.27.235
+- fix: JSON precision loss on COLORREF properties & uninitialized mem bounds
+
 ### BetterAngle Pro v4.27.234
 - **Profile Precision Fix**: Fixed a bug where `target_color` and `crossColor` values were being serialized to JSON using `(float)` casts. This caused 32-bit `COLORREF` integers to lose precision in their lower bits and write out in scientific notation (e.g. `1.67772e+07`). When loaded back in, the color drift caused the angle detector to completely mismatch colors, making it seem like the calibration was wiped / ignored after a restart. Colors are now guaranteed to save losslessly as exactly `(unsigned long)` numbers.
 - **Profile Initialization Safety**: Added default values inside the `Profile` struct to prevent random memory garbage values (like `fov = 1.59075e+25` or negative resolutions) from being written to newly created configurations.
