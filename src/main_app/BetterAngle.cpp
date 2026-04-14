@@ -238,8 +238,8 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
         isFortniteForeground != lastIsFortniteForeground ||
         g_isCursorVisible != lastCursorVisible ||
         g_debugMode != lastDebugMode) {
-      LOG_INFO(L"Input gate changed: debug=%d fortnite=%d cursorVisible=%d "
-               L"allow=%d dx=%d",
+      LOG_INFO("Input gate changed: debug=%d fortnite=%d cursorVisible=%d "
+               "allow=%d dx=%d",
                g_debugMode ? 1 : 0, isFortniteForeground ? 1 : 0,
                g_isCursorVisible ? 1 : 0, allowAngleUpdate ? 1 : 0, dx);
       lastAllowAngleUpdate = allowAngleUpdate;
