@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.232..HEAD ### BetterAngle Pro v4.27.234
+- fix: Restore V_MAJ defines, fix updater loop, ROI keybind+purple, expanded debug, tolerance=1
+
 ### BetterAngle Pro v4.27.233
 - **VERSION_STR Fix**: Restored missing `#define V_MAJ/V_MIN/V_PAT` macros in `State.h` that were accidentally dropped in a prior edit. This caused `VERSION_STR` to expand literally (showing "V_MAJ.V_MIN.V_PAT"), breaking the version display in the updater UI and causing an infinite update loop since the version comparison always failed.
 - **Updater Infinite Loop Fixed**: With `VERSION_STR` now resolving correctly, version comparison against GitHub releases works as expected — no spurious "update available" flags.
