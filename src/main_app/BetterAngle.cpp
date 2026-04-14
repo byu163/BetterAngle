@@ -488,13 +488,15 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         bool lDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
         POINT pt;
         GetCursorPos(&pt);
+        POINT localPt = pt;
+        ScreenToClient(g_hHUD, &localPt);
 
         // Prevent dragging when Fortnite is in focus
         bool fortniteInFocus = IsFortniteForeground();
 
         if (lDown && !g_isDraggingHUD && !fortniteInFocus) {
-          if (pt.x >= g_hudX && pt.x <= g_hudX + 260 && pt.y >= g_hudY &&
-              pt.y <= g_hudY + 150) {
+          if (localPt.x >= g_hudX && localPt.x <= g_hudX + 260 && 
+              localPt.y >= g_hudY && localPt.y <= g_hudY + 150) {
             g_isDraggingHUD = true;
             g_dragStartMouse = pt;
             g_dragStartHUD.x = g_hudX;
