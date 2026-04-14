@@ -356,8 +356,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       g_selectionRect = {cur.x, cur.y, cur.x, cur.y};
       // Capture mouse to continue receiving messages even outside window
       SetCapture(hWnd);
-    } else if (g_currentSelection == SELECTING_COLOR) {
-      // PRE-SAVE CLEANUP: Restore live HUD state immediately to prevent "Frozen Screen" visual hang
+      // ATOMIC RESTORATION (v123 Hardening): Restore live HUD state immediately to prevent "Frozen Screen" visual hang
       SetWindowLong(hWnd, GWL_EXSTYLE,
                     GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
       
@@ -367,17 +366,18 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 
       // STAGE 2: PRECISION COLOR PICK (Snap-Shot Bypass)
       if (g_screenSnapshot) {
-        HDC hdcMem = CreateCompatibleDC(NULL);
-        HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
-
+        // Multi-Monitor Aware Coordinate Mapping
         int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
         int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
         int sw = GetSystemMetrics(SM_CXVIRTUALSCREEN);
         int sh = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
+        HDC hdcMem = CreateCompatibleDC(NULL);
+        HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
+
         POINT cur;
         GetCursorPos(&cur);
-        int sampleX = cur.x - sx;
+        int sampleX = cur.x - sx; // Correct offset for multi-monitor
         int sampleY = cur.y - sy;
 
         COLORREF pixel = RGB(255, 0, 0);
@@ -391,7 +391,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         DeleteDC(hdcMem);
       }
 
-      // Finalize and Exit Selection state
+      // Finalize and Signal Logic
       g_currentSelection = NONE;
       g_isSelectionActive = false;
       if (g_screenSnapshot) {
@@ -400,8 +400,9 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       }
       
       InvalidateRect(hWnd, NULL, FALSE);
-      UpdateWindow(hWnd); // Force immediate redraw of live HUD
+      UpdateWindow(hWnd); // Force immediate redraw of now-transparent window
 
+      // Deferred Saving: Profile IO happens AFTER the UI is un-frozen
       if (!g_allProfiles.empty()) {
         Profile &p = g_allProfiles[g_selectedProfileIdx];
         p.target_color = g_pickedColor;

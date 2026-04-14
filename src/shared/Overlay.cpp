@@ -191,7 +191,13 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
 
           // 2. Draw Magnifier (100% GDI+ Unified Rendering)
           int mw = 80, mh = 80;
-          int mx = curScr.x - mw / 2, my = curScr.y - mh / 2;
+          
+          // Virtual Screen Aware Offset Math (v123+ Improvements)
+          int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+          int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+          int mx = (curScr.x - sx) - mw / 2;
+          int my = (curScr.y - sy) - mh / 2;
+
           int zx = (cur.x + 20 + mw * 3 < sw) ? (cur.x + 20) : (cur.x - mw * 3 - 20);
           int zy = (cur.y + mh * 3 < sh) ? cur.y : (sh - mh * 3);
 
@@ -210,8 +216,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
           graphics.DrawLine(&magCross, zx, zy + (mh * 3 / 2), zx + (mw * 3), zy + (mh * 3 / 2));
         }
       }
-
-  }
+    }
     goto render_done;
   }
 
