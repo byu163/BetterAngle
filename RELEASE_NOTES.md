@@ -1,3 +1,8 @@
+Generating release notes from commit range: v4.27.230..HEAD ### BetterAngle Pro v4.27.232
+- fix: Ensure crosshair thickness can go below 1px with proper clamping
+- chore: auto-increment version for release
+- feat: Replace BlockInput with focus-steal transition guard, remove admin requirement
+
 ### BetterAngle Pro v4.27.231
 - **Crosshair Thickness Clamp Fix**: Added additional validation in `setCrossThickness` to clamp values between 0.1px and 10.0px, ensuring the crosshair thickness can properly go below 1px as intended by the UI slider. This provides an extra safeguard beyond the profile loading logic.
 - **Focus-Steal Transition Guard (replaces BlockInput)**: On dive/glide state transitions, BetterAngle now temporarily steals foreground focus to its own transparent HUD window (invisible to the user). Fortnite stops processing camera input for the animation duration (250ms glide→dive, 1000ms dive→glide), then focus is returned instantly. Keyboard input is unaffected throughout.
