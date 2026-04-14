@@ -107,6 +107,9 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
 
   // Two-stage selection overlay
   if (g_currentSelection != NONE) {
+    int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
+
     if (g_screenSnapshot) {
       // Use a static-cached bitmap to avoid performance drops (PC Freeze fix)
       static Gdiplus::Bitmap* s_cachedBmp = nullptr;
@@ -144,7 +147,7 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
         REAL dash[] = {6.0f, 4.0f};
         dashPen.SetDashPattern(dash, 2);
         graphics.DrawRectangle(
-            &dashPen, (int)g_selectionRect.left, (int)g_selectionRect.top,
+            &dashPen, (int)g_selectionRect.left - sx, (int)g_selectionRect.top - sy,
             (int)(g_selectionRect.right - g_selectionRect.left),
             (int)(g_selectionRect.bottom - g_selectionRect.top));
       }
@@ -155,13 +158,13 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
       graphics.DrawString(L"Hover over the brightest part of the prompt text",
                           -1, &selSub, PointF(52.0f, 80.0f), &dimWhite);
 
-      // Draw the selected ROI rectangle
+      // Draw the selected ROI rectangle (with multi-monitor offsets)
       if (g_selectionRect.right > g_selectionRect.left) {
         Pen dashPen(Color(200, 255, 255, 255), 1.5f);
         REAL dash[] = {6.0f, 4.0f};
         dashPen.SetDashPattern(dash, 2);
         graphics.DrawRectangle(
-            &dashPen, (int)g_selectionRect.left, (int)g_selectionRect.top,
+            &dashPen, (int)g_selectionRect.left - sx, (int)g_selectionRect.top - sy,
             (int)(g_selectionRect.right - g_selectionRect.left),
             (int)(g_selectionRect.bottom - g_selectionRect.top));
       }
@@ -193,8 +196,6 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
           int mw = 80, mh = 80;
           
           // Virtual Screen Aware Offset Math (v123+ Improvements)
-          int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
-          int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
           int mx = (curScr.x - sx) - mw / 2;
           int my = (curScr.y - sy) - mh / 2;
 
@@ -221,8 +222,10 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
   }
 
   {
-    // ROI box visualizer
+    // ROI box visualizer (Coordinate Offset Corrected)
     if (g_showROIBox && !g_allProfiles.empty()) {
+      int sx = GetSystemMetrics(SM_XVIRTUALSCREEN);
+      int sy = GetSystemMetrics(SM_YVIRTUALSCREEN);
       auto &p = g_allProfiles[g_selectedProfileIdx];
       if (p.roi_w > 0 && p.roi_h > 0) {
         Color roiCol =
@@ -230,13 +233,13 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
         Pen roiPen(roiCol, 2.0f);
         REAL dash[] = {8.0f, 4.0f};
         roiPen.SetDashPattern(dash, 2);
-        graphics.DrawRectangle(&roiPen, p.roi_x, p.roi_y, p.roi_w, p.roi_h);
+        graphics.DrawRectangle(&roiPen, p.roi_x - sx, p.roi_y - sy, p.roi_w, p.roi_h);
 
         FontFamily roiFF(L"Segoe UI");
         Font roiFont(&roiFF, 10, FontStyleBold, UnitPixel);
         SolidBrush roiLabel(roiCol);
         graphics.DrawString(g_isDiving ? L"DIVING" : L"GLIDING", -1, &roiFont,
-                            PointF(float(p.roi_x + 4), float(p.roi_y + 4)),
+                            PointF(float(p.roi_x - sx + 4), float(p.roi_y - sy + 4)),
                             &roiLabel);
       }
     }
