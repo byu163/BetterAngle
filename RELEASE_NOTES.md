@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.220..HEAD ### BetterAngle Pro v4.27.222
+- feat: Add Debug diagnostics tab and fix angle formatting wrap
+
 ### BetterAngle Pro v4.27.221
 - **Angle Wrap Formatting**: Fixed angle calculation UI logic so that the value dynamically formats and correctly resets precisely at the wrap point (359.9 to 0.0), ensuring the angle is faithfully bounded and doesn't display as 360.0.
 - **Debug Diagnostics Tab**: Added a new 'DEBUG' tab to the QML Dashboard providing real-time hardware and operating system hooks to monitor Fortnite process detection, window focus, and mouse hidden states. This operates entirely independently of the core angle calculation logic, ensuring allowAngleUpdate continues to strictly require Fortnite to be focused and the mouse hidden without being bypassed by debug monitoring.
