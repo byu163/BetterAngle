@@ -1,3 +1,6 @@
+### BetterAngle Pro v4.27.164
+- **Default Value Fix**: Changed the default value of "Dive to glide threshold match limit %" slider from 5% to 9% as requested. Both glide and freefall thresholds now default to 9% for new installations.
+
 ### BetterAngle Pro v4.27.163
 - **Maintenance Release**: Version bump for deployment pipeline synchronization and clean build environment.
 

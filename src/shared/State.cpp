@@ -104,8 +104,8 @@ void LoadSettings() {
       }
     };
 
-    g_glideThreshold = eFloat("glideThreshold", 0.05f);
-    g_freefallThreshold = eFloat("freefallThreshold", 0.20f);
+    g_glideThreshold = eFloat("glideThreshold", 0.09f);
+    g_freefallThreshold = eFloat("freefallThreshold", 0.09f);
     g_hudX = eInt("hudX", 40);
     g_hudY = eInt("hudY", 40);
 
