@@ -39,7 +39,6 @@ FovDetector g_detector;
 // FOV Detector Thread
 void DetectorThread() {
   bool lastDiving = false;
-  HWND hFortniteCache = NULL;  // Fortnite HWND cached at transition moment
 
   while (g_running) {
     if (!g_allProfiles.empty() && g_currentSelection == NONE) {
@@ -60,28 +59,38 @@ void DetectorThread() {
 
       // Edge: Gliding -> Diving  (FOV zoom-in anim ~0.25s)
       if (nowDiving && !lastDiving) {
-        hFortniteCache = GetForegroundWindow();
-        // Steal focus to our invisible HUD — Fortnite stops camera input
-        SetForegroundWindow(g_hHUD);
         g_mouseSuspendedUntil = GetTickCount64() + 250;
-        LOG_INFO("Transition: glide->dive, stole focus for 250ms");
+        std::thread([]() {
+          std::vector<int> preKeys;
+          for (int i = 1; i < 255; i++) {
+            if (GetAsyncKeyState(i) & 0x8000) preKeys.push_back(i);
+          }
+          BlockInput(TRUE);
+          Sleep(250);
+          BlockInput(FALSE);
+          SyncKeyStates(preKeys);
+        }).detach();
+        LOG_INFO("Transition: glide->dive, BlockInput for 250ms");
       }
       // Edge: Diving -> Gliding  (FOV zoom-out anim ~1.0s)
       else if (!nowDiving && lastDiving) {
-        hFortniteCache = GetForegroundWindow();
-        SetForegroundWindow(g_hHUD);
         g_mouseSuspendedUntil = GetTickCount64() + 1000;
-        LOG_INFO("Transition: dive->glide, stole focus for 1000ms");
+        std::thread([]() {
+          std::vector<int> preKeys;
+          for (int i = 1; i < 255; i++) {
+            if (GetAsyncKeyState(i) & 0x8000) preKeys.push_back(i);
+          }
+          BlockInput(TRUE);
+          Sleep(1000);
+          BlockInput(FALSE);
+          SyncKeyStates(preKeys);
+        }).detach();
+        LOG_INFO("Transition: dive->glide, BlockInput for 1000ms");
       }
 
-      // Return focus to Fortnite once timer expires
+      // Reset UI tracker once timer expires
       if (g_mouseSuspendedUntil > 0 && GetTickCount64() >= g_mouseSuspendedUntil) {
-        if (hFortniteCache) {
-          SetForegroundWindow(hFortniteCache);
-          hFortniteCache = NULL;
-        }
         g_mouseSuspendedUntil = 0;
-        LOG_INFO("Focus returned to Fortnite");
       }
 
       lastDiving = nowDiving;

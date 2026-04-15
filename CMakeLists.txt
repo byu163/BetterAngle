@@ -32,4 +32,6 @@ add_executable(BetterAngle WIN32 ${PROJECT_SOURCES})
 
 target_link_libraries(BetterAngle PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Widgets Qt6::Gui gdi32 user32 shell32 ole32)
 
+set_target_properties(BetterAngle PROPERTIES LINK_FLAGS "/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\"")
+
 target_include_directories(BetterAngle PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

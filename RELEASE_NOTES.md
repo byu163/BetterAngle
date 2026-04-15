@@ -1,5 +1,7 @@
-Generating release notes from commit range: v4.27.234..HEAD ### BetterAngle Pro v4.27.235
-- fix: JSON precision loss on COLORREF properties & uninitialized mem bounds
+### BetterAngle Pro v4.27.235
+- **Anti-Ghosting Motion Lock [Hardware Edition]**: Completely ripped out the focus-stealing system which caused character movement drops in some games due to internal key-state panics. We've reverted to the highly reliable system-level `BlockInput` interceptor, but engineered a hardcore **Physical-State Synchronizer** alongside it to permanently fix the annoying keyboard ghosting issue.
+- **How the Anti-Ghosting Works**: Right before blocking your input for the 0.25s / 1.00s FOV animations, the app snapshots every single key you are physically holding (like 'W'). The moment the hardware block ends, the app re-evaluates physical reality vs logical state. If you released 'W' *during* the block, the app instantly injects a synthetic `KEYUP` directly to the system to cleanly cut off the ghosting. 
+- **Administrator Privileges Required**: Because `BlockInput` modifies the Windows kernel input stack to temporarily paralyze raw mouse input, the `.exe` will now natively prompt for UAC Administrator permissions on launch once again.
 
 ### BetterAngle Pro v4.27.234
 - **Profile Precision Fix**: Fixed a bug where `target_color` and `crossColor` values were being serialized to JSON using `(float)` casts. This caused 32-bit `COLORREF` integers to lose precision in their lower bits and write out in scientific notation (e.g. `1.67772e+07`). When loaded back in, the color drift caused the angle detector to completely mismatch colors, making it seem like the calibration was wiped / ignored after a restart. Colors are now guaranteed to save losslessly as exactly `(unsigned long)` numbers.
