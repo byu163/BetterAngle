@@ -36,30 +36,112 @@ ULONG_PTR g_gdiplusToken;
 std::atomic<bool> g_running(true);
 FovDetector g_detector;
 
+// Helper function to flush pending input messages before blocking
+static void FlushPendingInputMessages() {
+  MSG msg;
+  // Remove all pending keyboard and mouse messages from the queue
+  while (PeekMessageW(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE)) {
+  }
+  while (PeekMessageW(&msg, NULL, WM_MOUSEFIRST, WM_MOUSELAST, PM_REMOVE)) {
+  }
+  // Also flush any other input messages
+  while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
+  }
+}
+
 // FOV Detector Thread
 void DetectorThread() {
+  bool lastDiving = false;
+
   while (g_running) {
     if (!g_allProfiles.empty() && g_currentSelection == NONE) {
       Profile &p = g_allProfiles[g_selectedProfileIdx];
       g_logic.LoadProfile(p.sensitivityX);
 
-      // Only scan and change angle scale when in debug mode or if always active
       RoiConfig cfg = {p.roi_x, p.roi_y,        p.roi_w,
                        p.roi_h, p.target_color, p.tolerance};
+      LOG_INFO("DetectorThread: Calling g_detector.Scan");
+      ULONGLONG startMs = GetTickCount64();
       g_detectionRatio = g_detector.Scan(cfg);
-      if (g_forceDetection)
-        g_detectionRatio = 1.0f;
+      ULONGLONG endMs = GetTickCount64();
+      g_detectionDelayMs = endMs - startMs;
+      LOG_INFO("DetectorThread: Scan complete");
 
-      if (g_forceDiving) {
-        g_isDiving = true;
-        g_logic.SetDivingState(true);
-      } else if (g_detectionRatio >= g_freefallThreshold) {
-        g_isDiving = true;
-        g_logic.SetDivingState(true);
-      } else if (g_detectionRatio <= g_glideThreshold) {
-        g_isDiving = false;
-        g_logic.SetDivingState(false);
+      float threshold = p.diveGlideMatch / 100.0f;
+      bool nowDiving = (g_detectionRatio >= threshold);
+
+      // Edge: Gliding -> Diving  (FOV zoom-in anim ~0.25s)
+      if (nowDiving && !lastDiving) {
+        g_mouseSuspendedUntil = GetTickCount64() + 250;
+        std::thread([]() {
+          // Record keys pressed before blocking
+          std::vector<int> preKeys;
+          for (int i = 1; i < 255; i++) {
+            if (GetAsyncKeyState(i) & 0x8000)
+              preKeys.push_back(i);
+          }
+
+          // Flush pending input messages before blocking to prevent ghosting
+          FlushPendingInputMessages();
+
+          // Block all input (keyboard and mouse)
+          BlockInput(TRUE);
+          Sleep(250);
+          BlockInput(FALSE);
+
+          // Small delay to allow system to process block release
+          Sleep(20);
+
+          // Sync key states to prevent ghosting
+          SyncKeyStates(preKeys);
+
+          // Additional flush after syncing to ensure clean state
+          FlushPendingInputMessages();
+        }).detach();
+        LOG_INFO("Transition: glide->dive, BlockInput for 250ms with input "
+                 "flushing");
       }
+      // Edge: Diving -> Gliding  (FOV zoom-out anim ~1.0s)
+      else if (!nowDiving && lastDiving) {
+        g_mouseSuspendedUntil = GetTickCount64() + 1000;
+        std::thread([]() {
+          // Record keys pressed before blocking
+          std::vector<int> preKeys;
+          for (int i = 1; i < 255; i++) {
+            if (GetAsyncKeyState(i) & 0x8000)
+              preKeys.push_back(i);
+          }
+
+          // Flush pending input messages before blocking to prevent ghosting
+          FlushPendingInputMessages();
+
+          // Block all input (keyboard and mouse)
+          BlockInput(TRUE);
+          Sleep(1000);
+          BlockInput(FALSE);
+
+          // Small delay to allow system to process block release
+          Sleep(20);
+
+          // Sync key states to prevent ghosting
+          SyncKeyStates(preKeys);
+
+          // Additional flush after syncing to ensure clean state
+          FlushPendingInputMessages();
+        }).detach();
+        LOG_INFO("Transition: dive->glide, BlockInput for 1000ms with input "
+                 "flushing");
+      }
+
+      // Reset UI tracker once timer expires
+      if (g_mouseSuspendedUntil > 0 &&
+          GetTickCount64() >= g_mouseSuspendedUntil) {
+        g_mouseSuspendedUntil = 0;
+      }
+
+      lastDiving = nowDiving;
+      g_isDiving = nowDiving;
+      g_logic.SetDivingState(nowDiving);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
@@ -132,12 +214,8 @@ bool RefreshHotkeys(HWND hWnd) {
                           p.keybinds.toggleKey != lastKeybinds.toggleKey) ||
                          (p.keybinds.roiMod != lastKeybinds.roiMod ||
                           p.keybinds.roiKey != lastKeybinds.roiKey) ||
-                         (p.keybinds.crossMod != lastKeybinds.crossMod ||
-                          p.keybinds.crossKey != lastKeybinds.crossKey) ||
                          (p.keybinds.zeroMod != lastKeybinds.zeroMod ||
-                          p.keybinds.zeroKey != lastKeybinds.zeroKey) ||
-                         (p.keybinds.debugMod != lastKeybinds.debugMod ||
-                          p.keybinds.debugKey != lastKeybinds.debugKey);
+                          p.keybinds.zeroKey != lastKeybinds.zeroKey);
 
   if (!keybindsChanged) {
     // Keybinds haven't changed, no need to re-register
@@ -188,11 +266,9 @@ bool RefreshHotkeys(HWND hWnd) {
                                L"Crosshair Toggle");
   ok &= registerWithErrorCheck(4, p.keybinds.zeroMod, p.keybinds.zeroKey,
                                L"Zero Angle");
-  ok &= registerWithErrorCheck(5, p.keybinds.debugMod, p.keybinds.debugKey,
-                               L"Debug Mode");
 
-  // Log any failures (in debug mode)
-  if (!failedHotkeys.empty() && g_debugMode) {
+  // Log failures
+  if (!failedHotkeys.empty()) {
     for (const auto &failure : failedHotkeys) {
       OutputDebugStringW((L"BetterAngle: " + failure.second + L"\n").c_str());
     }
@@ -209,7 +285,7 @@ bool RefreshHotkeys(HWND hWnd) {
     // Try to register at least some hotkeys (fallback to defaults for failed
     // ones) This ensures the app remains somewhat functional even if some
     // hotkeys conflict
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 1; i <= 4; i++) {
       RegisterHotKey(hWnd, i, MOD_CONTROL | 0x4000,
                      'A' + i - 1); // Ctrl+A, Ctrl+B, etc. as fallback
     }
@@ -224,9 +300,26 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
   if (message == WM_INPUT) {
     int dx = GetRawInputDeltaX(lParam);
     g_isCursorVisible = IsCursorCurrentlyVisible();
+    const bool isFortniteForeground = IsFortniteForeground();
 
-    const bool allowAngleUpdate =
-        g_debugMode || (IsFortniteForeground() && !g_isCursorVisible);
+    const bool allowAngleUpdate = (isFortniteForeground && !g_isCursorVisible);
+
+    static bool lastAllowAngleUpdate = true;
+    static bool lastIsFortniteForeground = false;
+    static bool lastCursorVisible = false;
+
+    if (allowAngleUpdate != lastAllowAngleUpdate ||
+        isFortniteForeground != lastIsFortniteForeground ||
+        g_isCursorVisible != lastCursorVisible) {
+      LOG_INFO("Input gate changed: fortnite=%d cursorVisible=%d "
+               "allow=%d dx=%d",
+               isFortniteForeground ? 1 : 0, g_isCursorVisible ? 1 : 0,
+               allowAngleUpdate ? 1 : 0, dx);
+      lastAllowAngleUpdate = allowAngleUpdate;
+      lastIsFortniteForeground = isFortniteForeground;
+      lastCursorVisible = g_isCursorVisible;
+    }
+
     if (allowAngleUpdate) {
       // Update angle accumulation (the decimal) based on raw input
       g_logic.Update(dx);
@@ -281,6 +374,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         SetWindowLong(hWnd, GWL_EXSTYLE,
                       GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
         InvalidateRect(hWnd, NULL, FALSE);
+        g_forceRedraw = true;
       }
       break;
     case 3:
@@ -299,11 +393,6 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       g_currentAngle = 0.0f;
       g_logic.SetZero();
       break;
-    case 5:
-      g_debugMode = !g_debugMode;
-      InvalidateRect(hWnd, NULL, FALSE);
-      UpdateWindow(hWnd);
-      break;
     }
     return 0;
 
@@ -320,6 +409,22 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       SendMessage(hWnd, WM_CLOSE, 0, 0);
     }
     return 0;
+
+  case WM_KEYDOWN:
+    if (wParam == VK_ESCAPE && g_currentSelection != NONE) {
+      LOG_INFO("Selection cancelled via ESCAPE");
+      g_currentSelection = NONE;
+      g_isSelectionActive = false;
+      if (g_screenSnapshot) {
+        DeleteObject(g_screenSnapshot);
+        g_screenSnapshot = NULL;
+      }
+      SetWindowLong(hWnd, GWL_EXSTYLE,
+                    GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
+      InvalidateRect(hWnd, NULL, FALSE);
+      g_forceRedraw = true;
+    }
+    return 0;
   case WM_LBUTTONDOWN:
     if (g_currentSelection == SELECTING_ROI) {
       POINT cur;
@@ -327,8 +432,11 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       g_startPoint = cur;
       g_selectionRect = {cur.x, cur.y, cur.x, cur.y};
     } else if (g_currentSelection == SELECTING_COLOR) {
+      LOG_INFO("Stage 2 LBUTTONDOWN executed");
       // STAGE 2: PRECISION COLOR PICK (Snap-Shot Bypass)
+      LOG_INFO("Stage 2 LBUTTONDOWN: Starting to finalize selection");
       if (g_screenSnapshot) {
+        LOG_TRACE("Sampling color from g_screenSnapshot...");
         HDC hdcScreen = GetDC(NULL);
         HDC hdcMem = CreateCompatibleDC(hdcScreen);
         HGDIOBJ hOld = SelectObject(hdcMem, g_screenSnapshot);
@@ -347,9 +455,11 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         SelectObject(hdcMem, hOld);
         DeleteDC(hdcMem);
         ReleaseDC(NULL, hdcScreen);
+        LOG_TRACE("Color sampled successfully.");
       }
 
       // Finalize and Exit Selection
+      LOG_INFO("Resetting selection state...");
       g_currentSelection = NONE;
       g_isSelectionActive = false;
       if (g_screenSnapshot) {
@@ -359,6 +469,8 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       SetWindowLong(hWnd, GWL_EXSTYLE,
                     GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
       InvalidateRect(hWnd, NULL, FALSE);
+      g_forceRedraw = true;
+      LOG_INFO("Stage 2 Redraw Forced Handle Cleaned.");
 
       if (!g_allProfiles.empty()) {
         Profile &p = g_allProfiles[g_selectedProfileIdx];
@@ -370,7 +482,9 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 
         // Save to the actual profile path
         std::wstring profilePath = GetProfilesPath() + p.name + L".json";
+        LOG_INFO("Calling Save to profilePath");
         p.Save(profilePath);
+        LOG_INFO("Save complete");
 
         // Also maintain the legacy 'last_calibrated' for quick-load logic if
         // needed
@@ -406,7 +520,10 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         bool lDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
         POINT pt;
         GetCursorPos(&pt);
-        if (lDown && !g_isDraggingHUD) {
+
+        bool canDrag = !(IsFortniteForeground() && !IsCursorCurrentlyVisible());
+
+        if (lDown && !g_isDraggingHUD && canDrag) {
           if (pt.x >= g_hudX && pt.x <= g_hudX + 260 && pt.y >= g_hudY &&
               pt.y <= g_hudY + 150) {
             g_isDraggingHUD = true;
@@ -432,23 +549,15 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         }
       }
 
-      static float lastAngle = -9999.0f;
-      static bool lastDiving = false;
-      static bool lastCursor = false;
       g_isCursorVisible = IsCursorCurrentlyVisible();
       float ang = g_logic.GetAngle();
 
-      bool pulseActive = (g_showCrosshair && g_crossPulse);
+      // Clear the forced redraw flag occasionally set elsewhere
+      g_forceRedraw.store(false);
 
-      if (ang != lastAngle || g_isDiving != lastDiving ||
-          g_isCursorVisible != lastCursor || g_currentSelection != NONE ||
-          g_showCrosshair || pulseActive || g_forceRedraw.load()) {
-        lastAngle = ang;
-        lastDiving = g_isDiving;
-        lastCursor = g_isCursorVisible;
-        g_forceRedraw.store(false);
-        DrawOverlay(hWnd, ang, g_detectionRatio, g_showCrosshair);
-      }
+      // Unconditionally draw overlay at 60FPS to keep Debug stats (FPS/Delay)
+      // synced live
+      DrawOverlay(hWnd, ang, g_detectionRatio, g_showCrosshair);
     } else if (wParam == 2) { // 30s Auto-Save Periodic Timer
       SaveSettings();
       if (!g_allProfiles.empty() &&
@@ -491,16 +600,14 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
   SetProcessDPIAware();
+  InitEnhancedLogging();
+  LOG_INFO("WinMain entered");
+
   int argc = 1;
   char *argv[] = {(char *)"BetterAngle.exe", nullptr};
   QGuiApplication app(argc, argv);
   app.setQuitOnLastWindowClosed(
       false); // Prevent premature exit if windows are still initializing
-
-  InitEnhancedLogging();
-  LOG_INFO(L"BetterAngle starting");
-  SetLogLevel(LogLevel::Debug);
-  LogStartup();
 
   // Phase 0: Kick off version check in background — never blocks startup.
   // g_updateAvailable will be set when done; the control panel UPDATES tab
@@ -511,7 +618,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
 
   LoadSettings();
-  SetLogLevel(g_debugMode ? LogLevel::Trace : LogLevel::Info);
+  SetLogLevel(LogLevel::Info);
   LogStartup();
   CleanupUpdateJunk();
 
@@ -519,14 +626,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   if (g_allProfiles.empty()) {
     Profile p;
     p.name = L"Default";
-    p.tolerance = 2;
-    p.sensitivityX = 0.1; // Default Standard
+    p.tolerance = 1;
+    p.sensitivityX = 0.1;
     p.sensitivityY = 0.1;
-    p.roi_x = 760;
-    p.roi_y = 640;
-    p.roi_w = 400;
-    p.roi_h = 70;
-    p.target_color = RGB(150, 150, 150);
+    // roi_x/y/w/h left at 0: user must run the ROI selector before
+    // the detection zone is shown. This avoids a confusing default box.
     p.crossThickness = 1.0f;
     p.crossColor = RGB(255, 0, 0);
     p.Save(GetProfilesPath() + L"Default.json");
@@ -597,7 +701,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
   // Phase 2: Create Control Panel (Interactive) via Qt
   g_hPanel = CreateControlPanel(hInstance);
-  LOG_INFO(L"Control panel created");
+  LOG_INFO("Control panel created: hwnd=0x%p", g_hPanel);
   LogWindowInfo(L"Control panel handle", g_hPanel);
 
   // Phase 3: Create HUD Window (Transparent Overlay)
@@ -620,13 +724,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       screenW, screenH, NULL, NULL, hInstance, NULL);
 
   AddSystrayIcon(g_hHUD);
+  LOG_INFO("HUD created: hwnd=0x%p", g_hHUD);
+  LogWindowInfo(L"HUD handle", g_hHUD);
   ShowControlPanel(); // Force Dashboard to show on startup
   ShowWindow(g_hHUD, SW_SHOW);
   SetWindowPos(g_hHUD, HWND_TOPMOST, 0, 0, 0, 0,
                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
   UpdateWindow(g_hHUD);
-  LOG_INFO(L"HUD window shown");
-  LogWindowInfo(L"HUD handle", g_hHUD);
   SetTimer(g_hHUD, 1, 16, NULL);    // 60fps (~16ms) Repaint Timer
   SetTimer(g_hHUD, 2, 30000, NULL); // 30s Auto-Save Timer
 

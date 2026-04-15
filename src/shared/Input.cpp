@@ -157,3 +157,48 @@ bool IsCursorCurrentlyVisible() {
     return true;
   return (cursorInfo.flags & CURSOR_SHOWING) != 0;
 }
+
+void SyncKeyStates(const std::vector<int>& preBlockKeys) {
+  // Sync physical hardware state with logical state after a BlockInput window.
+  // Re-evaluates all 255 virtual keys.
+  for (int vk = 1; vk < 255; vk++) {
+    bool downBefore = false;
+    for (int pre_vk : preBlockKeys) {
+      if (pre_vk == vk) {
+        downBefore = true;
+        break;
+      }
+    }
+
+    bool downAfter = (GetAsyncKeyState(vk) & 0x8000) != 0;
+
+    if (downBefore && !downAfter) {
+      // Key was physically released while blocked. The system ate the KEYUP.
+      // We must synthesize it to prevent game character ghosting.
+      INPUT in = {0};
+      
+      if (vk == VK_LBUTTON || vk == VK_RBUTTON || vk == VK_MBUTTON || vk == VK_XBUTTON1 || vk == VK_XBUTTON2) {
+        in.type = INPUT_MOUSE;
+        if (vk == VK_LBUTTON) in.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+        else if (vk == VK_RBUTTON) in.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
+        else if (vk == VK_MBUTTON) in.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
+        else if (vk == VK_XBUTTON1) { in.mi.dwFlags = MOUSEEVENTF_XUP; in.mi.mouseData = XBUTTON1; }
+        else if (vk == VK_XBUTTON2) { in.mi.dwFlags = MOUSEEVENTF_XUP; in.mi.mouseData = XBUTTON2; }
+      } else {
+        in.type = INPUT_KEYBOARD;
+        in.ki.wVk = vk;
+        in.ki.wScan = MapVirtualKeyW(vk, MAPVK_VK_TO_VSC);
+        in.ki.dwFlags = KEYEVENTF_KEYUP | KEYEVENTF_SCANCODE;
+        // Extend arrows etc.
+        switch(vk) {
+            case VK_UP: case VK_DOWN: case VK_LEFT: case VK_RIGHT:
+            case VK_INSERT: case VK_DELETE: case VK_HOME: case VK_END:
+            case VK_PRIOR: case VK_NEXT: case VK_RCONTROL: case VK_RMENU:
+                in.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+                break;
+        }
+      }
+      SendInput(1, &in, sizeof(INPUT));
+    }
+  }
+}

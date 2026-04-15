@@ -87,20 +87,29 @@ void CaptureDesktop() {
   DeleteDC(hdcMem);
 }
 
-static void SetHudInteractiveMode(HWND hWnd, bool interactive) {
-  long exStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+// Helper to get error description for GetLastError()
+static std::wstring GetLastErrorString() {
+  DWORD error = GetLastError();
+  if (error == 0)
+    return L"Success";
 
-  if (interactive) {
-    exStyle &= ~WS_EX_TRANSPARENT;
-  } else {
-    exStyle |= WS_EX_TRANSPARENT;
+  wchar_t *buffer = nullptr;
+  size_t size = FormatMessageW(
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+          FORMAT_MESSAGE_IGNORE_INSERTS,
+      NULL, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&buffer,
+      0, NULL);
+
+  std::wstring message(buffer, size);
+  LocalFree(buffer);
+
+  // Remove trailing newlines
+  while (!message.empty() &&
+         (message.back() == L'\n' || message.back() == L'\r')) {
+    message.pop_back();
   }
 
-  SetWindowLong(hWnd, GWL_EXSTYLE, exStyle);
-  SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-               SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-  InvalidateRect(hWnd, NULL, FALSE);
-  UpdateWindow(hWnd);
+  return message;
 }
 
 // Refreshes all global hotkeys for the HUD window
@@ -108,21 +117,104 @@ bool RefreshHotkeys(HWND hWnd) {
   if (!hWnd)
     return false;
 
-  for (int i = 1; i <= 6; i++)
-    UnregisterHotKey(hWnd, i);
+  // Cache the current keybinds to avoid unnecessary re-registration
+  static Keybinds lastKeybinds = {};
+  static int lastProfileIdx = -1;
 
   if (g_allProfiles.empty())
     return false;
 
   Profile &p = g_allProfiles[g_selectedProfileIdx];
-  // Use standard registration without MOD_NOREPEAT for maximum compatibility
+
+  // Check if keybinds have actually changed
+  bool keybindsChanged = (g_selectedProfileIdx != lastProfileIdx) ||
+                         (p.keybinds.toggleMod != lastKeybinds.toggleMod ||
+                          p.keybinds.toggleKey != lastKeybinds.toggleKey) ||
+                         (p.keybinds.roiMod != lastKeybinds.roiMod ||
+                          p.keybinds.roiKey != lastKeybinds.roiKey) ||
+                         (p.keybinds.crossMod != lastKeybinds.crossMod ||
+                          p.keybinds.crossKey != lastKeybinds.crossKey) ||
+                         (p.keybinds.zeroMod != lastKeybinds.zeroMod ||
+                          p.keybinds.zeroKey != lastKeybinds.zeroKey) ||
+                         (p.keybinds.debugMod != lastKeybinds.debugMod ||
+                          p.keybinds.debugKey != lastKeybinds.debugKey);
+
+  if (!keybindsChanged) {
+    // Keybinds haven't changed, no need to re-register
+    return true;
+  }
+
+  // Unregister all hotkeys first
+  for (int i = 1; i <= 6; i++) {
+    UnregisterHotKey(hWnd, i);
+  }
+
+  // Small delay to allow system to process unregistration (optional but can
+  // help)
+  Sleep(10);
+
+  // Register new hotkeys with MOD_NOREPEAT to prevent key repeat issues
+  // MOD_NOREPEAT (0x4000) prevents the hotkey from firing repeatedly when held
+  // down
   bool ok = true;
-  ok &=
-      RegisterHotKey(hWnd, 1, p.keybinds.toggleMod, p.keybinds.toggleKey) != 0;
-  ok &= RegisterHotKey(hWnd, 2, p.keybinds.roiMod, p.keybinds.roiKey) != 0;
-  ok &= RegisterHotKey(hWnd, 3, p.keybinds.crossMod, p.keybinds.crossKey) != 0;
-  ok &= RegisterHotKey(hWnd, 4, p.keybinds.zeroMod, p.keybinds.zeroKey) != 0;
-  ok &= RegisterHotKey(hWnd, 5, p.keybinds.debugMod, p.keybinds.debugKey) != 0;
+  std::vector<std::pair<int, std::wstring>> failedHotkeys;
+
+  auto registerWithErrorCheck = [&](int id, UINT mod, UINT vk,
+                                    const wchar_t *name) -> bool {
+    if (vk == 0) {
+      // Zero key means hotkey is disabled
+      return true;
+    }
+
+    // Apply MOD_NOREPEAT flag
+    UINT flags = mod | 0x4000;
+
+    if (!RegisterHotKey(hWnd, id, flags, vk)) {
+      DWORD err = GetLastError();
+      std::wstring errorMsg = GetLastErrorString();
+      failedHotkeys.push_back({id, L"Hotkey " + std::wstring(name) +
+                                       L" failed: " + errorMsg + L" (Error " +
+                                       std::to_wstring(err) + L")"});
+      return false;
+    }
+    return true;
+  };
+
+  ok &= registerWithErrorCheck(1, p.keybinds.toggleMod, p.keybinds.toggleKey,
+                               L"Toggle Panel");
+  ok &= registerWithErrorCheck(2, p.keybinds.roiMod, p.keybinds.roiKey,
+                               L"ROI Select");
+  ok &= registerWithErrorCheck(3, p.keybinds.crossMod, p.keybinds.crossKey,
+                               L"Crosshair Toggle");
+  ok &= registerWithErrorCheck(4, p.keybinds.zeroMod, p.keybinds.zeroKey,
+                               L"Zero Angle");
+  ok &= registerWithErrorCheck(5, p.keybinds.debugMod, p.keybinds.debugKey,
+                               L"Debug Mode");
+
+  // Log any failures (in debug mode)
+  if (!failedHotkeys.empty() && g_debugMode) {
+    for (const auto &failure : failedHotkeys) {
+      OutputDebugStringW((L"BetterAngle: " + failure.second + L"\n").c_str());
+    }
+  }
+
+  // Update cache if registration was successful
+  if (ok) {
+    lastKeybinds = p.keybinds;
+    lastProfileIdx = g_selectedProfileIdx;
+  } else {
+    // If registration failed, clear cache to force retry next time
+    lastProfileIdx = -1;
+
+    // Try to register at least some hotkeys (fallback to defaults for failed
+    // ones) This ensures the app remains somewhat functional even if some
+    // hotkeys conflict
+    for (int i = 1; i <= 5; i++) {
+      RegisterHotKey(hWnd, i, MOD_CONTROL | 0x4000,
+                     'A' + i - 1); // Ctrl+A, Ctrl+B, etc. as fallback
+    }
+  }
+
   return ok;
 }
 
@@ -134,7 +226,7 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
     g_isCursorVisible = IsCursorCurrentlyVisible();
 
     const bool allowAngleUpdate =
-        g_debugMode || IsFortniteForeground();
+        g_debugMode || (IsFortniteForeground() && !g_isCursorVisible);
     if (allowAngleUpdate) {
       // Update angle accumulation (the decimal) based on raw input
       g_logic.Update(dx);
@@ -162,9 +254,9 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         CaptureDesktop(); // Capture before dimming
         g_currentSelection = SELECTING_ROI;
         g_isSelectionActive = true;
-        g_selectionRect = {0, 0, 0, 0};
-        g_startPoint = {0, 0};
-        SetHudInteractiveMode(hWnd, true);
+        long exStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
+        exStyle &= ~WS_EX_TRANSPARENT;
+        SetWindowLong(hWnd, GWL_EXSTYLE, exStyle);
         SetForegroundWindow(hWnd);
       } else {
         // Save the current ROI rectangle if valid before exiting selection
@@ -186,7 +278,9 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
           DeleteObject(g_screenSnapshot);
           g_screenSnapshot = NULL;
         }
-        SetHudInteractiveMode(hWnd, false);
+        SetWindowLong(hWnd, GWL_EXSTYLE,
+                      GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
+        InvalidateRect(hWnd, NULL, FALSE);
       }
       break;
     case 3:
@@ -194,7 +288,9 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       g_forceRedraw = true;
       if (!g_allProfiles.empty()) {
         g_allProfiles[g_selectedProfileIdx].showCrosshair = g_showCrosshair;
-        g_allProfiles[g_selectedProfileIdx].Save(GetProfilesPath() + g_allProfiles[g_selectedProfileIdx].name + L".json");
+        g_allProfiles[g_selectedProfileIdx].Save(
+            GetProfilesPath() + g_allProfiles[g_selectedProfileIdx].name +
+            L".json");
       }
       SaveSettings();
       NotifyBackendCrosshairChanged();
@@ -260,7 +356,9 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
         DeleteObject(g_screenSnapshot);
         g_screenSnapshot = NULL;
       }
-      SetHudInteractiveMode(hWnd, false);
+      SetWindowLong(hWnd, GWL_EXSTYLE,
+                    GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
+      InvalidateRect(hWnd, NULL, FALSE);
 
       if (!g_allProfiles.empty()) {
         Profile &p = g_allProfiles[g_selectedProfileIdx];
@@ -297,18 +395,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 
   case WM_LBUTTONUP:
     if (g_currentSelection == SELECTING_ROI) {
-      if (g_selectionRect.right > g_selectionRect.left &&
-          g_selectionRect.bottom > g_selectionRect.top) {
-        g_currentSelection = SELECTING_COLOR;
-      } else {
-        g_currentSelection = NONE;
-        g_isSelectionActive = false;
-        if (g_screenSnapshot) {
-          DeleteObject(g_screenSnapshot);
-          g_screenSnapshot = NULL;
-        }
-        SetHudInteractiveMode(hWnd, false);
-      }
+      g_currentSelection = SELECTING_COLOR;
       InvalidateRect(hWnd, NULL, FALSE);
     }
     return 0;
@@ -404,16 +491,14 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
   SetProcessDPIAware();
+  InitEnhancedLogging();
+  LOG_INFO("WinMain entered");
+
   int argc = 1;
   char *argv[] = {(char *)"BetterAngle.exe", nullptr};
   QGuiApplication app(argc, argv);
   app.setQuitOnLastWindowClosed(
       false); // Prevent premature exit if windows are still initializing
-
-  InitEnhancedLogging();
-  LOG_INFO(L"BetterAngle starting");
-  SetLogLevel(LogLevel::Debug);
-  LogStartup();
 
   // Phase 0: Kick off version check in background — never blocks startup.
   // g_updateAvailable will be set when done; the control panel UPDATES tab
@@ -424,16 +509,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
 
   LoadSettings();
-  SetLogLevel(g_debugMode ? LogLevel::Debug : LogLevel::Info);
+  SetLogLevel(g_debugMode ? LogLevel::Trace : LogLevel::Info);
   LogStartup();
   CleanupUpdateJunk();
-
-  g_currentSelection = NONE;
-  g_isSelectionActive = false;
-  if (g_screenSnapshot) {
-    DeleteObject(g_screenSnapshot);
-    g_screenSnapshot = NULL;
-  }
 
   g_allProfiles = GetProfiles(GetProfilesPath());
   if (g_allProfiles.empty()) {
@@ -513,13 +591,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   HWND hMsgWnd = CreateWindowEx(0, L"BetterAngleMsgWnd", NULL, 0, 0, 0, 0, 0,
                                 HWND_MESSAGE, NULL, hInstance, NULL);
   RegisterRawMouse(hMsgWnd);
-  LOG_INFO(L"Raw input message window created");
-  LogWindowInfo(L"Raw input message window handle", hMsgWnd);
+  LOG_INFO("Raw input message window created: hwnd=0x%p", hMsgWnd);
 
   // Phase 2: Create Control Panel (Interactive) via Qt
   g_hPanel = CreateControlPanel(hInstance);
-  LOG_INFO(L"Control panel created");
-  LogWindowInfo(L"Control panel handle", g_hPanel);
+  LOG_INFO("Control panel created: hwnd=0x%p", g_hPanel);
+  LogWindowInfo(g_hPanel);
 
   // Phase 3: Create HUD Window (Transparent Overlay)
   WNDCLASS wc = {0};
@@ -541,13 +618,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       screenW, screenH, NULL, NULL, hInstance, NULL);
 
   AddSystrayIcon(g_hHUD);
+  LOG_INFO("HUD created: hwnd=0x%p", g_hHUD);
+  LogWindowInfo(g_hHUD);
   ShowControlPanel(); // Force Dashboard to show on startup
   ShowWindow(g_hHUD, SW_SHOW);
   SetWindowPos(g_hHUD, HWND_TOPMOST, 0, 0, 0, 0,
                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
   UpdateWindow(g_hHUD);
-  LOG_INFO(L"HUD window shown");
-  LogWindowInfo(L"HUD handle", g_hHUD);
   SetTimer(g_hHUD, 1, 16, NULL);    // 60fps (~16ms) Repaint Timer
   SetTimer(g_hHUD, 2, 30000, NULL); // 30s Auto-Save Timer
 
@@ -555,7 +632,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
   // Run Qt Event Loop
   int exitCode = app.exec();
-  LOG_INFO(L"Qt event loop exited");
+  LOG_INFO("Qt event loop exited with code=%d", exitCode);
 
   g_running = false;
   if (detThread.joinable())

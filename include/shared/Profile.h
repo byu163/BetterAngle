@@ -14,8 +14,6 @@ struct Keybinds {
   UINT crossKey = VK_F10;
   UINT zeroMod = MOD_CONTROL;
   UINT zeroKey = 'G';
-  UINT debugMod = MOD_CONTROL;
-  UINT debugKey = '9';
 };
 
 struct CrosshairPreset {
@@ -23,6 +21,9 @@ struct CrosshairPreset {
   float offsetX;
   float offsetY;
   float angle;
+  float thickness;
+  COLORREF color;
+  bool pulse;
 };
 
 struct Profile {
@@ -31,19 +32,20 @@ struct Profile {
   double sensitivityY = 0.05;
 
   // Reference Metadata
-  float fov;
-  int resolutionWidth;
-  int resolutionHeight;
-  float renderScale;
+  float fov = 80.0f;
+  int resolutionWidth = 1920;
+  int resolutionHeight = 1080;
+  float renderScale = 100.0f;
 
   // Detector Logic
   int roi_x = 0, roi_y = 0, roi_w = 0, roi_h = 0;
   COLORREF target_color = 0;
-  int tolerance = 2;
+  int tolerance = 1;
+  float diveGlideMatch = 9.0f;
 
   // Crosshair Settings
   bool showCrosshair = false;
-  float crossThickness = 1.0f;
+  float crossThickness = 0.1f;
   COLORREF crossColor = RGB(255, 0, 0);
   float crossOffsetX = 0.0f;
   float crossOffsetY = 0.0f;

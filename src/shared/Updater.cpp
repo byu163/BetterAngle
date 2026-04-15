@@ -80,8 +80,16 @@ static std::wstring EscapePowerShellSingleQuoted(const std::wstring &value) {
 }
 
 bool CheckForUpdates() {
+  struct UpdateCheckGuard {
+    ~UpdateCheckGuard() {
+      g_isCheckingForUpdates = false;
+      NotifyBackendUpdateStatusChanged();
+    }
+  } guard;
+
   g_isCheckingForUpdates = true;
   bool success = false;
+  // ... rest of logic
 
   std::wstring tempRes = GetAppRootPath() + L"latest_release.json";
   if (DownloadFile(VERSION_URL, tempRes)) {
@@ -142,10 +150,11 @@ bool CheckForUpdates() {
     DeleteFileW(tempRes.c_str());
   }
 
-  g_isCheckingForUpdates = false;
   g_hasCheckedForUpdates = true; // Always true after attempt, even if failed
   if (!success) {
-    g_updateHistory = "Update check failed";
+    g_updateHistory =
+        "Update check failed. Verify the latest GitHub release is a normal "
+        "release, not a prerelease.";
   }
   return g_updateAvailable;
 }
@@ -184,8 +193,8 @@ void ApplyUpdateAndRestart() {
 
   auto openReleasePage = []() {
     ShellExecuteW(NULL, L"open",
-                  L"https://github.com/MahanYTT/BetterAngle/releases/latest",
-                  NULL, NULL, SW_SHOWNORMAL);
+                  L"https://github.com/MahanYTT/BetterAngle/releases", NULL,
+                  NULL, SW_SHOWNORMAL);
   };
 
   if (GetFileAttributesW(installerPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
@@ -225,6 +234,8 @@ void ApplyUpdateAndRestart() {
       L"$p = Start-Process -FilePath $installer -ArgumentList $args -Verb "
       L"RunAs -PassThru -Wait; "
       L"if ($p.ExitCode -eq 0 -and (Test-Path -LiteralPath $app)) { "
+      L"$ad = Join-Path $env:LOCALAPPDATA 'BetterAngle'; "
+      L"if (Test-Path $ad) { Remove-Item -Path $ad -Recurse -Force -ErrorAction SilentlyContinue }; "
       L"Start-Sleep -Seconds 2; Start-Process -FilePath $app -WorkingDirectory "
       L"(Split-Path -Parent $app) | Out-Null; "
       L"} elseif (Test-Path -LiteralPath $app) { "

@@ -11,7 +11,8 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 OutputDir=bin
 OutputBaseFilename=BetterAngle_Setup
-SetupIconFile=assets\icon.ico
+SetupIconFile=assets\BetterAngle_v161.ico
+UninstallDisplayIcon={app}\assets\BetterAngle_v161.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -28,16 +29,23 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "{localappdata}\BetterAngle"; Permissions: users-modify
 Name: "{app}"; Permissions: users-modify
 
+[UninstallDelete]
+Type: filesandordirs; Name: "{localappdata}\BetterAngle"
+Type: filesandordirs; Name: "{userappdata}\BetterAngle"
+Type: filesandordirs; Name: "{commonappdata}\BetterAngle"
+Type: filesandordirs; Name: "{app}"
+
 [Files]
 Source: "build\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "assets\BetterAngle_v161.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\BetterAngle Pro"; Filename: "{app}\BetterAngle.exe"
-Name: "{autodesktop}\BetterAngle Pro"; Filename: "{app}\BetterAngle.exe"; Tasks: desktopicon
+Name: "{autoprograms}\BetterAngle Pro"; Filename: "{app}\BetterAngle.exe"; IconFilename: "{app}\assets\BetterAngle_v161.ico"
+Name: "{autodesktop}\BetterAngle Pro"; Filename: "{app}\BetterAngle.exe"; Tasks: desktopicon; IconFilename: "{app}\assets\BetterAngle_v161.ico"
 Name: "{autoprograms}\BetterAngle Pro\Uninstall BetterAngle"; Filename: "{uninstallexe}"
 
 [Run]
 ; Install Visual C++ Runtime silently before launching the app.
 ; Required on clean systems without Visual Studio installed.
 Filename: "{app}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Visual C++ Runtime..."; Flags: waituntilterminated runhidden
-Filename: "{app}\BetterAngle.exe"; Description: "{cm:LaunchProgram,BetterAngle Pro}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\BetterAngle.exe"; Description: "{cm:LaunchProgram,BetterAngle Pro}"; Flags: nowait postinstall skipifsilent shellexec

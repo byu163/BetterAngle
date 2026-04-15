@@ -59,9 +59,16 @@ private:
     EnhancedLogger() = default;
     ~EnhancedLogger();
 
+    void RotateLogs();
+    void CheckRotation();
+
     std::ofstream m_stream;
     std::mutex m_mutex;
+    std::wstring m_logPath;
     bool m_initialized = false;
+    
+    const size_t m_maxFileSize = 5 * 1024 * 1024; // 5MB
+    const int m_maxRotation = 5;
 
     std::string LevelToString(LogLevel level) const;
     std::string TimestampNow() const;

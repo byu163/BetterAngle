@@ -1,5 +1,6 @@
 #include "shared/Profile.h"
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <locale>
 #include <sstream>
@@ -70,6 +71,12 @@ bool Profile::Load(const std::wstring &path) {
   target_color = (COLORREF)extractDouble("target_color");
   tolerance = (int)extractDouble("tolerance");
 
+  if (content.find("\"diveGlideMatch\"") != std::string::npos) {
+    diveGlideMatch = (float)extractDouble("diveGlideMatch");
+  } else {
+    diveGlideMatch = 9.0f;
+  }
+
   // Load Keybinds
   keybinds.toggleMod = (UINT)extractDouble("kb_toggleMod");
   keybinds.toggleKey = (UINT)extractDouble("kb_toggleKey");
@@ -79,8 +86,6 @@ bool Profile::Load(const std::wstring &path) {
   keybinds.crossKey = (UINT)extractDouble("kb_crossKey");
   keybinds.zeroMod = (UINT)extractDouble("kb_zeroMod");
   keybinds.zeroKey = (UINT)extractDouble("kb_zeroKey");
-  keybinds.debugMod = (UINT)extractDouble("kb_debugMod");
-  keybinds.debugKey = (UINT)extractDouble("kb_debugKey");
 
   // Fallback defaults for new files or legacy ones
   if (keybinds.toggleKey == 0) {
@@ -99,15 +104,12 @@ bool Profile::Load(const std::wstring &path) {
     keybinds.zeroMod = MOD_CONTROL;
     keybinds.zeroKey = 'G';
   }
-  if (keybinds.debugKey == 0) {
-    keybinds.debugMod = MOD_CONTROL;
-    keybinds.debugKey = '9';
-  }
 
   // Load Crosshair (with defaults for legacy files)
   crossThickness = (float)extractDouble("crossThickness");
-  if (crossThickness <= 0)
-    crossThickness = 1.0f;
+  if (crossThickness < 0.1f)
+    crossThickness = 0.1f;
+
   crossColor = (COLORREF)extractDouble("crossColor");
   if (crossColor == 0)
     crossColor = RGB(255, 0, 0); // Default Red
@@ -151,6 +153,13 @@ bool Profile::Load(const std::wstring &path) {
       cp.offsetX = exD("x");
       cp.offsetY = exD("y");
       cp.angle = exD("a");
+      cp.thickness = exD("t");
+      if (cp.thickness < 0.1f)
+        cp.thickness = 0.1f;
+      cp.color = (COLORREF)exD("c");
+      if (cp.color == 0)
+        cp.color = RGB(255, 0, 0);
+      cp.pulse = exD("p") > 0.5f;
       crosshairPresets.push_back(cp);
       objPos = objEnd + 1;
     }
@@ -158,7 +167,8 @@ bool Profile::Load(const std::wstring &path) {
 
   // Ensure default if empty
   if (crosshairPresets.empty()) {
-    CrosshairPreset def = {L"🎯 Screen Center", 0.0f, 0.0f, 0.0f};
+    CrosshairPreset def = {L"🎯 Screen Center", 0.0f, 0.0f, 0.0f, 0.1f,
+                           RGB(255, 0, 0),      false};
     crosshairPresets.push_back(def);
   }
 
@@ -195,8 +205,9 @@ bool Profile::Save(const std::wstring &path) {
   oss << L"  \"roi_y\": " << roi_y << L",\n";
   oss << L"  \"roi_w\": " << roi_w << L",\n";
   oss << L"  \"roi_h\": " << roi_h << L",\n";
-  oss << L"  \"target_color\": " << (float)target_color << L",\n";
+  oss << L"  \"target_color\": " << (unsigned long)target_color << L",\n";
   oss << L"  \"tolerance\": " << tolerance << L",\n";
+  oss << L"  \"diveGlideMatch\": " << diveGlideMatch << L",\n";
   oss << L"  \"kb_toggleMod\": " << keybinds.toggleMod << L",\n";
   oss << L"  \"kb_toggleKey\": " << keybinds.toggleKey << L",\n";
   oss << L"  \"kb_roiMod\": " << keybinds.roiMod << L",\n";
@@ -205,11 +216,11 @@ bool Profile::Save(const std::wstring &path) {
   oss << L"  \"kb_crossKey\": " << keybinds.crossKey << L",\n";
   oss << L"  \"kb_zeroMod\": " << keybinds.zeroMod << L",\n";
   oss << L"  \"kb_zeroKey\": " << keybinds.zeroKey << L",\n";
-  oss << L"  \"kb_debugMod\": " << keybinds.debugMod << L",\n";
-  oss << L"  \"kb_debugKey\": " << keybinds.debugKey << L",\n";
-  oss << L"  \"crossThickness\": " << crossThickness << L",\n";
+
+  oss << L"  \"crossThickness\": " << std::fixed << std::setprecision(6)
+      << crossThickness << L",\n";
   oss << L"  \"showCrosshair\": " << (showCrosshair ? 1 : 0) << L",\n";
-  oss << L"  \"crossColor\": " << (float)crossColor << L",\n";
+  oss << L"  \"crossColor\": " << (unsigned long)crossColor << L",\n";
   oss << L"  \"crossOffsetX\": " << crossOffsetX << L",\n";
   oss << L"  \"crossOffsetY\": " << crossOffsetY << L",\n";
   oss << L"  \"crossAngle\": " << crossAngle << L",\n";
@@ -219,7 +230,10 @@ bool Profile::Save(const std::wstring &path) {
   for (size_t i = 0; i < crosshairPresets.size(); i++) {
     const auto &cp = crosshairPresets[i];
     oss << L"    {\"name\": \"" << cp.name << L"\", \"x\": " << cp.offsetX
-        << L", \"y\": " << cp.offsetY << L", \"a\": " << cp.angle << L"}";
+        << L", \"y\": " << cp.offsetY << L", \"a\": " << cp.angle
+        << L", \"t\": " << cp.thickness << L", \"c\": "
+        << (unsigned long)cp.color << L", \"p\": " << (cp.pulse ? 1 : 0)
+        << L"}";
     if (i < crosshairPresets.size() - 1)
       oss << L",";
     oss << L"\n";

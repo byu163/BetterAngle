@@ -16,9 +16,11 @@ bool g_isDownloadingUpdate = false;
 bool g_downloadComplete = false;
 std::string g_updateHistory = "";
 std::atomic<bool> g_fortniteFocusedCache(false);
-bool g_setupComplete = false;
 std::string g_lastVersionRun = "";
 std::atomic<bool> g_forceRedraw(true);
+std::atomic<long long> g_detectionDelayMs(0);
+std::atomic<bool> g_showDebugOverlay(false);
+std::atomic<ULONGLONG> g_mouseSuspendedUntil(0);
 
 Profile g_currentProfile;
 std::vector<Profile> g_allProfiles;
@@ -26,8 +28,6 @@ int g_selectedProfileIdx = 0;
 
 // Global g_keybinds removed (v4.20.37)
 std::wstring g_lastLoadedProfileName = L"";
-float g_glideThreshold = 0.05f;
-float g_freefallThreshold = 0.20f;
 
 #include <fstream>
 #include <locale>
@@ -104,23 +104,11 @@ void LoadSettings() {
       }
     };
 
-    g_glideThreshold = eFloat("glideThreshold", 0.05f);
-    g_freefallThreshold = eFloat("freefallThreshold", 0.20f);
     g_hudX = eInt("hudX", 40);
     g_hudY = eInt("hudY", 40);
 
     g_crossPulse = eFloat("crossPulse", 0.0f) > 0.5f;
-    g_setupComplete = eFloat("setupComplete", 0.0f) > 0.5f;
-
-    // Reliability Fallback: Check for hidden marker file
-    std::wstring marker = GetAppRootPath() + L".setup_done";
-    if (GetFileAttributesW(marker.c_str()) != INVALID_FILE_ATTRIBUTES) {
-      g_setupComplete = true;
-    }
     g_showCrosshair = eFloat("showCrosshair", 1.0f) > 0.5f;
-    g_debugMode = eFloat("debugMode", 0.0f) > 0.5f;
-    g_forceDiving = eFloat("forceDiving", 0.0f) > 0.5f;
-    g_forceDetection = eFloat("forceDetection", 0.0f) > 0.5f;
     g_selectedProfileIdx = eInt("selectedProfileIdx", 0);
 
     size_t vp = content.find("\"lastVersionRun\":\"");
@@ -166,15 +154,9 @@ void SaveSettings() {
   oss.imbue(std::locale("C"));
 
   oss << "{\n";
-  oss << "  \"glideThreshold\": " << g_glideThreshold << ",\n";
-  oss << "  \"freefallThreshold\": " << g_freefallThreshold << ",\n";
   oss << "  \"hudX\": " << g_hudX << ",\n";
   oss << "  \"hudY\": " << g_hudY << ",\n";
-  oss << "  \"setupComplete\": " << (g_setupComplete ? 1 : 0) << ",\n";
   oss << "  \"showCrosshair\": " << (g_showCrosshair ? 1 : 0) << ",\n";
-  oss << "  \"debugMode\": " << (g_debugMode ? 1 : 0) << ",\n";
-  oss << "  \"forceDiving\": " << (g_forceDiving ? 1 : 0) << ",\n";
-  oss << "  \"forceDetection\": " << (g_forceDetection ? 1 : 0) << ",\n";
   oss << "  \"selectedProfileIdx\": " << g_selectedProfileIdx << ",\n";
 
   oss << "  \"lastVersionRun\":\"" << VERSION_STR << "\",\n";
@@ -213,11 +195,8 @@ POINT g_startPoint = {0};
 
 std::string g_latestVersionOnline = "v" VERSION_STR;
 float g_currentAngle = 0.0f;
-bool g_debugMode = false;
 bool g_isCursorVisible = false;
 AngleLogic g_logic(0.05);
-bool g_forceDiving = false;
-bool g_forceDetection = false;
 
 int g_hudX = 40;
 int g_hudY = 40;

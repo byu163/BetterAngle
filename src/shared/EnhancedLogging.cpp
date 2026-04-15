@@ -23,7 +23,7 @@ void SetLogLevel(LogLevel level) {
 
 void LogStartup() {
     LOG_INFO("--- BetterAngle Pro Startup ---");
-    LOG_INFO("Build Version: 4.27.117");
+    LOG_INFO("Build Version: %hs", VERSION_STR);
     
     SYSTEM_INFO si;
     GetSystemInfo(&si);
@@ -78,6 +78,7 @@ void EnhancedLogger::Initialize(const std::wstring& logPath) {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_initialized) return;
 
+    m_logPath = logPath;
     std::filesystem::path path(logPath);
     if (path.has_parent_path()) {
         std::error_code ec;
@@ -100,7 +101,11 @@ void EnhancedLogger::Log(LogLevel level, const char* file, int line, const std::
 
     m_stream << "[" << TimestampNow() << "] [" << LevelToString(level) << "] [" 
              << filename << ":" << line << "] " << message << "\n";
+    
+    // Hardened for freeze diagnostics: Flush immediately unconditionally
     m_stream.flush();
+
+    CheckRotation();
 }
 
 void EnhancedLogger::Log(LogLevel level, const char* file, int line, const std::wstring& message) {
@@ -116,6 +121,43 @@ void EnhancedLogger::Flush() {
 
 EnhancedLogger::~EnhancedLogger() {
     Flush();
+}
+
+void EnhancedLogger::CheckRotation() {
+    if (!m_initialized || !m_stream.is_open() || m_logPath.empty()) return;
+
+    // Fast check for file size
+    if (m_stream.tellp() > static_cast<std::streamoff>(m_maxFileSize)) {
+        RotateLogs();
+    }
+}
+
+void EnhancedLogger::RotateLogs() {
+    m_stream.close();
+
+    std::filesystem::path base(m_logPath);
+    
+    // Shift old logs: log.4 -> log.5, log.3 -> log.4 ...
+    for (int i = m_maxRotation - 1; i >= 1; --i) {
+        std::filesystem::path oldF = base;
+        oldF += "." + std::to_string(i);
+        std::filesystem::path newF = base;
+        newF += "." + std::to_string(i + 1);
+        
+        std::error_code ec;
+        if (std::filesystem::exists(oldF, ec)) {
+            std::filesystem::rename(oldF, newF, ec);
+        }
+    }
+
+    // Rename current to .1
+    std::filesystem::path backup = base;
+    backup += ".1";
+    std::error_code ec;
+    std::filesystem::rename(base, backup, ec);
+
+    // Reopen fresh
+    m_stream.open(m_logPath, std::ios::out | std::ios::trunc);
 }
 
 std::string EnhancedLogger::LevelToString(LogLevel level) const {

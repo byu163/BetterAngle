@@ -17,16 +17,21 @@ std::wstring GetProfilesPath();
 #define APP_WSTR_Z(x) L#x
 #define APP_WSTR_Y(x) APP_WSTR_Z(x)
 
+extern std::atomic<long long> g_detectionDelayMs;
+extern std::atomic<bool> g_showDebugOverlay;
+extern std::atomic<ULONGLONG> g_mouseSuspendedUntil;
+
+extern std::string g_lastVersionRun;
+
+// Version numbers — updated by scripts/bump_version.ps1
 #ifndef V_MAJ
 #define V_MAJ 4
 #define V_MIN 27
-#define V_PAT 117
+#define V_PAT 250
 #endif
-extern std::string g_lastVersionRun;
-extern bool g_setupComplete;
 
 #define VERSION_STR APP_STR_Y(V_MAJ) "." APP_STR_Y(V_MIN) "." APP_STR_Y(V_PAT)
-#define VERSION_WSTR                                                           \
+#define VERSION_WSTR \
   APP_WSTR_Y(V_MAJ) L"." APP_WSTR_Y(V_MIN) L"." APP_WSTR_Y(V_PAT)
 
 // Global Profile Management
@@ -50,8 +55,6 @@ extern bool g_updateAvailable;
 extern bool g_isDownloadingUpdate;
 extern bool g_downloadComplete;
 extern std::string g_updateHistory; // e.g. "v4.20.1 → v4.20.55"
-extern float g_freefallThreshold;
-extern float g_glideThreshold;
 
 // Keybinds struct moved to Profile.h (v4.20.37)
 void LoadSettings();
@@ -74,11 +77,8 @@ extern RECT g_selectionRect;
 extern POINT g_startPoint;
 extern std::string g_latestVersionOnline;
 extern float g_currentAngle;
-extern bool g_debugMode;
 extern bool g_isCursorVisible;
 extern AngleLogic g_logic;
-extern bool g_forceDiving;
-extern bool g_forceDetection;
 extern int g_hudX;
 extern int g_hudY;
 extern bool g_isDraggingHUD;
@@ -90,5 +90,6 @@ extern HWND g_hPanel;
 bool RefreshHotkeys(HWND hWnd);
 extern std::atomic<bool> g_forceRedraw;
 void NotifyBackendCrosshairChanged();
+void NotifyBackendUpdateStatusChanged();
 
 #endif // STATE_H
