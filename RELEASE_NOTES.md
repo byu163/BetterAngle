@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.243..HEAD ### BetterAngle Pro v4.27.244
+- Fix decimal precision for crosshair thickness (6.7px becoming 6px issue)
+
 Generating release notes from commit range: v4.27.242..HEAD ### BetterAngle Pro v4.27.243
 - Fix crosshair thickness below 1px with Java-inspired improvements
 
