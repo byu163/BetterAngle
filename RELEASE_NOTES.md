@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.246..HEAD ### BetterAngle Pro v4.27.247
+- Implement alpha-scaling sub-pixel drawing trick for crosshair
+
 Generating release notes from commit range: v4.27.245..HEAD ### BetterAngle Pro v4.27.246
 - Enforce 0.1px increments and 1.0px default for crosshair thickness
 
