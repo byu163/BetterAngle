@@ -161,49 +161,29 @@ void BetterAngleBackend::setCrosshairOn(bool v) {
 
 float BetterAngleBackend::crossThickness() const { return g_crossThickness; }
 void BetterAngleBackend::setCrossThickness(float v) {
+  // Enforce 0.1px increments to prevent drift (e.g. 0.92px)
+  v = std::round(v * 10.0f) / 10.0f;
+
   // Clamp to valid range (0.1 to 10.0) to match UI slider
   const float minThickness = 0.1f;
   const float maxThickness = 10.0f;
-  const float epsilon = 0.001f;
 
-  // Always log for debugging the thickness issue with full precision
-  std::wstringstream ws1;
-  ws1 << std::fixed << std::setprecision(6) << v;
-  OutputDebugStringW(
-      (L"[Crosshair] setCrossThickness called with: " + ws1.str() + L"\n")
-          .c_str());
-
-  // Clamp to valid range with epsilon for floating point precision
-  if (v < minThickness - epsilon)
-    v = minThickness;
-  if (v > maxThickness + epsilon)
-    v = maxThickness;
-
-  // Ensure it's at least the minimum (handles values like 0.0999)
   if (v < minThickness)
     v = minThickness;
+  if (v > maxThickness)
+    v = maxThickness;
 
-  std::wstringstream ws2;
-  ws2 << std::fixed << std::setprecision(6) << v;
-  OutputDebugStringW(
-      (L"[Crosshair] setCrossThickness final value: " + ws2.str() + L"\n")
-          .c_str());
-  OutputDebugStringW(
-      (L"[Crosshair] g_crossThickness will be set to: " + ws2.str() + L"\n")
-          .c_str());
-
-  g_crossThickness = v;
-  g_forceRedraw = true;
-  if (!g_allProfiles.empty()) {
-    Profile &p = g_allProfiles[g_selectedProfileIdx];
-    p.crossThickness = v;
-    p.Save(GetProfilesPath() + p.name + L".json");
-    OutputDebugStringW(
-        (L"[Crosshair] Saved to profile: " + std::to_wstring(v) + L"\n")
-            .c_str());
+  if (std::abs(g_crossThickness - v) > 0.001f) {
+    g_crossThickness = v;
+    g_forceRedraw = true;
+    if (!g_allProfiles.empty()) {
+      Profile &p = g_allProfiles[g_selectedProfileIdx];
+      p.crossThickness = v;
+      p.Save(GetProfilesPath() + p.name + L".json");
+    }
+    SaveSettings();
+    emit crosshairChanged();
   }
-  SaveSettings();
-  emit crosshairChanged();
 }
 
 float BetterAngleBackend::crossOffsetX() const { return g_crossOffsetX; }

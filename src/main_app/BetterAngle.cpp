@@ -590,7 +590,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     p.sensitivityY = 0.1;
     // roi_x/y/w/h left at 0: user must run the ROI selector before
     // the detection zone is shown. This avoids a confusing default box.
-    p.crossThickness = 0.1f;
+    p.crossThickness = 1.0f;
     p.crossColor = RGB(255, 0, 0);
     p.Save(GetProfilesPath() + L"Default.json");
 

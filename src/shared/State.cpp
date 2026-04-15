@@ -179,7 +179,7 @@ void SaveSettings() {
 }
 
 bool g_showCrosshair = false;
-float g_crossThickness = 0.1f;
+float g_crossThickness = 1.0f;
 COLORREF g_crossColor = RGB(255, 0, 0);
 float g_crossOffsetX = 0.0f;
 float g_crossOffsetY = 0.0f;
