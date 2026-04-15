@@ -1,10 +1,12 @@
 #include "shared/Profile.h"
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <locale>
 #include <sstream>
 #include <vector>
 #include <windows.h>
+
 
 bool Profile::Load(const std::wstring &path) {
   std::ifstream f(path, std::ios::binary);
@@ -69,7 +71,7 @@ bool Profile::Load(const std::wstring &path) {
   roi_h = (int)extractDouble("roi_h");
   target_color = (COLORREF)extractDouble("target_color");
   tolerance = (int)extractDouble("tolerance");
-  
+
   if (content.find("\"diveGlideMatch\"") != std::string::npos) {
     diveGlideMatch = (float)extractDouble("diveGlideMatch");
   } else {
@@ -216,7 +218,8 @@ bool Profile::Save(const std::wstring &path) {
   oss << L"  \"kb_zeroMod\": " << keybinds.zeroMod << L",\n";
   oss << L"  \"kb_zeroKey\": " << keybinds.zeroKey << L",\n";
 
-  oss << L"  \"crossThickness\": " << crossThickness << L",\n";
+  oss << L"  \"crossThickness\": " << std::fixed << std::setprecision(3)
+      << crossThickness << L",\n";
   oss << L"  \"showCrosshair\": " << (showCrosshair ? 1 : 0) << L",\n";
   oss << L"  \"crossColor\": " << (unsigned long)crossColor << L",\n";
   oss << L"  \"crossOffsetX\": " << crossOffsetX << L",\n";
@@ -229,8 +232,9 @@ bool Profile::Save(const std::wstring &path) {
     const auto &cp = crosshairPresets[i];
     oss << L"    {\"name\": \"" << cp.name << L"\", \"x\": " << cp.offsetX
         << L", \"y\": " << cp.offsetY << L", \"a\": " << cp.angle
-        << L", \"t\": " << cp.thickness << L", \"c\": " << (unsigned long)cp.color
-        << L", \"p\": " << (cp.pulse ? 1 : 0) << L"}";
+        << L", \"t\": " << cp.thickness << L", \"c\": "
+        << (unsigned long)cp.color << L", \"p\": " << (cp.pulse ? 1 : 0)
+        << L"}";
     if (i < crosshairPresets.size() - 1)
       oss << L",";
     oss << L"\n";

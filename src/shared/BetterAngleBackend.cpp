@@ -13,7 +13,6 @@
 #include <tlhelp32.h>
 #include <windows.h>
 
-
 extern std::vector<Profile> g_allProfiles;
 extern int g_selectedProfileIdx;
 extern AngleLogic g_logic;
@@ -160,11 +159,17 @@ void BetterAngleBackend::setCrosshairOn(bool v) {
 
 float BetterAngleBackend::crossThickness() const { return g_crossThickness; }
 void BetterAngleBackend::setCrossThickness(float v) {
-  // Clamp to valid range (0.1 to 10.0) to match UI slider
+  // Clamp to valid range (0.1 to 10.0) to match UI slider with epsilon for
+  // floating point precision
+  const float epsilon = 0.001f;
+  if (v < 0.1f - epsilon)
+    v = 0.1f;
+  if (v > 10.0f + epsilon)
+    v = 10.0f;
+
+  // Ensure minimum effective thickness for rendering
   if (v < 0.1f)
     v = 0.1f;
-  if (v > 10.0f)
-    v = 10.0f;
 
   g_crossThickness = v;
   g_forceRedraw = true;
@@ -847,7 +852,13 @@ void BetterAngleBackend::setShowDebugOverlay(bool v) {
 
 void BetterAngleBackend::refreshDebugData() { emit debugDataChanged(); }
 
-long long BetterAngleBackend::detectionDelayMs() const { return (long long)g_detectionDelayMs; }
-int BetterAngleBackend::detectionRatioPct() const { return (int)(g_detectionRatio * 100.0f); }
-bool BetterAngleBackend::inputLocked() const { return g_mouseSuspendedUntil > 0 && GetTickCount64() < g_mouseSuspendedUntil; }
+long long BetterAngleBackend::detectionDelayMs() const {
+  return (long long)g_detectionDelayMs;
+}
+int BetterAngleBackend::detectionRatioPct() const {
+  return (int)(g_detectionRatio * 100.0f);
+}
+bool BetterAngleBackend::inputLocked() const {
+  return g_mouseSuspendedUntil > 0 && GetTickCount64() < g_mouseSuspendedUntil;
+}
 bool BetterAngleBackend::isDiving() const { return g_isDiving; }
