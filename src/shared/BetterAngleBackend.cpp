@@ -159,17 +159,32 @@ void BetterAngleBackend::setCrosshairOn(bool v) {
 
 float BetterAngleBackend::crossThickness() const { return g_crossThickness; }
 void BetterAngleBackend::setCrossThickness(float v) {
-  // Clamp to valid range (0.1 to 10.0) to match UI slider with epsilon for
-  // floating point precision
+  // Clamp to valid range (0.1 to 10.0) to match UI slider
+  const float minThickness = 0.1f;
+  const float maxThickness = 10.0f;
   const float epsilon = 0.001f;
-  if (v < 0.1f - epsilon)
-    v = 0.1f;
-  if (v > 10.0f + epsilon)
-    v = 10.0f;
 
-  // Ensure minimum effective thickness for rendering
-  if (v < 0.1f)
-    v = 0.1f;
+  // Always log for debugging the thickness issue
+  OutputDebugStringW((L"[Crosshair] setCrossThickness called with: " +
+                      std::to_wstring(v) + L"\n")
+                         .c_str());
+
+  // Clamp to valid range with epsilon for floating point precision
+  if (v < minThickness - epsilon)
+    v = minThickness;
+  if (v > maxThickness + epsilon)
+    v = maxThickness;
+
+  // Ensure it's at least the minimum (handles values like 0.0999)
+  if (v < minThickness)
+    v = minThickness;
+
+  OutputDebugStringW((L"[Crosshair] setCrossThickness final value: " +
+                      std::to_wstring(v) + L"\n")
+                         .c_str());
+  OutputDebugStringW((L"[Crosshair] g_crossThickness will be set to: " +
+                      std::to_wstring(v) + L"\n")
+                         .c_str());
 
   g_crossThickness = v;
   g_forceRedraw = true;
@@ -177,6 +192,9 @@ void BetterAngleBackend::setCrossThickness(float v) {
     Profile &p = g_allProfiles[g_selectedProfileIdx];
     p.crossThickness = v;
     p.Save(GetProfilesPath() + p.name + L".json");
+    OutputDebugStringW(
+        (L"[Crosshair] Saved to profile: " + std::to_wstring(v) + L"\n")
+            .c_str());
   }
   SaveSettings();
   emit crosshairChanged();

@@ -7,7 +7,6 @@
 #include <vector>
 #include <windows.h>
 
-
 bool Profile::Load(const std::wstring &path) {
   std::ifstream f(path, std::ios::binary);
   if (!f.is_open())
@@ -156,7 +155,7 @@ bool Profile::Load(const std::wstring &path) {
       cp.angle = exD("a");
       cp.thickness = exD("t");
       if (cp.thickness < 0.1f)
-        cp.thickness = 1.0f;
+        cp.thickness = 0.1f;
       cp.color = (COLORREF)exD("c");
       if (cp.color == 0)
         cp.color = RGB(255, 0, 0);
