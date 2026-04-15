@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.238..HEAD ### BetterAngle Pro v4.27.239
+- feat: Unconditional 60Hz UI repaint and Drag safeguard
+
 ### BetterAngle Pro v4.27.238
 - **Continuous UI Updates**: Disabled the performance-saving redraw cull on the GDI HUD. The overlay now blindly paints at 60Hz instead of waiting for internal thresholds to cross. This ensures that the telemetry metrics (like Ping, FPS, Delay, and Foreground Status) remain fully visible and up-to-date even when the mouse is entirely dormant or when Fortnite is completely minimized.
 - **UX: Clutter Removed**: The ROI indicator logic no longer visually echoes its assigned hotkey parameter (e.g. [Ctrl+R]) into the main viewport.
