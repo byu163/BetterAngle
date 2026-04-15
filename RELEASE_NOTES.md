@@ -1,3 +1,8 @@
+Generating release notes from commit range: v4.27.246..HEAD ### BetterAngle Pro v4.27.248
+- Fix compiler error 'cc' undeclared in Overlay.cpp
+- chore: auto-increment version for release
+- Implement alpha-scaling sub-pixel drawing trick for crosshair
+
 Generating release notes from commit range: v4.27.246..HEAD ### BetterAngle Pro v4.27.247
 - Implement alpha-scaling sub-pixel drawing trick for crosshair
 
