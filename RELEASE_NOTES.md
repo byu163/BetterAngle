@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.237..HEAD ### BetterAngle Pro v4.27.238
+- fix: Queue-flush deferral for SyncKeyStates and Alt-Tab Prompt Sync
+
 ### BetterAngle Pro v4.27.237
 - **Anti-Ghosting Sync Fix**: Interjected a 50ms queue-flush deferral before deploying the synthetic key synchronizations directly into the Windows pipeline. Previously, EAC (or just Windows' internal latency) was inadvertently dropping the unstick injections because they arrived while the OS was still busy deconstructing the hardware gate.
 - **Prompt Color Focus Sync**: Added foreground detection evaluations directly into the 60FPS UI loop; the ROI state visualizer now reflects application bounds correctly during Alt-Tab regardless of whether raw mouse updates are being intercepted.
