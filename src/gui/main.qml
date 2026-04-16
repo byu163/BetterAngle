@@ -67,13 +67,12 @@ Window {
         }
 
         Text {
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: logo.right
-            anchors.leftMargin: 10
+            anchors.centerIn: parent
             text: "BetterAngle Pro"
             color: "#ffffff"
             font.bold: true
             font.pixelSize: 16
+            horizontalAlignment: Text.AlignHCenter
         }
 
         MouseArea {
@@ -92,6 +91,14 @@ Window {
                 background: Rectangle { color: parent.hovered ? "#303040" : "transparent" }
                 contentItem: Text { text: parent.text; color: "white"; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
                 onClicked: mainWindow.showMinimized()
+            }
+            Button {
+                text: "✕"
+                width: 40
+                height: 40
+                background: Rectangle { color: parent.hovered ? "#c42b1c" : "transparent" }
+                contentItem: Text { text: parent.text; color: "white"; font.pixelSize: 14; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                onClicked: Qt.quit()
             }
         }
     }
