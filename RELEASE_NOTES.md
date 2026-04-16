@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.268..HEAD ### BetterAngle Pro v4.27.270
+- v4.27.269: Updated Splash Screen V2 with 'Hard Quote' and enlarged glider
+
 Generating release notes from commit range: v4.27.267..HEAD ### BetterAngle Pro v4.27.268
 - fix: include crossMod/crossKey in keybindsChanged check
 
