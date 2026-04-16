@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.276..HEAD ### BetterAngle Pro v4.27.277
+- feat: add quote to Updates tab
+
 Generating release notes from commit range: v4.27.275..HEAD ### BetterAngle Pro v4.27.276
 - fix: resolve loading bar animation issue
 
