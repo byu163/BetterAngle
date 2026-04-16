@@ -281,23 +281,10 @@ bool RefreshHotkeys(HWND hWnd) {
     }
   }
 
-  // Update cache if registration was successful
-  if (ok) {
-    lastKeybinds = p.keybinds;
-    lastProfileIdx = g_selectedProfileIdx;
-  } else {
-    // If registration failed, clear cache to force retry next time
-    lastProfileIdx = -1;
-
-    // Try to register at least some hotkeys (fallback to defaults for failed
-    // ones) This ensures the app remains somewhat functional even if some
-    // hotkeys conflict
-    for (int i = 1; i <= 4; i++) {
-      RegisterHotKey(hWnd, i, MOD_CONTROL | 0x4000,
-                     'A' + i - 1); // Ctrl+A, Ctrl+B, etc. as fallback
-    }
-  }
-
+  // Update cache
+  lastKeybinds = p.keybinds;
+  lastProfileIdx = g_selectedProfileIdx;
+  
   return ok;
 }
 

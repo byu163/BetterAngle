@@ -775,8 +775,20 @@ QString BetterAngleBackend::keyToggle() const {
 }
 void BetterAngleBackend::setKeyToggle(const QString &s) {
   if (!g_allProfiles.empty()) {
-    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.toggleMod,
-                 g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey);
+    UINT mod, vk;
+    parseFullKey(s, mod, vk);
+    
+    // Check for duplicates
+    const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
+    if ((mod == k.roiMod && vk == k.roiKey) || 
+        (mod == k.crossMod && vk == k.crossKey) || 
+        (mod == k.zeroMod && vk == k.zeroKey)) {
+        emit hotkeysChanged(); // Force UI refresh to revert text
+        return;
+    }
+
+    g_allProfiles[g_selectedProfileIdx].keybinds.toggleMod = mod;
+    g_allProfiles[g_selectedProfileIdx].keybinds.toggleKey = vk;
     saveKeybinds();
     SaveSettings();
     emit hotkeysChanged();
@@ -791,8 +803,20 @@ QString BetterAngleBackend::keyRoi() const {
 }
 void BetterAngleBackend::setKeyRoi(const QString &s) {
   if (!g_allProfiles.empty()) {
-    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.roiMod,
-                 g_allProfiles[g_selectedProfileIdx].keybinds.roiKey);
+    UINT mod, vk;
+    parseFullKey(s, mod, vk);
+
+    // Check for duplicates
+    const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
+    if ((mod == k.toggleMod && vk == k.toggleKey) || 
+        (mod == k.crossMod && vk == k.crossKey) || 
+        (mod == k.zeroMod && vk == k.zeroKey)) {
+        emit hotkeysChanged();
+        return;
+    }
+
+    g_allProfiles[g_selectedProfileIdx].keybinds.roiMod = mod;
+    g_allProfiles[g_selectedProfileIdx].keybinds.roiKey = vk;
     saveKeybinds();
     SaveSettings();
     emit hotkeysChanged();
@@ -807,8 +831,20 @@ QString BetterAngleBackend::keyCross() const {
 }
 void BetterAngleBackend::setKeyCross(const QString &s) {
   if (!g_allProfiles.empty()) {
-    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.crossMod,
-                 g_allProfiles[g_selectedProfileIdx].keybinds.crossKey);
+    UINT mod, vk;
+    parseFullKey(s, mod, vk);
+
+    // Check for duplicates
+    const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
+    if ((mod == k.toggleMod && vk == k.toggleKey) || 
+        (mod == k.roiMod && vk == k.roiKey) || 
+        (mod == k.zeroMod && vk == k.zeroKey)) {
+        emit hotkeysChanged();
+        return;
+    }
+
+    g_allProfiles[g_selectedProfileIdx].keybinds.crossMod = mod;
+    g_allProfiles[g_selectedProfileIdx].keybinds.crossKey = vk;
     saveKeybinds();
     SaveSettings();
     emit hotkeysChanged();
@@ -823,8 +859,20 @@ QString BetterAngleBackend::keyZero() const {
 }
 void BetterAngleBackend::setKeyZero(const QString &s) {
   if (!g_allProfiles.empty()) {
-    parseFullKey(s, g_allProfiles[g_selectedProfileIdx].keybinds.zeroMod,
-                 g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey);
+    UINT mod, vk;
+    parseFullKey(s, mod, vk);
+
+    // Check for duplicates
+    const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
+    if ((mod == k.toggleMod && vk == k.toggleKey) || 
+        (mod == k.roiMod && vk == k.roiKey) || 
+        (mod == k.crossMod && vk == k.crossKey)) {
+        emit hotkeysChanged();
+        return;
+    }
+
+    g_allProfiles[g_selectedProfileIdx].keybinds.zeroMod = mod;
+    g_allProfiles[g_selectedProfileIdx].keybinds.zeroKey = vk;
     saveKeybinds();
     SaveSettings();
     emit hotkeysChanged();
