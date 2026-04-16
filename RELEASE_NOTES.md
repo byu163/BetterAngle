@@ -1,3 +1,8 @@
+Generating release notes from commit range: v4.27.278..HEAD ### BetterAngle Pro v4.27.280
+- Fix compilation error for g_keybindAssignmentActive
+- chore: auto-increment version for release
+- feat: block hotkey execution during keybind assignment
+
 Generating release notes from commit range: v4.27.278..HEAD ### BetterAngle Pro v4.27.279
 - feat: block hotkey execution during keybind assignment
 
