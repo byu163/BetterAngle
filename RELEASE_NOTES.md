@@ -1,4 +1,8 @@
-Generating release notes from commit range: v4.27.361..HEAD ### BetterAngle Pro v4.27.363
+Generating release notes from commit range: v4.27.361..HEAD ### BetterAngle Pro v4.27.364
+- revert: decimal UI changes back to original behavior
+- fix: restore HUD visibility during loading screen
+
+### BetterAngle Pro v4.27.363
 - fix: properly show HUD after loading screen using SetWindowPos instead of ShowWindow
 - fix: hide HUD during loading screen to prevent visual glitch
 - chore: bump version to v4.27.362 with HUD loading fix
