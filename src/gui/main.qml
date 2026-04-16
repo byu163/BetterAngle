@@ -114,7 +114,7 @@ Window {
 
         Image {
             id: splashImage
-            source: "qrc:/assets/loading.jpg"
+            source: "qrc:/assets/loading.png"
             anchors.fill: parent
             fillMode: Image.PreserveAspectCrop
             opacity: 0
