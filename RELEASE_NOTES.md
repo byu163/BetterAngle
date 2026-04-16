@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.274..HEAD ### BetterAngle Pro v4.27.275
+- feat: finalize Splash V14, premium fire loading bar, and brand scrubbing
+
 Generating release notes from commit range: v4.27.272..HEAD ### BetterAngle Pro v4.27.274
 - v4.27.273: Fully reverted splash to V1 as requested
 
