@@ -1,3 +1,7 @@
+Generating release notes from commit range: v4.27.253..HEAD ### BetterAngle Pro v4.27.254
+- chore: auto-increment version for release
+- New Technology Update: Synced with core upstream (byu163)
+
 Generating release notes from commit range: v0.0.0..HEAD ### BetterAngle Pro v4.27.251
 - Automated build release.
 
