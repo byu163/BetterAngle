@@ -96,6 +96,94 @@ Window {
         }
     }
 
+    // Resize handles for frameless window
+    Item {
+        anchors.fill: parent
+        z: 1 // above background but below titleBar? Actually titleBar is at z 0, we want resize areas behind titleBar? We'll keep above but exclude titleBar area.
+        // We'll make the resize areas only at edges, excluding central area where titleBar and dashboard are.
+
+        // Left edge
+        MouseArea {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 5
+            cursorShape: Qt.SizeHorCursor
+            drag { target: null; axis: Drag.XAxis; threshold: 0 }
+            onPressed: mainWindow.startSystemResize(Qt.LeftEdge)
+        }
+        // Right edge
+        MouseArea {
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 5
+            cursorShape: Qt.SizeHorCursor
+            drag { target: null; axis: Drag.XAxis; threshold: 0 }
+            onPressed: mainWindow.startSystemResize(Qt.RightEdge)
+        }
+        // Top edge (excluding titleBar area? We'll allow top edge resize but titleBar will also capture mouse)
+        MouseArea {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            height: 5
+            cursorShape: Qt.SizeVerCursor
+            drag { target: null; axis: Drag.YAxis; threshold: 0 }
+            onPressed: mainWindow.startSystemResize(Qt.TopEdge)
+        }
+        // Bottom edge
+        MouseArea {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: 5
+            cursorShape: Qt.SizeVerCursor
+            drag { target: null; axis: Drag.YAxis; threshold: 0 }
+            onPressed: mainWindow.startSystemResize(Qt.BottomEdge)
+        }
+        // Top-left corner
+        MouseArea {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            width: 10
+            height: 10
+            cursorShape: Qt.SizeFDiagCursor
+            drag { target: null; axis: Drag.XAndYAxis; threshold: 0 }
+            onPressed: mainWindow.startSystemResize(Qt.LeftEdge | Qt.TopEdge)
+        }
+        // Top-right corner
+        MouseArea {
+            anchors.right: parent.right
+            anchors.top: parent.top
+            width: 10
+            height: 10
+            cursorShape: Qt.SizeBDiagCursor
+            drag { target: null; axis: Drag.XAndYAxis; threshold: 0 }
+            onPressed: mainWindow.startSystemResize(Qt.RightEdge | Qt.TopEdge)
+        }
+        // Bottom-left corner
+        MouseArea {
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            width: 10
+            height: 10
+            cursorShape: Qt.SizeBDiagCursor
+            drag { target: null; axis: Drag.XAndYAxis; threshold: 0 }
+            onPressed: mainWindow.startSystemResize(Qt.LeftEdge | Qt.BottomEdge)
+        }
+        // Bottom-right corner
+        MouseArea {
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            width: 10
+            height: 10
+            cursorShape: Qt.SizeFDiagCursor
+            drag { target: null; axis: Drag.XAndYAxis; threshold: 0 }
+            onPressed: mainWindow.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
+        }
+    }
+
     Dashboard {
         anchors.top: titleBar.bottom
         anchors.left: parent.left
