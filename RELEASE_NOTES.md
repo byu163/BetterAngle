@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.365..HEAD ### BetterAngle Pro v4.27.366
+- feat: ROI detection and selection prompts now require Fortnite focus
+
 Generating release notes from commit range: v4.27.363..HEAD ### BetterAngle Pro v4.27.365
 - revert: decimal UI changes back to original behavior
 - fix: properly show HUD after loading screen
