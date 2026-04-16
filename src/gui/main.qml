@@ -152,9 +152,10 @@ Window {
                     GradientStop { position: 1.0; color: "#ffcc00" } // Golden Glow
                 }
 
-                NumberAnimation on width {
+                PropertyAnimation on width {
+                    id: progressAnim
                     from: 0
-                    to: loadingTrack.width
+                    to: 520
                     duration: 5000
                     running: mainWindow.isBooting
                 }
