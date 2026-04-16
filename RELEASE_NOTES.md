@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.280..HEAD ### BetterAngle Pro v4.27.281
+- Add resize handles to frameless window
+
 Generating release notes from commit range: v4.27.278..HEAD ### BetterAngle Pro v4.27.280
 - Fix compilation error for g_keybindAssignmentActive
 - chore: auto-increment version for release
