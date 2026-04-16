@@ -1,3 +1,6 @@
+Generating release notes from commit range: v0.0.0..HEAD ### BetterAngle Pro v4.27.251
+- Automated build release.
+
 Generating release notes from commit range: v4.27.249..HEAD ### BetterAngle Pro v4.27.250
 - Improve input blocking to prevent ghosting and fix spacebar double-press issue
 
