@@ -34,7 +34,6 @@ Window {
     Connections {
         target: backend
         onShowControlPanelRequested: {
-            if (mainWindow.isBooting) return; 
             if (mainWindow.visible) {
                 mainWindow.hide()
             } else {

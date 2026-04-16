@@ -252,7 +252,7 @@ bool RefreshHotkeys(HWND hWnd) {
     }
 
     // Apply MOD_NOREPEAT flag
-    UINT flags = mod | 0x4000;
+    UINT flags = mod; // Removed MOD_NOREPEAT for compat
 
     if (!RegisterHotKey(hWnd, id, flags, vk)) {
       DWORD err = GetLastError();
