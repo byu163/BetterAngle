@@ -743,9 +743,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   LOG_INFO("HUD created: hwnd=0x%p", g_hHUD);
   LogWindowInfo(L"HUD handle", g_hHUD);
   ShowControlPanel(); // Force Dashboard to show on startup
-  SetTimer(g_hHUD, 3, 5000, NULL);
   SetWindowPos(g_hHUD, HWND_TOPMOST, 0, 0, 0, 0,
-               SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+               SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_HIDEWINDOW);
   UpdateWindow(g_hHUD);
   SetTimer(g_hHUD, 1, 16, NULL);    // 60fps (~16ms) Repaint Timer
   SetTimer(g_hHUD, 2, 30000, NULL); // 30s Auto-Save Timer

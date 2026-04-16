@@ -1,3 +1,7 @@
+### BetterAngle Pro v4.27.291
+- feat: re-enabled 3rd landscape loading variant
+- fix: synchronized HUD crosshair visibility with C++ boot sequence
+
 ### BetterAngle Pro v4.27.290
 - fix: 100% stable restoration of core Release 282 features
 - fix: purged incompatible QML syntax to resolve dashboard opening errors
