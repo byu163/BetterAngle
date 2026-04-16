@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.367..HEAD ### BetterAngle Pro v4.27.368
+- feat: safe switch for ROI selection - prompts show during selection regardless of Fortnite focus
+
 Generating release notes from commit range: v4.27.365..HEAD ### BetterAngle Pro v4.27.367
 - fix: remove duplicate variable declarations in DetectorThread
 - chore: auto-increment version for release
