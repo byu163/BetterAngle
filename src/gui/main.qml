@@ -61,6 +61,8 @@ Window {
             source: "qrc:/assets/logo.png"
             width: 24
             height: 24
+            mipmap: true
+            smooth: true
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: 12
