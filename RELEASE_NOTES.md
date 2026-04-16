@@ -1,4 +1,8 @@
-Generating release notes from commit range: v4.27.282..HEAD ### BetterAngle Pro v4.27.283
+### BetterAngle Pro v4.27.290
+- fix: 100% stable restoration of core Release 282 features
+- fix: purged incompatible QML syntax to resolve dashboard opening errors
+
+Generating release notes from commit range: v4.27.283..HEAD ### BetterAngle Pro v4.27.283
 - fix: stabilize original Release 282 (purge incompatible QML syntax)
 
 Generating release notes from commit range: v4.27.281..HEAD ### BetterAngle Pro v4.27.282
