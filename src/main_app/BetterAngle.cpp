@@ -74,17 +74,20 @@ void DetectorThread() {
       if (nowDiving && !lastDiving) {
         g_mouseSuspendedUntil = GetTickCount64() + 250;
         std::thread([]() {
-          // Record keys pressed before blocking
+          // First flush any pending input messages to ensure clean state
+          FlushPendingInputMessages();
+          
+          // Small delay to allow flush to take effect
+          Sleep(5);
+          
+          // Record keys pressed before blocking (after flush)
           std::vector<int> preKeys;
           for (int i = 1; i < 255; i++) {
             if (GetAsyncKeyState(i) & 0x8000)
               preKeys.push_back(i);
           }
 
-          // Flush pending input messages before blocking to prevent ghosting
-          FlushPendingInputMessages();
-
-          // Block all input (keyboard and mouse)
+          // Block all input (keyboard and mouse) immediately after recording
           BlockInput(TRUE);
           Sleep(250);
           BlockInput(FALSE);
@@ -92,7 +95,7 @@ void DetectorThread() {
           // Small delay to allow system to process block release
           Sleep(20);
 
-          // Sync key states to prevent ghosting
+          // Sync key states to prevent ghosting (handles both KEYUP and KEYDOWN)
           SyncKeyStates(preKeys);
 
           // Additional flush after syncing to ensure clean state
@@ -105,17 +108,20 @@ void DetectorThread() {
       else if (!nowDiving && lastDiving) {
         g_mouseSuspendedUntil = GetTickCount64() + 1000;
         std::thread([]() {
-          // Record keys pressed before blocking
+          // First flush any pending input messages to ensure clean state
+          FlushPendingInputMessages();
+          
+          // Small delay to allow flush to take effect
+          Sleep(5);
+          
+          // Record keys pressed before blocking (after flush)
           std::vector<int> preKeys;
           for (int i = 1; i < 255; i++) {
             if (GetAsyncKeyState(i) & 0x8000)
               preKeys.push_back(i);
           }
 
-          // Flush pending input messages before blocking to prevent ghosting
-          FlushPendingInputMessages();
-
-          // Block all input (keyboard and mouse)
+          // Block all input (keyboard and mouse) immediately after recording
           BlockInput(TRUE);
           Sleep(1000);
           BlockInput(FALSE);
@@ -123,7 +129,7 @@ void DetectorThread() {
           // Small delay to allow system to process block release
           Sleep(20);
 
-          // Sync key states to prevent ghosting
+          // Sync key states to prevent ghosting (handles both KEYUP and KEYDOWN)
           SyncKeyStates(preKeys);
 
           // Additional flush after syncing to ensure clean state
@@ -301,23 +307,29 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
     int dx = GetRawInputDeltaX(lParam);
     g_isCursorVisible = IsCursorCurrentlyVisible();
     const bool isFortniteForeground = IsFortniteForeground();
+    
+    // Check if mouse input is suspended (during FOV transition)
+    const bool mouseSuspended = (g_mouseSuspendedUntil > 0 && GetTickCount64() < g_mouseSuspendedUntil);
 
-    const bool allowAngleUpdate = (isFortniteForeground && !g_isCursorVisible);
+    const bool allowAngleUpdate = (isFortniteForeground && !g_isCursorVisible && !mouseSuspended);
 
     static bool lastAllowAngleUpdate = true;
     static bool lastIsFortniteForeground = false;
     static bool lastCursorVisible = false;
+    static bool lastMouseSuspended = false;
 
     if (allowAngleUpdate != lastAllowAngleUpdate ||
         isFortniteForeground != lastIsFortniteForeground ||
-        g_isCursorVisible != lastCursorVisible) {
+        g_isCursorVisible != lastCursorVisible ||
+        mouseSuspended != lastMouseSuspended) {
       LOG_INFO("Input gate changed: fortnite=%d cursorVisible=%d "
-               "allow=%d dx=%d",
+               "mouseSuspended=%d allow=%d dx=%d",
                isFortniteForeground ? 1 : 0, g_isCursorVisible ? 1 : 0,
-               allowAngleUpdate ? 1 : 0, dx);
+               mouseSuspended ? 1 : 0, allowAngleUpdate ? 1 : 0, dx);
       lastAllowAngleUpdate = allowAngleUpdate;
       lastIsFortniteForeground = isFortniteForeground;
       lastCursorVisible = g_isCursorVisible;
+      lastMouseSuspended = mouseSuspended;
     }
 
     if (allowAngleUpdate) {

@@ -200,5 +200,33 @@ void SyncKeyStates(const std::vector<int>& preBlockKeys) {
       }
       SendInput(1, &in, sizeof(INPUT));
     }
+    else if (!downBefore && downAfter) {
+      // Key was physically pressed while blocked. The system ate the KEYDOWN.
+      // We must synthesize it to prevent keys appearing stuck.
+      INPUT in = {0};
+      
+      if (vk == VK_LBUTTON || vk == VK_RBUTTON || vk == VK_MBUTTON || vk == VK_XBUTTON1 || vk == VK_XBUTTON2) {
+        in.type = INPUT_MOUSE;
+        if (vk == VK_LBUTTON) in.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+        else if (vk == VK_RBUTTON) in.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+        else if (vk == VK_MBUTTON) in.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
+        else if (vk == VK_XBUTTON1) { in.mi.dwFlags = MOUSEEVENTF_XDOWN; in.mi.mouseData = XBUTTON1; }
+        else if (vk == VK_XBUTTON2) { in.mi.dwFlags = MOUSEEVENTF_XDOWN; in.mi.mouseData = XBUTTON2; }
+      } else {
+        in.type = INPUT_KEYBOARD;
+        in.ki.wVk = vk;
+        in.ki.wScan = MapVirtualKeyW(vk, MAPVK_VK_TO_VSC);
+        in.ki.dwFlags = KEYEVENTF_SCANCODE; // KEYDOWN, not KEYUP
+        // Extend arrows etc.
+        switch(vk) {
+            case VK_UP: case VK_DOWN: case VK_LEFT: case VK_RIGHT:
+            case VK_INSERT: case VK_DELETE: case VK_HOME: case VK_END:
+            case VK_PRIOR: case VK_NEXT: case VK_RCONTROL: case VK_RMENU:
+                in.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+                break;
+        }
+      }
+      SendInput(1, &in, sizeof(INPUT));
+    }
   }
 }
