@@ -620,8 +620,8 @@ Item {
                                     colorPicker.val = Math.max(0, Math.min(1, 1 - my / svCanvas.height))
                                     colorPicker.applyColor()
                                 }
-                                onPressed: (mouse) => pick(mouse.x, mouse.y)
-                                onPositionChanged: (mouse) => { if (pressed) pick(mouse.x, mouse.y) }
+                                onPressed: { pick(mouse.x, mouse.y) }
+                                onPositionChanged: { if (pressed) pick(mouse.x, mouse.y) }
                             }
                         }
 
@@ -659,8 +659,8 @@ Item {
                                     colorPicker.hue = Math.max(0, Math.min(1, mx / hueStrip.width))
                                     colorPicker.applyColor()
                                 }
-                                onPressed: (mouse) => pick(mouse.x)
-                                onPositionChanged: (mouse) => { if (pressed) pick(mouse.x) }
+                                onPressed: { pick(mouse.x) }
+                                onPositionChanged: { if (pressed) pick(mouse.x) }
                             }
                         }
 
