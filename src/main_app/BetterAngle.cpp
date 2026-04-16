@@ -529,24 +529,10 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 
   case WM_LBUTTONUP:
     if (g_currentSelection == SELECTING_ROI) {
-      // Only allow transition to color selection when Fortnite is focused
-      if (!IsFortniteForeground()) {
-        LOG_INFO("Color selection blocked: Fortnite not focused");
-        // Cancel selection instead?
-        g_currentSelection = NONE;
-        g_isSelectionActive = false;
-        if (g_screenSnapshot) {
-          DeleteObject(g_screenSnapshot);
-          g_screenSnapshot = NULL;
-        }
-        SetWindowLong(hWnd, GWL_EXSTYLE,
-                      GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
-        InvalidateRect(hWnd, NULL, FALSE);
-        g_forceRedraw = true;
-      } else {
-        g_currentSelection = SELECTING_COLOR;
-        InvalidateRect(hWnd, NULL, FALSE);
-      }
+      // Allow transition to color selection even when Fortnite not focused
+      // (safe switch for selection process)
+      g_currentSelection = SELECTING_COLOR;
+      InvalidateRect(hWnd, NULL, FALSE);
     }
     return 0;
 

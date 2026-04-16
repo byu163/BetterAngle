@@ -110,9 +110,10 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
     return;
   }
 
-  // Pre-fill selection background if needed - only when Fortnite is focused
+  // Pre-fill selection background if needed - when Fortnite is focused OR
+  // selection is active
   if (g_screenSnapshot && g_currentSelection != NONE &&
-      IsFortniteForeground()) {
+      (IsFortniteForeground() || g_currentSelection != NONE)) {
     HDC hdcSnap = CreateCompatibleDC(hdcMem);
     HGDIOBJ hOldSnap = SelectObject(hdcSnap, g_screenSnapshot);
     BitBlt(hdcMem, 0, 0, sw, sh, hdcSnap, 0, 0, SRCCOPY);
@@ -141,8 +142,10 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
   graphics.SetCompositingMode(CompositingModeSourceOver);
   graphics.SetTextRenderingHint(TextRenderingHintClearTypeGridFit);
 
-  // Two-stage selection overlay - only show when Fortnite is focused
-  if (g_currentSelection != NONE && IsFortniteForeground()) {
+  // Two-stage selection overlay - show when Fortnite is focused OR selection is
+  // active
+  if (g_currentSelection != NONE &&
+      (IsFortniteForeground() || g_currentSelection != NONE)) {
     SolidBrush dimBrush(Color(120, 0, 0, 0));
     graphics.FillRectangle(&dimBrush, 0, 0, sw, sh);
 
