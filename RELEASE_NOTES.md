@@ -1,3 +1,8 @@
+Generating release notes from commit range: v4.27.261..HEAD ### BetterAngle Pro v4.27.265
+- v4.27.264: Final build fix for missing assets
+- chore: auto-increment version for release
+- v4.27.262: Final Splash Screen and Hotkey Fixes
+
 Generating release notes from commit range: v4.27.261..HEAD ### BetterAngle Pro v4.27.263
 - v4.27.262: Final Splash Screen and Hotkey Fixes
 
