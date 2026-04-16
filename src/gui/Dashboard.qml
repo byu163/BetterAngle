@@ -931,6 +931,17 @@ Item {
                     width: parent.width
                 }
 
+                Item { height: 20 }
+
+                Text {
+                    text: "\"The best wins begin with the best drops\""
+                    color: "#00ffa3"
+                    font.pixelSize: 13
+                    font.italic: true
+                    horizontalAlignment: Text.AlignHCenter
+                    width: parent.width
+                }
+
             }
         }
 
