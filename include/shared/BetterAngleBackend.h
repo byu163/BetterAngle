@@ -143,6 +143,10 @@ public:
 
   Q_INVOKABLE void saveKeybinds();
 
+  // Keybind assignment state management
+  Q_INVOKABLE void startKeybindAssignment();
+  Q_INVOKABLE void endKeybindAssignment();
+
 signals:
   void profileChanged();
   void crosshairChanged();

@@ -777,14 +777,14 @@ void BetterAngleBackend::setKeyToggle(const QString &s) {
   if (!g_allProfiles.empty()) {
     UINT mod, vk;
     parseFullKey(s, mod, vk);
-    
+
     // Check for duplicates
     const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
-    if ((mod == k.roiMod && vk == k.roiKey) || 
-        (mod == k.crossMod && vk == k.crossKey) || 
+    if ((mod == k.roiMod && vk == k.roiKey) ||
+        (mod == k.crossMod && vk == k.crossKey) ||
         (mod == k.zeroMod && vk == k.zeroKey)) {
-        emit hotkeysChanged(); // Force UI refresh to revert text
-        return;
+      emit hotkeysChanged(); // Force UI refresh to revert text
+      return;
     }
 
     g_allProfiles[g_selectedProfileIdx].keybinds.toggleMod = mod;
@@ -808,11 +808,11 @@ void BetterAngleBackend::setKeyRoi(const QString &s) {
 
     // Check for duplicates
     const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
-    if ((mod == k.toggleMod && vk == k.toggleKey) || 
-        (mod == k.crossMod && vk == k.crossKey) || 
+    if ((mod == k.toggleMod && vk == k.toggleKey) ||
+        (mod == k.crossMod && vk == k.crossKey) ||
         (mod == k.zeroMod && vk == k.zeroKey)) {
-        emit hotkeysChanged();
-        return;
+      emit hotkeysChanged();
+      return;
     }
 
     g_allProfiles[g_selectedProfileIdx].keybinds.roiMod = mod;
@@ -836,11 +836,11 @@ void BetterAngleBackend::setKeyCross(const QString &s) {
 
     // Check for duplicates
     const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
-    if ((mod == k.toggleMod && vk == k.toggleKey) || 
-        (mod == k.roiMod && vk == k.roiKey) || 
+    if ((mod == k.toggleMod && vk == k.toggleKey) ||
+        (mod == k.roiMod && vk == k.roiKey) ||
         (mod == k.zeroMod && vk == k.zeroKey)) {
-        emit hotkeysChanged();
-        return;
+      emit hotkeysChanged();
+      return;
     }
 
     g_allProfiles[g_selectedProfileIdx].keybinds.crossMod = mod;
@@ -864,11 +864,11 @@ void BetterAngleBackend::setKeyZero(const QString &s) {
 
     // Check for duplicates
     const auto &k = g_allProfiles[g_selectedProfileIdx].keybinds;
-    if ((mod == k.toggleMod && vk == k.toggleKey) || 
-        (mod == k.roiMod && vk == k.roiKey) || 
+    if ((mod == k.toggleMod && vk == k.toggleKey) ||
+        (mod == k.roiMod && vk == k.roiKey) ||
         (mod == k.crossMod && vk == k.crossKey)) {
-        emit hotkeysChanged();
-        return;
+      emit hotkeysChanged();
+      return;
     }
 
     g_allProfiles[g_selectedProfileIdx].keybinds.zeroMod = mod;
@@ -885,6 +885,14 @@ void BetterAngleBackend::saveKeybinds() {
   Profile &p = g_allProfiles[g_selectedProfileIdx];
   p.Save(GetProfilesPath() + p.name + L".json");
   RefreshHotkeys(g_hHUD);
+}
+
+void BetterAngleBackend::startKeybindAssignment() {
+  g_keybindAssignmentActive = true;
+}
+
+void BetterAngleBackend::endKeybindAssignment() {
+  g_keybindAssignmentActive = false;
 }
 
 void NotifyBackendUpdateStatusChanged() {

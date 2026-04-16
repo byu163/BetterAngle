@@ -341,6 +341,10 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
     return 0;
 
   case WM_HOTKEY:
+    // Ignore hotkey actions when user is assigning a keybind in settings
+    if (g_keybindAssignmentActive) {
+      return 0;
+    }
     switch (wParam) {
     case 1: // Toggle Panel
       ShowControlPanel();
@@ -518,7 +522,15 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
     return 0;
 
   case WM_TIMER: {
-    if (wParam == 3) { KillTimer(hWnd, 3); ShowWindow(hWnd, SW_SHOW); SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW); UpdateWindow(hWnd); return 0; } if (wParam == 1) { // 60fps HUD / Input processing timer
+    if (wParam == 3) {
+      KillTimer(hWnd, 3);
+      ShowWindow(hWnd, SW_SHOW);
+      SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                   SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+      UpdateWindow(hWnd);
+      return 0;
+    }
+    if (wParam == 1) { // 60fps HUD / Input processing timer
       if (g_currentSelection == NONE) {
         bool lDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
         POINT pt;

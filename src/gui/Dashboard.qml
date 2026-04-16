@@ -313,6 +313,13 @@ Item {
                                 Keys.onPressed: function(event) {
                                     hotkeyColumn.captureHotkey(event, function(bind) { backend.keyToggle = bind })
                                 }
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        backend.startKeybindAssignment()
+                                    } else {
+                                        backend.endKeybindAssignment()
+                                    }
+                                }
                             }
                         }
                         RowLayout {
@@ -345,6 +352,13 @@ Item {
                                 Keys.priority: Keys.BeforeItem
                                 Keys.onPressed: function(event) {
                                     hotkeyColumn.captureHotkey(event, function(bind) { backend.keyRoi = bind })
+                                }
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        backend.startKeybindAssignment()
+                                    } else {
+                                        backend.endKeybindAssignment()
+                                    }
                                 }
                             }
                         }
@@ -379,6 +393,13 @@ Item {
                                 Keys.onPressed: function(event) {
                                     hotkeyColumn.captureHotkey(event, function(bind) { backend.keyCross = bind })
                                 }
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        backend.startKeybindAssignment()
+                                    } else {
+                                        backend.endKeybindAssignment()
+                                    }
+                                }
                             }
                         }
                         RowLayout {
@@ -411,6 +432,13 @@ Item {
                                 Keys.priority: Keys.BeforeItem
                                 Keys.onPressed: function(event) {
                                     hotkeyColumn.captureHotkey(event, function(bind) { backend.keyZero = bind })
+                                }
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        backend.startKeybindAssignment()
+                                    } else {
+                                        backend.endKeybindAssignment()
+                                    }
                                 }
                             }
                         }

@@ -31,7 +31,7 @@ extern std::string g_lastVersionRun;
 #endif
 
 #define VERSION_STR APP_STR_Y(V_MAJ) "." APP_STR_Y(V_MIN) "." APP_STR_Y(V_PAT)
-#define VERSION_WSTR \
+#define VERSION_WSTR                                                           \
   APP_WSTR_Y(V_MAJ) L"." APP_WSTR_Y(V_MIN) L"." APP_WSTR_Y(V_PAT)
 
 // Global Profile Management
