@@ -127,18 +127,52 @@ Window {
             }
         }
 
-        // Loading Indicator (Sleek line at bottom)
+        // Premium Loading Bar (Fire themed)
         Rectangle {
-            width: parent.width
-            height: 3
-            color: "#00ffa3"
+            id: loadingTrack
+            width: parent.width * 0.8
+            height: 6
+            color: "#1a1a24"
+            radius: 3
             anchors.bottom: parent.bottom
-            
-            NumberAnimation on width {
-                from: 0
-                to: splashScreen.width
-                duration: 5000
-                running: mainWindow.isBooting
+            anchors.bottomMargin: 40
+            anchors.horizontalCenter: parent.horizontalCenter
+            clip: true
+
+            // The Progress Fill
+            Rectangle {
+                id: loadingFill
+                height: parent.height
+                radius: 3
+                
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: "#ff4d00" } // Deep Fire Red
+                    GradientStop { position: 0.5; color: "#ff8c00" } // Fire Orange
+                    GradientStop { position: 1.0; color: "#ffcc00" } // Golden Glow
+                }
+
+                NumberAnimation on width {
+                    from: 0
+                    to: loadingTrack.width
+                    duration: 5000
+                    running: mainWindow.isBooting
+                }
+            }
+
+            // Lead edge glow for "fire" effect
+            Rectangle {
+                width: 20
+                height: parent.height
+                anchors.right: loadingFill.right
+                visible: loadingFill.width > 0
+                
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: "transparent" }
+                    GradientStop { position: 1.0; color: "#ffffff" } // Bright spark at edge
+                }
+                opacity: 0.6
             }
         }
     }
