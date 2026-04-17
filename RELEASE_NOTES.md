@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.374..HEAD ### BetterAngle Pro v4.27.375
+- chore: update GitHub links to wavedropmaps-org org
+
 ### BetterAngle Pro v4.27.374
 - chore: update GitHub repository references to point to wavedropmaps-org organization
 - Revise README for BetterAngle Pro and hardware specs
