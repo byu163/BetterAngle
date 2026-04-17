@@ -59,6 +59,21 @@ Item {
                 anchors.fill: parent
                 contentHeight: genCol.implicitHeight + 40
                 clip: true
+                
+                ScrollBar.vertical: ScrollBar {
+                    id: genScrollBar
+                    anchors.left: parent.left
+                    anchors.leftMargin: 2
+                    width: 6
+                    policy: ScrollBar.AlwaysOn
+                    visible: parent.contentHeight > parent.height
+                    contentItem: Rectangle {
+                        implicitWidth: 6
+                        radius: 3
+                        color: "#505060"
+                    }
+                }
+                
                 Column {
                     id: genCol
                     anchors { left: parent.left; right: parent.right; top: parent.top; margins: 20 }
@@ -473,6 +488,21 @@ Item {
                 anchors.fill: parent
                 contentHeight: crossCol.implicitHeight + 40
                 clip: true
+                
+                ScrollBar.vertical: ScrollBar {
+                    id: crossScrollBar
+                    anchors.left: parent.left
+                    anchors.leftMargin: 2
+                    width: 6
+                    policy: ScrollBar.AlwaysOn
+                    visible: parent.contentHeight > parent.height
+                    contentItem: Rectangle {
+                        implicitWidth: 6
+                        radius: 3
+                        color: "#505060"
+                    }
+                }
+                
                 Column {
                     id: crossCol
                     anchors { left: parent.left; right: parent.right; top: parent.top; margins: 16 }
@@ -976,12 +1006,31 @@ Item {
         // ─── DEBUG ────────────────────────────────────────────────
         Rectangle {
             color: "#0d0d12"
-            Column {
+            Flickable {
                 anchors.fill: parent
-                anchors.margins: 20
-                spacing: 15
+                contentHeight: debugContentCol.implicitHeight + 40
+                clip: true
+                
+                ScrollBar.vertical: ScrollBar {
+                    id: debugScrollBar
+                    anchors.left: parent.left
+                    anchors.leftMargin: 2
+                    width: 6
+                    policy: ScrollBar.AlwaysOn
+                    visible: parent.contentHeight > parent.height
+                    contentItem: Rectangle {
+                        implicitWidth: 6
+                        radius: 3
+                        color: "#505060"
+                    }
+                }
+                
+                Column {
+                    id: debugContentCol
+                    anchors { left: parent.left; right: parent.right; top: parent.top; margins: 20 }
+                    spacing: 15
 
-                Text { text: "DEBUG DIAGNOSTICS"; color: "#666"; font.pixelSize: 11; font.bold: true }
+                    Text { text: "DEBUG DIAGNOSTICS"; color: "#666"; font.pixelSize: 11; font.bold: true }
 
                 RowLayout {
                     Switch {
