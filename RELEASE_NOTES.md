@@ -1,6 +1,10 @@
-﻿### BetterAngle Pro v4.27.374
+### BetterAngle Pro v4.27.374
 - chore: update GitHub repository references to point to wavedropmaps-org organization
+- Revise README for BetterAngle Pro and hardware specs
 - Automated build release via GitHub Actions.
+
+### BetterAngle Pro v4.27.373
+- build: bump version to 4.27.372 and trigger release
 
 ### BetterAngle Pro v4.27.372
 - fix(updater): keep user configs intact by preventing deletion of AppData directory during update.
