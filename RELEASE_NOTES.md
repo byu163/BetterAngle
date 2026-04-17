@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.371..HEAD ### BetterAngle Pro v4.27.372
+- feat(ui): shorten splash screen and hide HUD during boot
+
 Generating release notes from commit range: v4.27.370..HEAD ### BetterAngle Pro v4.27.371
 - fix(updater): prevent deletion of AppData during update
 
