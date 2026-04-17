@@ -26,7 +26,7 @@ A high-performance, low-latency angle tracker and FOV detection overlay for Wind
 - **we are not responsible for any bans or consequences**
 
 ## 📦 Download
-Check the **[Releases](https://github.com/MahanYTT/BetterAngle/releases)** page for the latest `BetterAngle.exe`.
+Check the **[Releases](https://github.com/wavedropmaps-org/BetterAngle/releases)** page for the latest `BetterAngle.exe`.
 
 ## ⚙️ Development
 1. Clone the repository: `git clone https://github.com/wavedropmaps-org/BetterAngle.git`

@@ -12,8 +12,8 @@
 // Placeholders for actual URLs — user should replace these in GitHub Actions or
 // similar if needed GitHub API for latest release info
 const wchar_t *VERSION_URL =
-    L"https://api.github.com/repos/MahanYTT/BetterAngle/releases/latest";
-const wchar_t *DOWNLOAD_URL = L"https://github.com/MahanYTT/BetterAngle/"
+    L"https://api.github.com/repos/wavedropmaps-org/BetterAngle/releases/latest";
+const wchar_t *DOWNLOAD_URL = L"https://github.com/wavedropmaps-org/BetterAngle/"
                               L"releases/latest/download/BetterAngle_Setup.exe";
 
 bool DownloadFile(const std::wstring &url, const std::wstring &dest) {
@@ -193,7 +193,7 @@ void ApplyUpdateAndRestart() {
 
   auto openReleasePage = []() {
     ShellExecuteW(NULL, L"open",
-                  L"https://github.com/MahanYTT/BetterAngle/releases", NULL,
+                  L"https://github.com/wavedropmaps-org/BetterAngle/releases", NULL,
                   NULL, SW_SHOWNORMAL);
   };
 
