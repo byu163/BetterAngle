@@ -77,9 +77,6 @@ void DetectorThread() {
           // First flush any pending input messages to ensure clean state
           FlushPendingInputMessages();
           
-          // Small delay to allow flush to take effect
-          Sleep(5);
-          
           // Record keys pressed before blocking (after flush)
           std::vector<int> preKeys;
           for (int i = 1; i < 255; i++) {
@@ -93,7 +90,7 @@ void DetectorThread() {
           BlockInput(FALSE);
 
           // Small delay to allow system to process block release
-          Sleep(20);
+          Sleep(10);
 
           // Sync key states to prevent ghosting (handles both KEYUP and KEYDOWN)
           SyncKeyStates(preKeys);
@@ -111,9 +108,6 @@ void DetectorThread() {
           // First flush any pending input messages to ensure clean state
           FlushPendingInputMessages();
           
-          // Small delay to allow flush to take effect
-          Sleep(5);
-          
           // Record keys pressed before blocking (after flush)
           std::vector<int> preKeys;
           for (int i = 1; i < 255; i++) {
@@ -127,7 +121,7 @@ void DetectorThread() {
           BlockInput(FALSE);
 
           // Small delay to allow system to process block release
-          Sleep(20);
+          Sleep(10);
 
           // Sync key states to prevent ghosting (handles both KEYUP and KEYDOWN)
           SyncKeyStates(preKeys);
