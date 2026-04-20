@@ -72,65 +72,73 @@ void DetectorThread() {
 
       // Edge: Gliding -> Diving  (FOV zoom-in anim ~0.25s)
       if (nowDiving && !lastDiving) {
-        g_mouseSuspendedUntil = GetTickCount64() + 250;
-        std::thread([]() {
-          // First flush any pending input messages to ensure clean state
-          FlushPendingInputMessages();
-          
-          // Record keys pressed before blocking (after flush)
-          std::vector<int> preKeys;
-          for (int i = 1; i < 255; i++) {
-            if (GetAsyncKeyState(i) & 0x8000)
-              preKeys.push_back(i);
-          }
+        if (IsFortniteForeground()) {
+          g_mouseSuspendedUntil = GetTickCount64() + 250;
+          std::thread([]() {
+            // First flush any pending input messages to ensure clean state
+            FlushPendingInputMessages();
+            
+            // Record keys pressed before blocking (after flush)
+            std::vector<int> preKeys;
+            for (int i = 1; i < 255; i++) {
+              if (GetAsyncKeyState(i) & 0x8000)
+                preKeys.push_back(i);
+            }
 
-          // Block all input (keyboard and mouse) immediately after recording
-          BlockInput(TRUE);
-          Sleep(250);
-          BlockInput(FALSE);
+            // Block all input (keyboard and mouse) immediately after recording
+            BlockInput(TRUE);
+            Sleep(250);
+            BlockInput(FALSE);
 
-          // Small delay to allow system to process block release
-          Sleep(10);
+            // Small delay to allow system to process block release
+            Sleep(10);
 
-          // Sync key states to prevent ghosting (handles both KEYUP and KEYDOWN)
-          SyncKeyStates(preKeys);
+            // Sync key states to prevent ghosting (handles both KEYUP and KEYDOWN)
+            SyncKeyStates(preKeys);
 
-          // Additional flush after syncing to ensure clean state
-          FlushPendingInputMessages();
-        }).detach();
-        LOG_INFO("Transition: glide->dive, BlockInput for 250ms with input "
-                 "flushing");
+            // Additional flush after syncing to ensure clean state
+            FlushPendingInputMessages();
+          }).detach();
+          LOG_INFO("Transition: glide->dive, BlockInput for 250ms with input "
+                   "flushing");
+        } else {
+          LOG_INFO("Transition: glide->dive skipped because Fortnite not focused");
+        }
       }
       // Edge: Diving -> Gliding  (FOV zoom-out anim ~1.0s)
       else if (!nowDiving && lastDiving) {
-        g_mouseSuspendedUntil = GetTickCount64() + 1000;
-        std::thread([]() {
-          // First flush any pending input messages to ensure clean state
-          FlushPendingInputMessages();
-          
-          // Record keys pressed before blocking (after flush)
-          std::vector<int> preKeys;
-          for (int i = 1; i < 255; i++) {
-            if (GetAsyncKeyState(i) & 0x8000)
-              preKeys.push_back(i);
-          }
+        if (IsFortniteForeground()) {
+          g_mouseSuspendedUntil = GetTickCount64() + 1000;
+          std::thread([]() {
+            // First flush any pending input messages to ensure clean state
+            FlushPendingInputMessages();
+            
+            // Record keys pressed before blocking (after flush)
+            std::vector<int> preKeys;
+            for (int i = 1; i < 255; i++) {
+              if (GetAsyncKeyState(i) & 0x8000)
+                preKeys.push_back(i);
+            }
 
-          // Block all input (keyboard and mouse) immediately after recording
-          BlockInput(TRUE);
-          Sleep(1000);
-          BlockInput(FALSE);
+            // Block all input (keyboard and mouse) immediately after recording
+            BlockInput(TRUE);
+            Sleep(1000);
+            BlockInput(FALSE);
 
-          // Small delay to allow system to process block release
-          Sleep(10);
+            // Small delay to allow system to process block release
+            Sleep(10);
 
-          // Sync key states to prevent ghosting (handles both KEYUP and KEYDOWN)
-          SyncKeyStates(preKeys);
+            // Sync key states to prevent ghosting (handles both KEYUP and KEYDOWN)
+            SyncKeyStates(preKeys);
 
-          // Additional flush after syncing to ensure clean state
-          FlushPendingInputMessages();
-        }).detach();
-        LOG_INFO("Transition: dive->glide, BlockInput for 1000ms with input "
-                 "flushing");
+            // Additional flush after syncing to ensure clean state
+            FlushPendingInputMessages();
+          }).detach();
+          LOG_INFO("Transition: dive->glide, BlockInput for 1000ms with input "
+                   "flushing");
+        } else {
+          LOG_INFO("Transition: dive->glide skipped because Fortnite not focused");
+        }
       }
 
       // Reset UI tracker once timer expires
