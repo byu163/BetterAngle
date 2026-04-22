@@ -323,9 +323,8 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
     }
     s_lastFortniteForeground = isFortniteForeground;
     
-    // Allow angle updates for 100ms after Fortnite becomes foreground, even if cursor is visible
-    // This fixes the alt-tab delay issue where cursor takes a moment to hide
-    const ULONGLONG gracePeriod = 100; // ms
+    // Note: Delay changed to 0 to prevent any angle inaccuracy as the cursor may be moving
+    const ULONGLONG gracePeriod = 0; // ms
     const bool inGracePeriod = isFortniteForeground &&
                                (GetTickCount64() - s_fortniteBecameForegroundTime < gracePeriod);
     
@@ -631,7 +630,8 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
-  SetProcessDPIAware();
+  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+  SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
   InitEnhancedLogging();
   LOG_INFO("WinMain entered");
 

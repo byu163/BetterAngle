@@ -65,6 +65,13 @@ BetterAngleBackend::BetterAngleBackend(QObject *parent) : QObject(parent) {
       lastComplete = g_downloadComplete;
       emit updateStatusChanged();
     }
+    
+    static int lastScreenCount = -1;
+    int currentScreenCount = GetMonitorCount();
+    if (lastScreenCount != currentScreenCount) {
+        lastScreenCount = currentScreenCount;
+        emit screenCountChanged();
+    }
   });
   timer->start(100);
 
