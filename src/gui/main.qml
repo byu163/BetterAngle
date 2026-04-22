@@ -13,7 +13,7 @@ Window {
     color: "#0a0a0f"
 
     // Frameless window style for a custom sleek look
-    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint
+    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
 
     onVisibleChanged: {
         // No longer forcing crosshair state here to allow user preference to persist
@@ -60,23 +60,15 @@ Window {
             font.pixelSize: 16
         }
 
+        // Native OS drag — handles cross-monitor DPI correctly.
+        // startSystemMove() tells Windows to move the window via WM_NCLBUTTONDOWN/HTCAPTION,
+        // so it works seamlessly across monitors with different DPI/resolution.
         MouseArea {
             anchors.fill: parent
-            property int lastGlobalX: 0
-            property int lastGlobalY: 0
+            // Don't steal clicks from the minimize button
+            propagateComposedEvents: true
             onPressed: {
-                lastGlobalX = mouse.globalX
-                lastGlobalY = mouse.globalY
-            }
-            onPositionChanged: {
-                if (pressed) {
-                    var dx = mouse.globalX - lastGlobalX
-                    var dy = mouse.globalY - lastGlobalY
-                    mainWindow.x += dx
-                    mainWindow.y += dy
-                    lastGlobalX = mouse.globalX
-                    lastGlobalY = mouse.globalY
-                }
+                mainWindow.startSystemMove()
             }
         }
 
