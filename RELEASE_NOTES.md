@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.267..HEAD ### BetterAngle Pro v4.27.268
+- Fix teleporting configuration window and crosshair gaps on secondary monitors
+
 Generating release notes from commit range: v4.27.266..HEAD ### BetterAngle Pro v4.27.267
 - fix: remove GDI+ clip region (caused top-left shift), use explicit endpoints; drop WindowStaysOnTopHint to allow cross-screen window drag
 
