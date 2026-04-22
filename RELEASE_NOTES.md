@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.7..HEAD ### BetterAngle Pro v5.0.8
+- Fix alt-tab desync: Actually lock physical mouse input for 0.5s instead of artificially suspending the angle tracker
+
 Generating release notes from commit range: v5.0.6..HEAD ### BetterAngle Pro v5.0.7
 - Fix updater wiping settings and lock input for 0.5s after alt-tabbing to prevent desync
 
