@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.265..HEAD ### BetterAngle Pro v4.27.266
+- fix: proper crosshair coordinate system with clip region; native startSystemMove for config window
+
 Generating release notes from commit range: v4.27.264..HEAD ### BetterAngle Pro v4.27.265
 - fix: clip crosshair to selected monitor bounds; fix config window drag with globalX/Y
 
