@@ -4,6 +4,7 @@
 #include "shared/Profile.h"
 #include "shared/State.h"
 #include "shared/Updater.h"
+#include "shared/Overlay.h"
 #include <QGuiApplication>
 #include <QTimer>
 #include <algorithm>
@@ -259,6 +260,10 @@ void BetterAngleBackend::setScreenIndex(int v) {
   }
   SaveSettings();
   emit crosshairChanged();
+}
+
+int BetterAngleBackend::screenCount() const {
+  return GetMonitorCount();
 }
 
 QString BetterAngleBackend::versionStr() const {

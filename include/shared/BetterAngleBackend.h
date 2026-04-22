@@ -27,6 +27,7 @@ class BetterAngleBackend : public QObject {
                  crosshairChanged)
   Q_PROPERTY(int screenIndex READ screenIndex WRITE setScreenIndex NOTIFY
                  crosshairChanged)
+  Q_PROPERTY(int screenCount READ screenCount CONSTANT)
 
   Q_PROPERTY(QString versionStr READ versionStr CONSTANT)
   Q_PROPERTY(
@@ -101,6 +102,7 @@ public:
 
   int screenIndex() const;
   void setScreenIndex(int v);
+  int screenCount() const;
 
   QString versionStr() const;
   QString latestVersion() const;

@@ -433,8 +433,15 @@ Item {
                         ComboBox {
                             id: screenComboBox
                             width: parent.width
-                            model: ["Primary Display", "Secondary Display", "Third Display", "Fourth Display"]
-                            currentIndex: backend.screenIndex
+                            model: {
+                                var count = backend.screenCount
+                                var list = []
+                                for (var i = 0; i < count; i++) {
+                                    list.push("Display " + (i + 1))
+                                }
+                                return list
+                            }
+                            currentIndex: Math.min(backend.screenIndex, backend.screenCount - 1)
                             onCurrentIndexChanged: {
                                 if (currentIndex !== backend.screenIndex) {
                                     backend.screenIndex = currentIndex
