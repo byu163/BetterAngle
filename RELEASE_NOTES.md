@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.263..HEAD ### BetterAngle Pro v4.27.264
+- fix: use mapToGlobal for config window drag so it works across all screens
+
 Generating release notes from commit range: v4.27.262..HEAD ### BetterAngle Pro v4.27.263
 - fix: constrain crosshair scale to individual monitors and enable configurations window drag over mismatched DPI bounds
 
