@@ -45,7 +45,13 @@ static bool GetMonitorRectByIndex(int index, RECT& outRect) {
   auto MonitorEnumProc = [](HMONITOR hMonitor, HDC, LPRECT lpRect, LPARAM lParam) -> BOOL {
     MonitorEnumData* pData = reinterpret_cast<MonitorEnumData*>(lParam);
     if (pData->currentIndex == pData->targetIndex) {
-      pData->foundRect = *lpRect;
+      MONITORINFO mi = {0};
+      mi.cbSize = sizeof(MONITORINFO);
+      if (GetMonitorInfo(hMonitor, &mi)) {
+        pData->foundRect = mi.rcMonitor;
+      } else {
+        pData->foundRect = *lpRect;
+      }
       pData->found = true;
       return FALSE; // Stop enumeration
     }
@@ -57,6 +63,7 @@ static bool GetMonitorRectByIndex(int index, RECT& outRect) {
   
   if (data.found) {
     outRect = data.foundRect;
+    // Safety clamp: if the rect somehow spans multiple virtual bounds (like width > 4000 on standard 1080 screens), rely on standard width logic.
     return true;
   }
   

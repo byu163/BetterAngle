@@ -62,7 +62,18 @@ Window {
 
         MouseArea {
             anchors.fill: parent
-            onPressed: mainWindow.startSystemMove()
+            property real startX: 0
+            property real startY: 0
+            onPressed: {
+                startX = mouse.x
+                startY = mouse.y
+            }
+            onPositionChanged: {
+                if (pressed) {
+                    mainWindow.x += (mouse.x - startX)
+                    mainWindow.y += (mouse.y - startY)
+                }
+            }
         }
 
         // Window Controls
