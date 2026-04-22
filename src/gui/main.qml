@@ -62,7 +62,19 @@ Window {
 
         MouseArea {
             anchors.fill: parent
-            onPressed: mainWindow.startSystemMove()
+            property point dragStart: "0,0"
+            
+            onPressed: {
+                dragStart = Qt.point(mouse.x, mouse.y)
+            }
+            
+            onPositionChanged: {
+                if (pressed) {
+                    var delta = Qt.point(mouse.x - dragStart.x, mouse.y - dragStart.y)
+                    mainWindow.x += delta.x
+                    mainWindow.y += delta.y
+                }
+            }
         }
 
         // Window Controls

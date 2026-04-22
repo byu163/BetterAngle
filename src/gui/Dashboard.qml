@@ -59,6 +59,7 @@ Item {
                 anchors.fill: parent
                 contentHeight: genCol.implicitHeight + 40
                 clip: true
+                interactive: false // Prevent stealing events from ComboBox
                 Column {
                     id: genCol
                     anchors { left: parent.left; right: parent.right; top: parent.top; margins: 20 }
@@ -512,6 +513,7 @@ Item {
                 anchors.fill: parent
                 contentHeight: crossCol.implicitHeight + 40
                 clip: true
+                interactive: false // Prevent stealing events from interactive elements
                 Column {
                     id: crossCol
                     anchors { left: parent.left; right: parent.right; top: parent.top; margins: 16 }

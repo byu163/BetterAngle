@@ -69,19 +69,17 @@ static bool GetMonitorRectByIndex(int index, RECT& outRect) {
 }
 
 // Helper: get number of monitors
+BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC, LPRECT lpRect, LPARAM lParam) {
+  int* pCount = reinterpret_cast<int*>(lParam);
+  (*pCount)++;
+  return TRUE; // Continue enumeration
+}
+
 int GetMonitorCount() {
-  struct MonitorEnumData {
-    int count;
-  } data = {0};
-  
-  auto MonitorEnumProc = [](HMONITOR hMonitor, HDC, LPRECT lpRect, LPARAM lParam) -> BOOL {
-    MonitorEnumData* pData = reinterpret_cast<MonitorEnumData*>(lParam);
-    pData->count++;
-    return TRUE; // Continue enumeration
-  };
-  
-  EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&data));
-  return data.count;
+  int count = 0;
+  EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, reinterpret_cast<LPARAM>(&count));
+  // Always return at least 1 (primary monitor)
+  return count > 0 ? count : 1;
 }
 
 // Static FPS tracking
