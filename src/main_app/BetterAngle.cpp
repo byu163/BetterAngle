@@ -321,9 +321,23 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
       // Fortnite just became foreground
       s_fortniteBecameForegroundTime = GetTickCount64();
       
-      // Suspend angle tracking for 0.5s after alt-tabbing to prevent
-      // tracking mouse movements that the game ignores during the transition.
-      g_mouseSuspendedUntil = GetTickCount64() + 500;
+      // Physically lock the system input for 0.5s so mouse movements during
+      // the alt-tab release don't mess up the game or the angle tracking.
+      std::thread([]() {
+        FlushPendingInputMessages();
+        Sleep(5);
+        std::vector<int> preKeys;
+        for (int i = 1; i < 255; i++) {
+          if (GetAsyncKeyState(i) & 0x8000)
+            preKeys.push_back(i);
+        }
+        BlockInput(TRUE);
+        Sleep(500);
+        BlockInput(FALSE);
+        Sleep(10);
+        SyncKeyStates(preKeys);
+        FlushPendingInputMessages();
+      }).detach();
     }
     s_lastFortniteForeground = isFortniteForeground;
     
