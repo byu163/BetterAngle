@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.253..HEAD ### BetterAngle Pro v4.27.254
+- swdklfrj:
+
 Generating release notes from commit range: v4.27.252..HEAD ### BetterAngle Pro v4.27.253
 - Prevent BlockInput when Fortnite is not focused to avoid locking input while not playing
 
