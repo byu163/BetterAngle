@@ -631,7 +631,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+  SetProcessDPIAware();
   InitEnhancedLogging();
   LOG_INFO("WinMain entered");
 

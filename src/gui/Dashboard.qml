@@ -433,14 +433,17 @@ Item {
                         ComboBox {
                             id: screenComboBox
                             width: parent.width
+                            
+                            // Re-evaluate whenever backend.screenCount changes via the property binding
                             model: {
-                                var count = backend.screenCount
-                                var list = []
+                                var count = backend.screenCount;
+                                var list = [];
                                 for (var i = 0; i < count; i++) {
-                                    list.push("Display " + (i + 1))
+                                    list.push("Screen " + (i + 1));
                                 }
-                                return list
+                                return list;
                             }
+                            
                             currentIndex: Math.min(backend.screenIndex, backend.screenCount - 1)
                             onCurrentIndexChanged: {
                                 if (currentIndex !== backend.screenIndex) {
@@ -449,24 +452,24 @@ Item {
                             }
                             background: Rectangle { color: "#1c1c2e"; radius: 4; border.color: "#333"; border.width: 1 }
                             contentItem: Text {
-                                text: parent.displayText
+                                text: screenComboBox.displayText
                                 color: "white"
                                 verticalAlignment: Text.AlignVCenter
                                 leftPadding: 8
                             }
                             popup: Popup {
-                                y: parent.height
-                                width: parent.width
+                                y: screenComboBox.height
+                                width: screenComboBox.width
                                 implicitHeight: contentItem.implicitHeight
                                 padding: 1
                                 contentItem: ListView {
                                     clip: true
                                     implicitHeight: contentHeight
-                                    model: parent.parent.model
+                                    model: screenComboBox.model
                                     delegate: ItemDelegate {
-                                        width: parent.width
+                                        width: screenComboBox.width
                                         text: modelData
-                                        highlighted: parent.parent.parent.currentIndex === index
+                                        highlighted: screenComboBox.currentIndex === index
                                         background: Rectangle {
                                             color: highlighted ? "#00cca3" : "transparent"
                                         }
@@ -475,6 +478,10 @@ Item {
                                             color: highlighted ? "white" : "#ddd"
                                             verticalAlignment: Text.AlignVCenter
                                             leftPadding: 8
+                                        }
+                                        onClicked: {
+                                            screenComboBox.currentIndex = index
+                                            screenComboBox.popup.close()
                                         }
                                     }
                                 }
