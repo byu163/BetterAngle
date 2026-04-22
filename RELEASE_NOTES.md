@@ -1,3 +1,6 @@
+Generating release notes from commit range: v4.27.262..HEAD ### BetterAngle Pro v4.27.263
+- fix: constrain crosshair scale to individual monitors and enable configurations window drag over mismatched DPI bounds
+
 Generating release notes from commit range: v4.27.261..HEAD ### BetterAngle Pro v4.27.262
 - fix: revert DPI awareness mode and fix screen selection UI
 
