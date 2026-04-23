@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.54..HEAD ### BetterAngle Pro v5.0.55
+- Automated build release.
+
 ### BetterAngle Pro v5.0.54
 - HOTFIX: Re-architected crosshair drawing logic to calculate exact center bounds for the explicitly chosen monitor from the Settings Drop-down (g_screenIndex) rather than defaulting to the center of the total virtual desktop space.
 
