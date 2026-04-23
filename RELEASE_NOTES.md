@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.63..HEAD ### BetterAngle Pro v5.0.64
+- Automated build release.
+
 ### BetterAngle Pro v5.0.63
 - chore: reverted experimental zero-latency synchronous locking and anti-ghosting logic to restore system stability. Returned to stable asynchronous input blocking.
 
