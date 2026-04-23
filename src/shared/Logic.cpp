@@ -29,6 +29,8 @@ void AngleLogic::SetZero() {
 }
 
 void AngleLogic::LoadProfile(double sensX) {
+  if (m_sensX.load() == sensX) return; // Prevent continuous drift
+
   // Before updating sensitivity, bake in the current angle to prevent jumping
   m_baseAngle = GetAngle();
   m_baseDx = m_accumDx.load();
