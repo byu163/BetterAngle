@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.69..HEAD ### BetterAngle Pro v5.0.70
+- Automated build release.
+
 ### BetterAngle Pro v5.0.69
 - chore: final production release with Ghost-Buster movement sync and optimized scanner. Resolved pipeline sync issues.
 
