@@ -1,10 +1,10 @@
-Generating release notes from commit range: v5.0.63..HEAD ### BetterAngle Pro v5.0.64
-- Automated build release.
+### BetterAngle Pro v5.0.64
+- chore: restored stable baseline with DPI alignment and high-speed scanner. Fixed build error from focus monitor removal.
 
 ### BetterAngle Pro v5.0.63
 - chore: reverted experimental zero-latency synchronous locking and anti-ghosting logic to restore system stability. Returned to stable asynchronous input blocking.
 
-### BetterAngle Pro v5.0.62
+### BetterAngle Pro v5.0.63
 - fix: upgraded application to Per-Monitor DPI Awareness V2. Ensures physical pixel alignment of the crosshair across multiple monitors with different resolutions and scales.
 
 ### BetterAngle Pro v5.0.62

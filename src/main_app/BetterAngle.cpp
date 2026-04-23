@@ -791,8 +791,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   g_running = false;
   if (detThread.joinable())
     detThread.join();
-  if (focusThread.joinable())
-    focusThread.join();
 
   // Final Save on Exit
   if (!g_allProfiles.empty()) {
