@@ -1,3 +1,7 @@
+Generating release notes from commit range: v5.0.18..HEAD ### BetterAngle Pro v5.0.20
+- fix: replace BlockInput with non-ghosting global hardware hooks (v5.0.19)
+- chore: auto-increment version for release
+
 ### BetterAngle Pro v5.0.19
 - fix: replaced BlockInput with low-level hardware hooks (WH_KEYBOARD_LL/WH_MOUSE_LL) to completely eliminate keyboard ghosting and input latency during Alt-Tab and glide transitions
 
