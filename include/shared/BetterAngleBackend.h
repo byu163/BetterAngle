@@ -26,6 +26,9 @@ class BetterAngleBackend : public QObject {
                  crosshairChanged)
   Q_PROPERTY(QColor crossColor READ crossColor WRITE setCrossColor NOTIFY
                  crosshairChanged)
+  Q_PROPERTY(int screenIndex READ screenIndex WRITE setScreenIndex NOTIFY
+                 screenIndexChanged)
+  Q_PROPERTY(int screenCount READ screenCount NOTIFY screenCountChanged)
 
   Q_PROPERTY(QString versionStr READ versionStr CONSTANT)
   Q_PROPERTY(
@@ -97,6 +100,9 @@ public:
 
   QColor crossColor() const;
   void setCrossColor(const QColor &c);
+  int screenIndex() const;
+  void setScreenIndex(int v);
+  int screenCount() const;
 
   QString versionStr() const;
   QString latestVersion() const;
@@ -151,8 +157,10 @@ public:
 signals:
   void profileChanged();
   void crosshairChanged();
+  void screenIndexChanged();
   void crosshairPresetsChanged();
   void hotkeysChanged();
+  void screenCountChanged();
 
   void updateStatusChanged();
   void showControlPanelRequested();

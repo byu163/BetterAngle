@@ -550,6 +550,18 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       static ULONGLONG s_bootTime = GetTickCount64();
       if (GetTickCount64() - s_bootTime < 2500) return 0;
 
+      // Physical Input Lock during Alt-Tab (1.6s)
+      static bool lastFnFocus = false;
+      bool nowFnFocus = IsFortniteForeground();
+      if (nowFnFocus && !lastFnFocus) {
+          std::thread([]() {
+              BlockInput(TRUE);
+              Sleep(1600);
+              BlockInput(FALSE);
+          }).detach();
+      }
+      lastFnFocus = nowFnFocus;
+
       if (g_currentSelection == NONE) {
         bool lDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
         POINT pt;
@@ -633,7 +645,20 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow) {
-  SetProcessDPIAware();
+  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
+  HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
+  if (hUser32) {
+      typedef BOOL(WINAPI * SetProcessDpiAwarenessContextProc)(DPI_AWARENESS_CONTEXT);
+      SetProcessDpiAwarenessContextProc setDpiCtx = (SetProcessDpiAwarenessContextProc)GetProcAddress(hUser32, "SetProcessDpiAwarenessContext");
+      if (setDpiCtx) {
+          setDpiCtx(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+      } else {
+          SetProcessDPIAware();
+      }
+  } else {
+      SetProcessDPIAware();
+  }
   InitEnhancedLogging();
   LOG_INFO("WinMain entered");
 

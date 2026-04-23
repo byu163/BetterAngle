@@ -30,6 +30,48 @@ static std::wstring FmtFloat(double v, int decimals = 2) {
   return ss.str();
 }
 
+int GetMonitorCount() { return GetSystemMetrics(SM_CMONITORS); }
+
+// Returns true if monitor found, false otherwise (falls back to primary)
+bool GetMonitorRectByIndex(int index, RECT &outRect) {
+  if (index < 0)
+    return false;
+
+  struct MonitorEnumData {
+    int targetIndex;
+    int currentIndex;
+    RECT rect;
+    bool found;
+  } data = {index, 0, {0, 0, 0, 0}, false};
+
+  EnumDisplayMonitors(
+      NULL, NULL,
+      [](HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor,
+         LPARAM dwData) -> BOOL {
+        MonitorEnumData *pData = (MonitorEnumData *)dwData;
+        if (pData->currentIndex == pData->targetIndex) {
+          pData->rect = *lprcMonitor;
+          pData->found = true;
+          return FALSE; // Stop enumeration
+        }
+        pData->currentIndex++;
+        return TRUE;
+      },
+      (LPARAM)&data);
+
+  if (data.found) {
+    outRect = data.rect;
+    return true;
+  }
+
+  // Fallback to primary
+  outRect.left = 0;
+  outRect.top = 0;
+  outRect.right = GetSystemMetrics(SM_CXSCREEN);
+  outRect.bottom = GetSystemMetrics(SM_CYSCREEN);
+  return false;
+}
+
 // Static FPS tracking
 static ULONGLONG s_lastFrameTime = 0;
 static float s_fps = 0.0f;
@@ -264,11 +306,33 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
 
     // Crosshair
     if (showCrosshair) {
-      float cx = sw * 0.5f + g_crossOffsetX;
-      float cy = sh * 0.5f + g_crossOffsetY;
-      // Make crosshair massive like the Java reference
-      float hw = (sw > sh ? sw : sh) * 3.0f;
-      float hh = hw;
+      // Get the selected monitor rectangle in virtual screen coordinates
+      RECT monitorRect;
+      GetMonitorRectByIndex(g_screenIndex, monitorRect);
+
+      // The HUD bitmap starts at (SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN).
+      // Convert monitor virtual-screen coords to bitmap coords by subtracting the origin.
+      int vsX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+      int vsY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+
+      // Monitor bounds in bitmap (pixel) coordinates
+      float mLeft   = float(monitorRect.left   - vsX);
+      float mTop    = float(monitorRect.top    - vsY);
+      float mRight  = float(monitorRect.right  - vsX);
+      float mBottom = float(monitorRect.bottom - vsY);
+      float mW      = mRight  - mLeft;
+      float mH      = mBottom - mTop;
+
+      // Crosshair center = monitor center + user offset
+      float cx = mLeft + mW * 0.5f + g_crossOffsetX;
+      float cy = mTop  + mH * 0.5f + g_crossOffsetY;
+
+      // Arm endpoints — clamped explicitly to this monitor's bitmap bounds.
+      // No GDI+ clip region needed; the math alone ensures containment.
+      float lineX0 = mLeft;    // horizontal start
+      float lineX1 = mRight;   // horizontal end
+      float lineY0 = mTop;     // vertical start
+      float lineY1 = mBottom;  // vertical end
 
       float pulse = 1.0f;
       if (g_crossPulse) {
@@ -329,9 +393,9 @@ void DrawOverlay(HWND hwnd, double angle, float detectionRatio,
       // Use a GraphicsPath for drawing the crosshair lines.
       // This can provide better sub-pixel precision in GDI+ than DrawLine.
       GraphicsPath crossPath;
-      crossPath.AddLine(cx - hw, cy, cx + hw, cy);
+      crossPath.AddLine(lineX0, cy, lineX1, cy);
       crossPath.StartFigure(); // New segment
-      crossPath.AddLine(cx, cy - hh, cx, cy + hh);
+      crossPath.AddLine(cx, lineY0, cx, lineY1);
 
       graphics.DrawPath(&cPen, &crossPath);
       graphics.ResetTransform();
