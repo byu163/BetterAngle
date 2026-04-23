@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.71..HEAD ### BetterAngle Pro v5.0.72
+- Add clean_uninstaller to build targets
+
 Generating release notes from commit range: v5.0.10..HEAD ### BetterAngle Pro v5.0.71
 - chore: auto-increment version for release
 - chore: auto-increment version for release
