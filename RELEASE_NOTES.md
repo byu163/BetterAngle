@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.38..HEAD ### BetterAngle Pro v5.0.39
+- Automated build release.
+
 ### BetterAngle Pro v5.0.38
 - fix: removed Profile row from Debug overlay UI (not needed, profile system is unchanged)
 
