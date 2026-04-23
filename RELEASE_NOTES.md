@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.58..HEAD ### BetterAngle Pro v5.0.59
+- Automated build release.
+
 ### BetterAngle Pro v5.0.58
 - fix: implemented exact client clipping boundaries for the crosshair graphics context to prevent line bleeding across multi-monitor setups. 
 
