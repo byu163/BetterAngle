@@ -19,6 +19,7 @@
 #include "shared/Overlay.h"
 #include "shared/Profile.h"
 #include "shared/Tray.h"
+#include "shared/Startup.h"
 #include "shared/Updater.h"
 #include <QCoreApplication>
 #include <QGuiApplication>
@@ -686,6 +687,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
   GdiplusStartupInput gdiplusStartupInput;
   GdiplusStartup(&g_gdiplusToken, &gdiplusStartupInput, NULL);
+  ShowSplashLoader(hInstance);
 
   LoadSettings();
   SetLogLevel(LogLevel::Info);

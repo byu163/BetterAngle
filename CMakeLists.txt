@@ -12,6 +12,7 @@ find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Widgets Gui)
 
 set(PROJECT_SOURCES
     src/main_app/BetterAngle.cpp
+    src/shared/Startup.cpp
     src/shared/ControlPanel.cpp
     include/shared/BetterAngleBackend.h
     src/shared/BetterAngleBackend.cpp
