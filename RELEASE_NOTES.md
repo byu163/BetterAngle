@@ -1,8 +1,10 @@
-Generating release notes from commit range: v5.0.50..HEAD ### BetterAngle Pro v5.0.51
+### BetterAngle Pro v5.0.52
+- fix: resolved issue where moving the application to a secondary monitor caused it to teleport back due to reactive x/y bindings in QML.
+
+### BetterAngle Pro v5.0.51
 - Automated build release.
 
 ### BetterAngle Pro v5.0.50
-- HOTFIX: Resolved critical QML syntax error (duplicate properties) that caused the dashboard to fail on boot.
 
 ### BetterAngle Pro v5.0.49
 - Automated build release.
