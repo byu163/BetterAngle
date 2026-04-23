@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.34..HEAD ### BetterAngle Pro v5.0.35
+- Automated build release.
+
 ### BetterAngle Pro v5.0.34
 - feat: increased Dashboard Debug and HUD refresh rate to 100fps (10ms) for real-time flicker detection
 
