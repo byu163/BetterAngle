@@ -6,6 +6,12 @@ Generating release notes from commit range: v5.0.21..HEAD ### BetterAngle Pro v5
 - perf: reduce alt-tab detection latency (v5.0.22)
 - chore: auto-increment version for release
 
+### BetterAngle Pro v5.0.26
+- perf: optimized dive -> glide transition latency (reduced from 5ms to 1ms) for instant input locking
+
+### BetterAngle Pro v5.0.25
+- Automated build release.
+
 ### BetterAngle Pro v5.0.24
 - fix: increased Glide -> Skydiving lock duration from 250ms to 1000ms for a more reliable and solid feel during FOV transitions
 
