@@ -1,7 +1,7 @@
-### BetterAngle Pro v5.0.68
-- chore: official production release of the Ghost-Buster movement sync system. Ensures smooth movement transitions after input locking.
+### BetterAngle Pro v5.0.69
+- chore: final production release with Ghost-Buster movement sync and optimized scanner. Resolved pipeline sync issues.
 
-### BetterAngle Pro v5.0.67
+### BetterAngle Pro v5.0.68
 - fix: resolved GDI handle corruption in high-speed overlay. Fixed issue where debug info and crosshair could disappear after the first frame.
 
 ### BetterAngle Pro v5.0.66
