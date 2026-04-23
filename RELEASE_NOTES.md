@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.9..HEAD ### BetterAngle Pro v5.0.10
+- bug fixes
+
 Generating release notes from commit range: v5.0.8..HEAD ### BetterAngle Pro v5.0.9
 - bs
 
