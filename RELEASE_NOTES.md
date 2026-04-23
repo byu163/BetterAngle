@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.32..HEAD ### BetterAngle Pro v5.0.33
+- Automated build release.
+
 ### BetterAngle Pro v5.0.32
 - fix: implemented exact state debouncing to fix transition flapping and severe input ghosting during Gliding -> Skydiving
 
