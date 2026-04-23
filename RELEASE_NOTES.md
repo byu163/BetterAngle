@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.21..HEAD ### BetterAngle Pro v5.0.22
+- Automated build release.
+
 ### BetterAngle Pro v5.0.21
 - revert: emergency rollback to stable BlockInput system (V5.0.18 baseline) due to hook detection issues.
 
