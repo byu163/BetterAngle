@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.14..HEAD ### BetterAngle Pro v5.0.15
+- Automated build release.
+
 ### BetterAngle Pro v5.0.14
 - fix: freeze inputs for 1.65s on alt-tab into Fortnite to prevent angle inaccuracies
 
