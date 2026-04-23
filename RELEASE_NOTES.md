@@ -1,9 +1,11 @@
-Generating release notes from commit range: v5.0.44..HEAD ### BetterAngle Pro v5.0.45
+### BetterAngle Pro v5.0.46
+- fix: loading screen now fits perfectly with no cropping (window resizes to match square splash images)
+
+### BetterAngle Pro v5.0.45
 - fix: bulletproof multi-monitor - sync screenIndex from profile on load, fix ComboBox binding
 
-Generating release notes from commit range: v5.0.42..HEAD ### BetterAngle Pro v5.0.44
-- feat: implement robust multi-monitor selection support (v5.0.43)
-- chore: auto-increment version for release
+### BetterAngle Pro v5.0.44
+- Automated build release.
 
 ### BetterAngle Pro v5.0.43
 - feat: implemented robust Multi-Monitor selection support
