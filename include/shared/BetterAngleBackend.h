@@ -153,6 +153,7 @@ public:
 signals:
   void profileChanged();
   void crosshairChanged();
+  void screenIndexChanged();
   void crosshairPresetsChanged();
   void hotkeysChanged();
   void screenCountChanged();

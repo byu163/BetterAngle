@@ -30,9 +30,8 @@ static std::wstring FmtFloat(double v, int decimals = 2) {
   return ss.str();
 }
 
-// Helper: get monitor rectangle by index (0 = primary, 1 = secondary, etc.)
 // Returns true if monitor found, false otherwise (falls back to primary)
-static bool GetMonitorRectByIndex(int index, RECT& outRect) {
+bool GetMonitorRectByIndex(int index, RECT& outRect) {
   if (index < 0) return false;
   
   struct MonitorEnumData {
