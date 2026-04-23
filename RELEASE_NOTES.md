@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.72..HEAD ### BetterAngle Pro v5.0.73
+- Fix angle drift bug and reduce input lock durations
+
 Generating release notes from commit range: v5.0.71..HEAD ### BetterAngle Pro v5.0.72
 - Add clean_uninstaller to build targets
 
