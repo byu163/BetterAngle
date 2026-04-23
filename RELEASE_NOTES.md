@@ -1,3 +1,79 @@
+Generating release notes from commit range: v5.0.10..HEAD ### BetterAngle Pro v5.0.71
+- chore: auto-increment version for release
+- chore: auto-increment version for release
+- chore: auto-increment version for release
+- chore: final production release v5.0.69 (Ghost-Buster Sync)
+- chore: production release v5.0.68 (Ghost-Buster Sync)
+- fix: Ghost-Buster movement sync (v5.0.67)
+- chore: auto-increment version for release
+- fix: GDI handle reuse and focus monitor (v5.0.66)
+- chore: auto-increment version for release
+- perf: super high speed optimizations (v5.0.65)
+- chore: auto-increment version for release
+- chore: stable baseline with DPI fixes (v5.0.64)
+- chore: auto-increment version for release
+- chore: revert experimental locking and ghosting fixes (v5.0.63)
+- chore: auto-increment version for release
+- fix: physical key resumption and per-monitor DPI alignment (v5.0.62)
+- chore: auto-increment version for release
+- perf: zero-latency locking and color loop optimization (v5.0.59)
+- chore: auto-increment version for release
+- fix: add clipping boundaries to prevent crosshair bleeding (v5.0.57)
+- chore: auto-increment version for release
+- feat: high-frequency focus monitor thread for lightning fast detection (v5.0.55)
+- chore: auto-increment version for release
+- hotfix: crosshair now centers correctly on selected monitor instead of virtual desktop (v5.0.53)
+- chore: auto-increment version for release
+- fix: removed reactive x/y bindings causing monitor teleportation bugs (v5.0.51)
+- chore: auto-increment version for release
+- hotfix: resolved QML duplicate property error in main.qml (v5.0.49)
+- chore: auto-increment version for release
+- fix: perfectly scaled splash images to fit window without cropping (v5.0.47)
+- chore: auto-increment version for release
+- fix: loading screen fits perfectly, no cropping (v5.0.44)
+- chore: auto-increment version for release
+- fix: bulletproof multi-monitor - sync screenIndex from profile on load, fix ComboBox binding
+- chore: auto-increment version for release
+- feat: implement robust multi-monitor selection support (v5.0.43)
+- chore: auto-increment version for release
+- fix: HUD/decimal overlay draggable outside Fortnite focus (v5.0.41)
+- chore: auto-increment version for release
+- feat: advanced debug diagnostics - lock reason, peak match, ROI, CPU, version (v5.0.39)
+- chore: auto-increment version for release
+- fix: remove Profile from debug overlay UI (v5.0.37)
+- chore: auto-increment version for release
+- fix: update debug wording (v5.0.35)
+- chore: auto-increment version for release
+- feat: high frequency diagnostics (v5.0.33)
+- chore: auto-increment version for release
+- fix: debounce state transitions to fix ghosting (v5.0.31)
+- chore: auto-increment version for release
+- feat: make debug tab scrollable (v5.0.29)
+- chore: auto-increment version for release
+- fix: disable HUD dragging when Fortnite is focused (v5.0.28)
+- chore: auto-increment version for release
+- perf: instant locking for dive to glide transition (v5.0.26)
+- chore: auto-increment version for release
+- fix: increase glide to dive lock duration (v5.0.24)
+- chore: auto-increment version for release
+- perf: absolute zero-latency focus detection (v5.0.23)
+- chore: auto-increment version for release
+- perf: reduce alt-tab detection latency (v5.0.22)
+- chore: auto-increment version for release
+- chore: final emergency revert to stable BlockInput baseline (v5.0.21)
+- chore: auto-increment version for release
+- fix: replace BlockInput with non-ghosting global hardware hooks (v5.0.19)
+- chore: auto-increment version for release
+- chore: official v5.0.18 version bump with optimized debug overlay
+- chore: auto-increment version for release
+- chore: official v5.0.16 version bump with lightning-fast focus detection
+- chore: auto-increment version for release
+- chore: official v5.0.14 version bump and release notes
+- fix: freeze inputs for 1.65s on alt-tab into Fortnite
+- chore: auto-increment version for release
+- chore: official v5.0.12 version bump and release notes
+- chore: auto-increment version for release
+
 Generating release notes from commit range: v5.0.69..HEAD ### BetterAngle Pro v5.0.70
 - Automated build release.
 
