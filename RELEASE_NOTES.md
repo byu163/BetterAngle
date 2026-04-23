@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.48..HEAD ### BetterAngle Pro v5.0.49
+- Automated build release.
+
 ### BetterAngle Pro v5.0.48
 - fix: perfectly scaled the splash screen images so they fit the standard window bounds without distortion, black bars, or cropping.
 
