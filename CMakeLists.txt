@@ -35,3 +35,6 @@ target_link_libraries(BetterAngle PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Wi
 set_target_properties(BetterAngle PROPERTIES LINK_FLAGS "/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\"")
 
 target_include_directories(BetterAngle PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+add_executable(clean_uninstaller WIN32 src/clean_uninstaller.cpp)
+target_link_libraries(clean_uninstaller PRIVATE user32 shell32)

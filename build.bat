@@ -48,6 +48,10 @@ cl.exe %FLAGS% src/main_app/BetterAngle.cpp src/shared/*.cpp /Fe:bin/BetterAngle
 echo Building BetterAngleConfig.exe (Wizard)...
 cl.exe %FLAGS% src/config_tool/BetterAngleConfig.cpp src/shared/*.cpp /Fe:bin/BetterAngleConfig.exe /link %LIBS%
 
+:: 3. Build Uninstaller
+echo Building clean_uninstaller.exe...
+cl.exe /EHsc /O2 /DUNICODE /D_UNICODE src/clean_uninstaller.cpp /Fe:bin/clean_uninstaller.exe /link user32.lib shell32.lib advapi32.lib /SUBSYSTEM:WINDOWS
+
 if %errorlevel% equ 0 (
     echo [SUCCESS] BetterAngle v5.0.69 Pro binaries created in bin/
     echo NOTE: This is a development build only. For production releases, use GitHub Actions.
