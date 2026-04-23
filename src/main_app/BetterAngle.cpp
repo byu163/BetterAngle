@@ -340,6 +340,17 @@ LRESULT CALLBACK MsgWndProc(HWND hWnd, UINT message, WPARAM wParam,
   return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
+// Helper to resize overlay window to cover the virtual screen
+static void ResizeOverlayToVirtualScreen(HWND hWnd) {
+  int screenW = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+  int screenH = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+  int screenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+  int screenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+  SetWindowPos(hWnd, HWND_TOPMOST, screenX, screenY, screenW, screenH,
+               SWP_NOACTIVATE);
+  LOG_INFO("Overlay resized to virtual screen: %dx%d at (%d,%d)", screenW, screenH, screenX, screenY);
+}
+
 // HUD Window Procedure
 LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
                             LPARAM lParam) {
@@ -347,6 +358,24 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
   case WM_CREATE:
     RefreshHotkeys(hWnd);
     return 0;
+
+  case WM_DISPLAYCHANGE: {
+    // Screen resolution or monitor configuration changed
+    ResizeOverlayToVirtualScreen(hWnd);
+    return 0;
+  }
+
+  case WM_DPICHANGED: {
+    // DPI changed, resize window to new suggested rect
+    RECT* const newRect = reinterpret_cast<RECT*>(lParam);
+    SetWindowPos(hWnd, HWND_TOPMOST, newRect->left, newRect->top,
+                 newRect->right - newRect->left,
+                 newRect->bottom - newRect->top,
+                 SWP_NOACTIVATE);
+    LOG_INFO("DPI changed, window resized to (%d,%d)-(%d,%d)",
+             newRect->left, newRect->top, newRect->right, newRect->bottom);
+    return 0;
+  }
 
   case WM_HOTKEY:
     // Ignore hotkey actions when user is assigning a keybind in settings
