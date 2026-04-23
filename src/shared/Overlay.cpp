@@ -539,7 +539,5 @@ render_done:
                       ULW_ALPHA);
 
   SelectObject(hdcMem, hOld);
-  DeleteObject(hbmMem);
-  DeleteDC(hdcMem);
   ReleaseDC(NULL, hdcScreen);
 }

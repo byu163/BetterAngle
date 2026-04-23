@@ -1,10 +1,10 @@
-Generating release notes from commit range: v5.0.65..HEAD ### BetterAngle Pro v5.0.66
-- Automated build release.
+### BetterAngle Pro v5.0.66
+- fix: resolved GDI handle corruption in high-speed overlay. Fixed issue where debug info and crosshair could disappear after the first frame.
 
 ### BetterAngle Pro v5.0.65
 - perf: implemented "Super High Speed" optimizations. Unrolled pointer arithmetic in scanner, cached GDI resources in overlay, and restored 1000Hz dedicated focus monitor thread.
 
-### BetterAngle Pro v5.0.64
+### BetterAngle Pro v5.0.65
 - chore: restored stable baseline with DPI alignment and high-speed scanner. Fixed build error from focus monitor removal.
 
 ### BetterAngle Pro v5.0.64
