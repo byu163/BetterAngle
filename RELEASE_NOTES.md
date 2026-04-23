@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.8..HEAD ### BetterAngle Pro v5.0.9
+- bs
+
 Generating release notes from commit range: v4.27.251..HEAD ### BetterAngle Pro v5.0.8
 - Bump version to 5.0.7: Disable automatic window movement
 - Bump version to 5.0.6
