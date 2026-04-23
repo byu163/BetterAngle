@@ -52,6 +52,7 @@ struct Profile {
   float crossOffsetY = 0.0f;
   float crossAngle = 0.0f;
   bool crossPulse = false;
+  int screenIndex = 0;
 
   Keybinds keybinds;
   std::vector<CrosshairPreset> crosshairPresets;

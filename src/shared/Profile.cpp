@@ -129,6 +129,7 @@ bool Profile::Load(const std::wstring &path) {
   showCrosshair = extractDouble("showCrosshair") > 0.5;
   if (content.find("\"showCrosshair\"") == std::string::npos)
     showCrosshair = true;
+  screenIndex = (int)extractDouble("screenIndex");
 
   // Load Presets Array (Manual Parser)
   crosshairPresets.clear();
@@ -234,6 +235,7 @@ bool Profile::Save(const std::wstring &path) {
   oss << L"  \"crossOffsetY\": " << crossOffsetY << L",\n";
   oss << L"  \"crossAngle\": " << crossAngle << L",\n";
   oss << L"  \"crossPulse\": " << (crossPulse ? 1 : 0) << L",\n";
+  oss << L"  \"screenIndex\": " << screenIndex << L",\n";
 
   oss << L"  \"crosshairPresets\": [\n";
   for (size_t i = 0; i < crosshairPresets.size(); i++) {

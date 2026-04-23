@@ -4,6 +4,7 @@
 #include "shared/Profile.h"
 #include "shared/State.h"
 #include "shared/Updater.h"
+#include "shared/Overlay.h"
 #include <QGuiApplication>
 #include <QTimer>
 #include <algorithm>
@@ -285,6 +286,33 @@ void BetterAngleBackend::setCrossColor(const QColor &c) {
   }
   SaveSettings();
   emit crosshairChanged();
+}
+
+int BetterAngleBackend::screenIndex() const {
+  if (g_allProfiles.empty())
+    return g_screenIndex;
+  return g_allProfiles[g_selectedProfileIdx].screenIndex;
+}
+
+void BetterAngleBackend::setScreenIndex(int v) {
+  // Clamp to valid screen indices (0 to max screens - 1)
+  int maxIndex = screenCount() - 1;
+  if (maxIndex < 0) maxIndex = 0;
+  int clamped = (v < 0) ? 0 : (v > maxIndex) ? maxIndex : v;
+  g_screenIndex = clamped;
+  g_forceRedraw = true;
+  if (!g_allProfiles.empty()) {
+    Profile &p = g_allProfiles[g_selectedProfileIdx];
+    p.screenIndex = clamped;
+    p.Save(GetProfilesPath() + p.name + L".json");
+  }
+  SaveSettings();
+  emit crosshairChanged();
+  emit screenIndexChanged();
+}
+
+int BetterAngleBackend::screenCount() const {
+  return GetMonitorCount();
 }
 
 QString BetterAngleBackend::versionStr() const {
