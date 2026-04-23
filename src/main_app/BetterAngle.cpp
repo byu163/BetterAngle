@@ -348,6 +348,16 @@ static void ResizeOverlayToVirtualScreen(HWND hWnd) {
   int screenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
   SetWindowPos(hWnd, HWND_TOPMOST, screenX, screenY, screenW, screenH,
                SWP_NOACTIVATE);
+  // Clamp HUD position to stay within the new virtual screen
+  const int HUD_WIDTH = 260;
+  const int HUD_HEIGHT = 150;
+  if (g_hudX + HUD_WIDTH > screenW) g_hudX = screenW - HUD_WIDTH;
+  if (g_hudY + HUD_HEIGHT > screenH) g_hudY = screenH - HUD_HEIGHT;
+  if (g_hudX < 0) g_hudX = 0;
+  if (g_hudY < 0) g_hudY = 0;
+  // Force a redraw to avoid black regions
+  g_forceRedraw = true;
+  InvalidateRect(hWnd, NULL, FALSE);
   LOG_INFO("Overlay resized to virtual screen: %dx%d at (%d,%d)", screenW, screenH, screenX, screenY);
 }
 
@@ -368,10 +378,21 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
   case WM_DPICHANGED: {
     // DPI changed, resize window to new suggested rect
     RECT* const newRect = reinterpret_cast<RECT*>(lParam);
+    int newWidth = newRect->right - newRect->left;
+    int newHeight = newRect->bottom - newRect->top;
     SetWindowPos(hWnd, HWND_TOPMOST, newRect->left, newRect->top,
-                 newRect->right - newRect->left,
-                 newRect->bottom - newRect->top,
+                 newWidth, newHeight,
                  SWP_NOACTIVATE);
+    // Clamp HUD position to stay within the new window area
+    const int HUD_WIDTH = 260;
+    const int HUD_HEIGHT = 150;
+    if (g_hudX + HUD_WIDTH > newWidth) g_hudX = newWidth - HUD_WIDTH;
+    if (g_hudY + HUD_HEIGHT > newHeight) g_hudY = newHeight - HUD_HEIGHT;
+    if (g_hudX < 0) g_hudX = 0;
+    if (g_hudY < 0) g_hudY = 0;
+    // Force a redraw to avoid black regions
+    g_forceRedraw = true;
+    InvalidateRect(hWnd, NULL, FALSE);
     LOG_INFO("DPI changed, window resized to (%d,%d)-(%d,%d)",
              newRect->left, newRect->top, newRect->right, newRect->bottom);
     return 0;
