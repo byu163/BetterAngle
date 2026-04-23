@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.52..HEAD ### BetterAngle Pro v5.0.53
+- Automated build release.
+
 ### BetterAngle Pro v5.0.52
 - fix: resolved issue where moving the application to a secondary monitor caused it to teleport back due to reactive x/y bindings in QML.
 
