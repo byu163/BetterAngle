@@ -1,7 +1,7 @@
-### BetterAngle Pro v5.0.67
-- fix: implemented "Ghost-Buster" targeted movement sync. Automatically synchronizes WASD state after each lock to eliminate character ghosting/sliding.
+### BetterAngle Pro v5.0.68
+- chore: official production release of the Ghost-Buster movement sync system. Ensures smooth movement transitions after input locking.
 
-### BetterAngle Pro v5.0.66
+### BetterAngle Pro v5.0.67
 - fix: resolved GDI handle corruption in high-speed overlay. Fixed issue where debug info and crosshair could disappear after the first frame.
 
 ### BetterAngle Pro v5.0.66
