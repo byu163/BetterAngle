@@ -46,14 +46,6 @@ Window {
                 mainWindow.requestActivate()
             }
         }
-        onScreenIndexChanged: {
-            // Move dashboard to the selected monitor
-            if (backend.screenIndex >= 0 && backend.screenIndex < Qt.application.screens.length) {
-                var screen = Qt.application.screens[backend.screenIndex]
-                mainWindow.x = screen.virtualX + (screen.width - mainWindow.width) / 2
-                mainWindow.y = screen.virtualY + (screen.height - mainWindow.height) / 2
-            }
-        }
     }
 
 

@@ -262,16 +262,6 @@ void BetterAngleBackend::setScreenIndex(int v) {
     p.Save(GetProfilesPath() + p.name + L".json");
   }
   SaveSettings();
-
-  // Snap HUD to the center of the new screen
-  RECT mRect;
-  if (GetMonitorRectByIndex(clamped, mRect)) {
-      int mW = mRect.right - mRect.left;
-      int mH = mRect.bottom - mRect.top;
-      g_hudX = mRect.left + (mW - 260) / 2;
-      g_hudY = mRect.top + (mH - 150) / 2;
-  }
-
   emit crosshairChanged();
   emit screenIndexChanged();
 }
