@@ -55,6 +55,7 @@ extern bool g_updateAvailable;
 extern bool g_isDownloadingUpdate;
 extern bool g_downloadComplete;
 extern std::string g_updateHistory; // e.g. "v4.20.1 → v4.20.55"
+extern int g_screenIndex;
 
 // Keybinds struct moved to Profile.h (v4.20.37)
 void LoadSettings();

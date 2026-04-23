@@ -22,6 +22,7 @@ std::atomic<bool> g_keybindAssignmentActive(false);
 std::atomic<long long> g_detectionDelayMs(0);
 std::atomic<bool> g_showDebugOverlay(false);
 std::atomic<ULONGLONG> g_mouseSuspendedUntil(0);
+int g_screenIndex = 0;
 
 Profile g_currentProfile;
 std::vector<Profile> g_allProfiles;
@@ -111,6 +112,7 @@ void LoadSettings() {
     g_crossPulse = eFloat("crossPulse", 0.0f) > 0.5f;
     g_showCrosshair = eFloat("showCrosshair", 1.0f) > 0.5f;
     g_selectedProfileIdx = eInt("selectedProfileIdx", 0);
+    g_screenIndex = eInt("screenIndex", 0);
 
     size_t vp = content.find("\"lastVersionRun\":\"");
     if (vp != std::string::npos) {
@@ -159,6 +161,7 @@ void SaveSettings() {
   oss << "  \"hudY\": " << g_hudY << ",\n";
   oss << "  \"showCrosshair\": " << (g_showCrosshair ? 1 : 0) << ",\n";
   oss << "  \"selectedProfileIdx\": " << g_selectedProfileIdx << ",\n";
+  oss << "  \"screenIndex\": " << g_screenIndex << ",\n";
 
   oss << "  \"lastVersionRun\":\"" << VERSION_STR << "\",\n";
 
