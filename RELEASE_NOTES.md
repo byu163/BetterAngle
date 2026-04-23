@@ -1,3 +1,94 @@
+Generating release notes from commit range: v4.27.251..HEAD ### BetterAngle Pro v5.0.5
+- Bump version to 5.0.4 for BYU163 release
+- Fix build errors: Define g_screenIndex and update Profile struct
+- Re-apply Alt-Tab and Multi-Monitor fixes to v5.0.1 base
+- chore: official v5.0.0 version bump and release notes
+- chore: bump version to 5.0.0 - major version milestone
+- chore: auto-increment version for release
+- Update LICENSE
+- chore: auto-increment version for release
+- chore: update GitHub links to wavedropmaps-org org
+- chore: auto-increment version for release
+- Revise README for BetterAngle Pro and hardware specs
+- chore: auto-increment version for release
+- build: bump version to 4.27.372 and trigger release
+- chore: auto-increment version for release
+- feat(ui): shorten splash screen and hide HUD during boot
+- chore: auto-increment version for release
+- fix(updater): prevent deletion of AppData during update
+- chore: auto-increment version for release
+- revert: scroll bar changes due to QML root error
+- chore: auto-increment version for release
+- feat: add left-side scroll bars to GENERAL, CROSSHAIR, and DEBUG tabs
+- chore: auto-increment version for release
+- feat: safe switch for ROI selection - prompts show during selection regardless of Fortnite focus
+- chore: auto-increment version for release
+- fix: remove duplicate variable declarations in DetectorThread
+- chore: auto-increment version for release
+- feat: ROI detection and selection prompts now require Fortnite focus
+- chore: auto-increment version for release
+- revert: decimal UI changes back to original behavior
+- fix: properly show HUD after loading screen
+- chore: auto-increment version for release
+- chore: bump version to v4.27.362 with HUD loading fix
+- fix: hide HUD (crosshair overlay) until loading screen completes
+- chore: auto-increment version for release
+- fix: optimize logo rendering quality and launch v4.27.360
+- fix: stabilize restored v4.27.325 and launch v4.27.355
+- feat: add close button to dashboard and launch v4.27.325
+- fix: resolve finishBooting compilation error and launch v4.27.320
+- fix: perfectly synchronize HUD crosshair with loading screen and launch v4.27.315
+- fix: resolve black loading screen by converting loading_3 to true PNG
+- fix: include loading_3.png asset and launch v4.27.301
+- fix: resolve black loading screen and launch v4.27.300
+- fix: resolve black loading screen by registering loading_3 in QRC
+- chore: launch v4.27.295 with full stabilization and 3-variant maps
+- chore: release v4.27.291 with 3-variant maps and HUD sync
+- chore: auto-increment version for v4.27.290 release
+- chore: auto-increment version for release
+- fix: stabilize original Release 282 (purge incompatible QML syntax)
+- chore: auto-increment version for release
+- feat: implement randomized loading screen rotation with 2 variants
+- chore: auto-increment version for release
+- Add resize handles to frameless window
+- chore: auto-increment version for release
+- Fix compilation error for g_keybindAssignmentActive
+- chore: auto-increment version for release
+- feat: block hotkey execution during keybind assignment
+- chore: auto-increment version for release
+- feat: add Pro Tips section to Debug tab
+- chore: auto-increment version for release
+- feat: add quote to Updates tab
+- chore: auto-increment version for release
+- fix: resolve loading bar animation issue
+- chore: auto-increment version for release
+- feat: finalize Splash V14, premium fire loading bar, and brand scrubbing
+- chore: auto-increment version for release
+- v4.27.273: Fully reverted splash to V1 as requested
+- chore: auto-increment version for release
+- v4.27.271: Updated Splash V3 (No Labels) and Sychronized HUD reveal
+- chore: auto-increment version for release
+- v4.27.269: Updated Splash Screen V2 with 'Hard Quote' and enlarged glider
+- chore: auto-increment version for release
+- fix: include crossMod/crossKey in keybindsChanged check
+- chore: auto-increment version for release
+- v4.27.266: Restoring hotkey responsiveness and removing boot gate
+- chore: auto-increment version for release
+- v4.27.264: Final build fix for missing assets
+- chore: auto-increment version for release
+- v4.27.262: Final Splash Screen and Hotkey Fixes
+- chore: auto-increment version for release
+- v4.27.260: Keybind fixes, duplicate protection, and UI synchronization
+- chore: auto-increment version for release
+- Change crosshair thickness slider to integer values 1-10
+- chore: auto-increment version for release
+- Fix crosshair Y-axis movement inversion for intuitive UI
+- chore: auto-increment version for release
+- feat: set default colour match tolerance to 2
+- chore: auto-increment version for release
+- v4.27.255: UI and performance optimization
+- chore: update MahanYTT to v4.27.254 (Synced with byu163 New Tech)
+
 ### BetterAngle Pro v5.0.0
 - Official Major Version 5 Release
 - Consolidated all recent UI performance optimizations
