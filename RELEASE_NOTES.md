@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.62..HEAD ### BetterAngle Pro v5.0.63
+- Automated build release.
+
 ### BetterAngle Pro v5.0.62
 - fix: implemented physical key state resumption in SyncKeyStates. Now automatically "re-presses" any keys you are still holding when the input unblocks, ensuring seamless movement.
 
