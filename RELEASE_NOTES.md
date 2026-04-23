@@ -1,3 +1,21 @@
+Generating release notes from commit range: v4.27.269..HEAD ### BetterAngle Pro v5.0.2
+- Apply crosshair and config window multi-monitor patches and sync with byu163
+- Restore version to 5.0.1 for brand new release
+- chore: auto-increment version for release
+- Increase alt-tab physical mouse lock duration to 1.6s
+- chore: auto-increment version for release
+- Increase alt-tab physical mouse lock duration to 1.5s
+- chore: auto-increment version for release
+- Increase alt-tab physical mouse lock duration to 1.0s
+- chore: auto-increment version for release
+- Fix alt-tab desync: Actually lock physical mouse input for 0.5s instead of artificially suspending the angle tracker
+- chore: auto-increment version for release
+- Fix updater wiping settings and lock input for 0.5s after alt-tabbing to prevent desync
+- chore: auto-increment version for release
+- Fix alt-tab responsiveness: Add ultra-fast HWND caching and restore 500ms grace period for angle updates
+- chore: auto-increment version for release
+- Fix project: Sync with byu163/main and update version to 5.0.4
+
 Generating release notes from commit range: v5.0.10..HEAD ### BetterAngle Pro v5.0.11
 - Increase alt-tab physical mouse lock duration to 1.6s
 
