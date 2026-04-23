@@ -1,4 +1,7 @@
-Generating release notes from commit range: v5.0.42..HEAD ### BetterAngle Pro v5.0.43
+### BetterAngle Pro v5.0.43
+- feat: implemented robust Multi-Monitor selection support
+- feat: added "Active Game Monitor" dropdown to Dashboard settings
+- fix: ROI coordinates are now correctly remapped to the selected monitor
 - Automated build release.
 
 ### BetterAngle Pro v5.0.42
