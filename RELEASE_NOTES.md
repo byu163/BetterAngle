@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.2..HEAD ### BetterAngle Pro v5.0.3
+- Restore missing Startup Splash Loading Screen
+
 Generating release notes from commit range: v4.27.269..HEAD ### BetterAngle Pro v5.0.2
 - Apply crosshair and config window multi-monitor patches and sync with byu163
 - Restore version to 5.0.1 for brand new release
