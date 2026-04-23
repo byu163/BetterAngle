@@ -105,6 +105,43 @@ Item {
                         }
                     }
 
+                    Text { text: "SCREEN SELECTION"; color: "#666"; font.pixelSize: 11; font.bold: true; topPadding: 10 }
+                    ComboBox {
+                        id: screenCombo
+                        width: parent.width
+                        model: backend.screenCount
+                        currentIndex: backend.screenIndex
+                        onActivated: backend.screenIndex = index
+                        
+                        delegate: ItemDelegate {
+                            width: screenCombo.width
+                            contentItem: Text {
+                                text: "Monitor " + (index + 1)
+                                color: "white"
+                                font.pixelSize: 13
+                                verticalAlignment: Text.AlignVCenter
+                            }
+                            background: Rectangle {
+                                color: highlighted ? "#2a2a3e" : "#1a1a2e"
+                            }
+                        }
+
+                        contentItem: Text {
+                            text: "Monitor " + (screenCombo.currentIndex + 1)
+                            color: "white"
+                            font.pixelSize: 14
+                            verticalAlignment: Text.AlignVCenter
+                            leftPadding: 10
+                        }
+
+                        background: Rectangle {
+                            color: "#1c1c2e"
+                            radius: 4
+                            border.color: "#333"
+                            border.width: 1
+                        }
+                    }
+
 
 
                     Text { text: "TRIGGER CALIBRATION (%)"; color: "#666"; font.pixelSize: 12; topPadding: 10 }

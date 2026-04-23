@@ -556,7 +556,7 @@ LRESULT CALLBACK HUDWndProc(HWND hWnd, UINT message, WPARAM wParam,
       if (nowFnFocus && !lastFnFocus) {
           std::thread([]() {
               BlockInput(TRUE);
-              Sleep(1600);
+              Sleep(1650);
               BlockInput(FALSE);
           }).detach();
       }
