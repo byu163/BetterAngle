@@ -1,3 +1,6 @@
+Generating release notes from commit range: v5.0.56..HEAD ### BetterAngle Pro v5.0.57
+- Automated build release.
+
 ### BetterAngle Pro v5.0.56
 - feat: implemented a high-frequency (1000Hz) dedicated focus monitoring thread for lightning-fast Fortnite detection and near-instant input locking on Alt-Tab return.
 
